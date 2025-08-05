@@ -1,12 +1,44 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Form, Input, Button, Typography, message } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 import { signUpWithEmail } from '../../services/authService';
 import { updateProfile } from 'firebase/auth';
 
-const { Title, Link } = Typography;
+const { Title, Link, Text } = Typography;
+
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const gradientAnimation = keyframes`
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+`;
+
+const shimmer = keyframes`
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+`;
 
 const RegisterPageWrapper = styled.div`
   display: flex;

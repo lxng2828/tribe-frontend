@@ -151,7 +151,7 @@ const Navbar = () => {
                         >
                             <img
                                 src={user?.avatar || 'https://via.placeholder.com/40'}
-                                alt={user?.fullName || 'User'}
+                                alt={user?.fullName || user?.displayName || user?.username || 'User'}
                                 className="profile-pic-fb"
                             />
                         </button>
@@ -173,7 +173,7 @@ const Navbar = () => {
                                     />
                                     <div>
                                         <div className="fw-bold" style={{ color: 'var(--fb-text)' }}>
-                                            {user?.fullName || 'Người dùng'}
+                                            {user?.fullName || user?.displayName || user?.username || 'Người dùng'}
                                         </div>
                                         <div className="text-muted small">{user?.email}</div>
                                     </div>

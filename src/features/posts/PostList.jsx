@@ -1,19 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import PostItem from './PostItem';
 import postService from './postService';
+import { useAuth } from '../../contexts/AuthContext';
 
-const PostList = () => {
+const PostList = forwardRef((props, ref) => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         loadPosts();
     }, []);
 
-    const loadPosts = async (pageNumber = 1, reset = false) => {
+    // Expose refresh method to parent
+    useImperativeHandle(ref, () => ({
+        refreshPosts: () => loadPosts(0, true)
+    }));
+
+    const loadPosts = async (pageNumber = 0, reset = false) => {
         try {
             setLoading(true);
             const response = await postService.getPosts(pageNumber);
@@ -54,6 +61,16 @@ const PostList = () => {
     };
 
     const handleDelete = async (postId) => {
+        const post = posts.find(p => p.id === postId);
+        if (!post) return;
+
+        // Check if user can delete this post
+        const canDelete = post.author?.id === user?.id || post.isOwner;
+        if (!canDelete) {
+            alert('Bạn không có quyền xóa bài viết này!');
+            return;
+        }
+
         const confirmed = window.confirm('Bạn có chắc chắn muốn xóa bài viết này?');
         if (!confirmed) return;
 
@@ -62,10 +79,11 @@ const PostList = () => {
             setPosts(prev => prev.filter(post => post.id !== postId));
         } catch (err) {
             console.error('Lỗi khi xóa bài viết:', err);
+            alert('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại.');
         }
     };
 
-    const handleRefresh = () => loadPosts(1, true);
+    const handleRefresh = () => loadPosts(0, true);
 
     const renderError = () => (
         <div className="card-fb p-4 text-center">
@@ -150,6 +168,8 @@ const PostList = () => {
             {!loading && !hasMore && posts.length > 0 && renderNoMorePosts()}
         </div>
     );
-};
+});
+
+PostList.displayName = 'PostList';
 
 export default PostList;

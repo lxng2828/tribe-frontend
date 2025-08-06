@@ -1,8 +1,13 @@
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PostItem = ({ post, onLike, onDelete }) => {
     const [showComments, setShowComments] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
+    const { user } = useAuth();
+
+    // Check if current user can edit/delete this post
+    const canModify = post.author?.id === user?.id || post.isOwner;
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -53,7 +58,7 @@ const PostItem = ({ post, onLike, onDelete }) => {
                                 </svg>
                                 <svg width="12" height="12" fill="currentColor"
                                     style={{ color: 'var(--fb-text-secondary)' }}>
-                                    <path d="M12 2.04C12 .92 11.08.006 10 .006 8.92.006 8 .92 8 2.04c0 1.12.92 2.034 2 2.034 1.08 0 2-.914 2-2.034zM8.5 8.5a.5.5 0 0 0-.5.5v.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-.5a.5.5 0 0 0-.5-.5h-3z" />
+                                    <path d="M12 1a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2z" />
                                 </svg>
                             </div>
                         </div>
@@ -89,11 +94,11 @@ const PostItem = ({ post, onLike, onDelete }) => {
                                 }}>
                                 <button className="dropdown-item" style={{ borderRadius: '6px', margin: '4px 8px' }}>
                                     <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M5 12h14" />
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                                     </svg>
                                     Lưu bài viết
                                 </button>
-                                {post.isOwner && (
+                                {canModify && (
                                     <>
                                         <button className="dropdown-item" style={{ borderRadius: '6px', margin: '4px 8px' }}>
                                             <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -114,6 +119,14 @@ const PostItem = ({ post, onLike, onDelete }) => {
                                             Xóa bài viết
                                         </button>
                                     </>
+                                )}
+                                {!canModify && (
+                                    <button className="dropdown-item" style={{ borderRadius: '6px', margin: '4px 8px' }}>
+                                        <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                        Báo cáo bài viết
+                                    </button>
                                 )}
                             </div>
                         )}

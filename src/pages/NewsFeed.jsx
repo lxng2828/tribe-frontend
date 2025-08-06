@@ -1,21 +1,15 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 
 const NewsFeed = () => {
-    const [posts, setPosts] = useState([]);
+    const postListRef = useRef(null);
 
     const handlePostCreate = (newPost) => {
-        // Add new post to the beginning of the list
-        setPosts(prev => [{
-            id: Date.now(),
-            ...newPost,
-            likesCount: 0,
-            commentsCount: 0,
-            liked: false,
-            isOwner: true,
-            comments: []
-        }, ...prev]);
+        // Refresh the PostList after creating a new post
+        if (postListRef.current) {
+            postListRef.current.refreshPosts();
+        }
     };
 
     return (
@@ -91,7 +85,7 @@ const NewsFeed = () => {
             <CreatePost onPostCreate={handlePostCreate} />
 
             {/* News Feed */}
-            <PostList />
+            <PostList ref={postListRef} />
         </div>
     );
 };

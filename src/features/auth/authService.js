@@ -5,22 +5,36 @@ class AuthService {
     async login(credentials) {
         try {
             const response = await api.post('/auth/login', credentials);
-            const { status, data: token } = response.data;
+            const { status, data } = response.data;
 
             if (status.success) {
+                const token = data.token || data;
+
                 // Lưu token vào localStorage
                 localStorage.setItem('token', token);
 
-                // Giải mã phần payload của JWT (Base64URL Decode)
-                const payloadBase64 = token.split('.')[1];
-                const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-                const decoded = JSON.parse(payloadJson);
+                // Lấy thông tin user từ API hoặc decode JWT
+                let userInfo;
+                if (data.user) {
+                    userInfo = data.user;
+                } else {
+                    // Giải mã phần payload của JWT (Base64URL Decode)
+                    try {
+                        const payloadBase64 = token.split('.')[1];
+                        const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+                        const decoded = JSON.parse(payloadJson);
 
-                const userInfo = {
-                    id: decoded.id,
-                    username: decoded.name,
-                    email: decoded.email
-                };
+                        userInfo = {
+                            id: decoded.id || decoded.userId || decoded.sub,
+                            username: decoded.name || decoded.username,
+                            email: decoded.email,
+                            fullName: decoded.fullName || decoded.displayName || decoded.name
+                        };
+                    } catch (jwtError) {
+                        // Nếu không decode được JWT, lấy thông tin từ API
+                        userInfo = await this.getCurrentUserInfo();
+                    }
+                }
 
                 // Lưu user info vào localStorage
                 localStorage.setItem('user', JSON.stringify(userInfo));
@@ -39,14 +53,42 @@ class AuthService {
     async register(userData) {
         try {
             const response = await api.post('/auth/register', userData);
-            const { status } = response.data;
+            const { status, data } = response.data;
 
             if (status.success) {
-                // Đăng ký thành công → Tự động đăng nhập
-                return await this.login({
-                    email: userData.email,
-                    password: userData.password
-                });
+                // Nếu đăng ký trả về token luôn
+                if (data.token) {
+                    const token = data.token;
+                    localStorage.setItem('token', token);
+
+                    let userInfo = data.user;
+                    if (!userInfo) {
+                        // Giải mã JWT hoặc lấy từ API
+                        try {
+                            const payloadBase64 = token.split('.')[1];
+                            const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+                            const decoded = JSON.parse(payloadJson);
+
+                            userInfo = {
+                                id: decoded.id || decoded.userId || decoded.sub,
+                                username: decoded.name || decoded.username,
+                                email: decoded.email,
+                                fullName: decoded.fullName || decoded.displayName || decoded.name
+                            };
+                        } catch (jwtError) {
+                            userInfo = await this.getCurrentUserInfo();
+                        }
+                    }
+
+                    localStorage.setItem('user', JSON.stringify(userInfo));
+                    return { token, user: userInfo };
+                } else {
+                    // Đăng ký thành công → Tự động đăng nhập
+                    return await this.login({
+                        email: userData.email,
+                        password: userData.password
+                    });
+                }
             } else {
                 throw new Error(status.displayMessage || 'Đăng ký thất bại');
             }

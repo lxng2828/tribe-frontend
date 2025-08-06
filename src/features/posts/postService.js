@@ -3,41 +3,48 @@ import api from '../../services/api';
 class PostService {
     // Lấy danh sách bài viết
     async getPosts(page = 0, size = 20) {
-    try {
-        const response = await api.get(`/posts/all`, {
-            params: { page, size }
-        });
+        try {
+            const response = await api.get(`/posts/all`, {
+                params: { page, size }
+            });
 
-        const { status, data } = response.data;
-        console.log('API Response:', response.data);
+            const { status, data } = response.data;
+            console.log('API Response:', response.data);
 
-        if (status.success) {
-            const posts = data.map(post => ({
-                id: post.id,
-                user: post.user,
-                content: post.content,
-                visibility: post.visibility,
-                createdAt: post.createdAt,
-                updatedAt: post.updatedAt,
-                likesCount: post.reactionCount,
-                commentCount: post.commentCount,
-                liked: post.reactions.some(r => r.liked === true), // Hoặc điều kiện check phù hợp
-                mediaUrls: post.mediaUrls
-            }));
+            if (status.success) {
+                const posts = data.map(post => ({
+                    id: post.id,
+                    content: post.content,
+                    author: {
+                        id: post.user?.id,
+                        name: post.user?.displayName || post.user?.username || 'Người dùng',
+                        avatar: post.user?.avatar || 'https://via.placeholder.com/40'
+                    },
+                    visibility: post.visibility,
+                    createdAt: post.createdAt,
+                    updatedAt: post.updatedAt,
+                    likesCount: post.reactionCount || 0,
+                    commentsCount: post.commentCount || 0,
+                    liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
+                    mediaUrls: post.mediaUrls || [],
+                    images: post.mediaUrls || [],
+                    isOwner: post.isOwner || false,
+                    comments: []
+                }));
 
-            return {
-                posts,
-                hasMore: data.length === size,
-                total: null // Nếu API có total thì lấy ra
-            };
-        } else {
-            throw new Error(status.displayMessage || 'Lỗi khi tải bài viết');
+                return {
+                    posts,
+                    hasMore: data.length === size,
+                    total: null // Nếu API có total thì lấy ra
+                };
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi tải bài viết');
+            }
+        } catch (error) {
+            console.error('API Error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tải bài viết');
         }
-    } catch (error) {
-        console.error('API Error:', error);
-        throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tải bài viết');
     }
-}
 
 
     // Lấy chi tiết một bài viết
@@ -56,6 +63,10 @@ class PostService {
             const formData = new FormData();
             formData.append('content', postData.content);
 
+            if (postData.visibility) {
+                formData.append('visibility', postData.visibility);
+            }
+
             if (postData.images?.length) {
                 postData.images.forEach(image => {
                     formData.append('images', image);
@@ -65,9 +76,16 @@ class PostService {
             const response = await api.post('/posts', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            return response.data;
+
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi tạo bài viết');
+            console.error('Create post error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tạo bài viết');
         }
     }
 
@@ -84,10 +102,16 @@ class PostService {
     // Xóa bài viết
     async deletePost(postId) {
         try {
-            await api.delete(`/posts/${postId}`);
-            return true;
+            const response = await api.delete(`/posts/${postId}`);
+            const { status } = response.data;
+            if (status.success) {
+                return true;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi xóa bài viết');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi xóa bài viết');
+            console.error('Delete post error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi xóa bài viết');
         }
     }
 
@@ -95,9 +119,15 @@ class PostService {
     async toggleLike(postId) {
         try {
             const response = await api.post(`/posts/${postId}/like`);
-            return response.data;
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi thích bài viết');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi thích bài viết');
+            console.error('Toggle like error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi thích bài viết');
         }
     }
 

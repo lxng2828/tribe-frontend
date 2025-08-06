@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
-    fullName: Yup.string()
+    displayName: Yup.string()
         .min(2, 'Họ tên phải có ít nhất 2 ký tự')
         .required('Vui lòng nhập họ tên'),
     email: Yup.string()
@@ -17,6 +17,9 @@ const validationSchema = Yup.object({
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password'), null], 'Mật khẩu xác nhận không khớp')
         .required('Vui lòng xác nhận mật khẩu'),
+    phoneNumber: Yup.string()
+        .matches(/^\+?[0-9]{7,15}$/, 'Số điện thoại không hợp lệ')
+        .required('Vui lòng nhập số điện thoại'),
     agreeTerms: Yup.boolean()
         .oneOf([true], 'Bạn phải đồng ý với điều khoản dịch vụ')
 });
@@ -26,195 +29,257 @@ const RegisterPage = () => {
     const { register } = useAuth();
 
     return (
-        <div className="min-vh-100 bg-gradient-custom d-flex align-items-center justify-content-center py-5">
+        <div className="min-vh-100 d-flex align-items-center justify-content-center py-5 register-page">
             <div className="container">
-                <div className="row justify-content-center">
-                    <div className="col-md-6 col-lg-5">
-                        {/* Logo và Header */}
-                        <div className="text-center mb-4">
-                            <div className="mx-auto bg-primary rounded-3 d-flex align-items-center justify-content-center mb-3"
-                                style={{ width: '64px', height: '64px' }}>
-                                <img
-                                    className="img-fluid"
-                                    src="/src/assets/images/primary_logo.png"
-                                    alt="Tribe"
-                                    style={{ filter: 'brightness(0) invert(1)', height: '40px' }}
-                                />
+                <div className="row align-items-center justify-content-center">
+                    {/* Left Side - Branding (giống LoginPage) */}
+                    <div className="col-lg-6 mb-5 mb-lg-0">
+                        <div className="text-center text-lg-start animate-fade-in-left">
+                            <div className="brand-section mb-4">
+                                <div className="logo-container mb-3">
+                                    <div className="logo-circle">
+                                        <span className="logo-text">T</span>
+                                    </div>
+                                </div>
+                                <h1 className="display-3 fw-bold mb-3 text-gradient">
+                                    tribe
+                                </h1>
                             </div>
-                            <h2 className="h3 fw-bold text-dark mb-2">
-                                Tạo tài khoản mới
-                            </h2>
-                            <p className="text-muted">
-                                Tham gia cộng đồng Tribe ngay hôm nay
+                            <p className="lead fs-3 mb-4 text-white opacity-90">
+                                Kết nối với bạn bè và thế giới xung quanh bạn trên Tribe.
                             </p>
+                            <div className="features-list">
+                                <div className="feature-item">
+                                    <div className="feature-icon">
+                                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                    </div>
+                                    <span>Chia sẻ khoảnh khắc với bạn bè</span>
+                                </div>
+                                <div className="feature-item">
+                                    <div className="feature-icon">
+                                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                    </div>
+                                    <span>Khám phá những điều mới mẻ</span>
+                                </div>
+                                <div className="feature-item">
+                                    <div className="feature-icon">
+                                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                    </div>
+                                    <span>Xây dựng cộng đồng của riêng bạn</span>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        {/* Form Card */}
-                        <div className="card card-custom animate-fade-in-up">
-                            <div className="card-body p-4">
-                                <Formik
-                                    initialValues={{
-                                        fullName: '',
-                                        email: '',
-                                        password: '',
-                                        confirmPassword: '',
-                                        agreeTerms: false
-                                    }}
-                                    validationSchema={validationSchema}
-                                    onSubmit={async (values, { setSubmitting, setStatus }) => {
-                                        try {
-                                            setStatus(null);
-                                            const { confirmPassword, agreeTerms, ...registerData } = values;
-                                            const result = await register(registerData);
+                    {/* Right Side - Register Form (giống LoginPage) */}
+                    <div className="col-lg-4">
+                        <div className="register-card animate-fade-in-right">
+                            <div className="card-header text-center mb-4">
+                                <h2 className="h3 fw-bold text-white mb-2">Tạo tài khoản mới</h2>
+                                <p className="text-white opacity-75">Tham gia cộng đồng Tribe ngay hôm nay</p>
+                            </div>
+                            <Formik
+                                initialValues={{
+                                    displayName: '',
+                                    email: '',
+                                    password: '',
+                                    confirmPassword: '',
+                                    phoneNumber: '',
+                                    agreeTerms: false
+                                }}
+                                validationSchema={validationSchema}
+                                onSubmit={async (values, { setSubmitting, setStatus }) => {
+                                    try {
+                                        setStatus(null);
+                                        const { confirmPassword, agreeTerms, ...registerData } = values;
+                                        const result = await register(registerData);
 
-                                            if (result.success) {
-                                                navigate('/', { replace: true });
-                                            } else {
-                                                setStatus(result.error);
-                                            }
-                                        } catch (error) {
-                                            setStatus('Đăng ký thất bại. Vui lòng thử lại.');
-                                        } finally {
-                                            setSubmitting(false);
+                                        if (result.success) {
+                                            navigate('/', { replace: true });
+                                        } else {
+                                            setStatus(result.error);
                                         }
-                                    }}
-                                >
-                                    {({ errors, touched, isSubmitting, status }) => (
-                                        <Form>
-                                            {/* Error Alert */}
-                                            {status && (
-                                                <div className="alert alert-danger d-flex align-items-center mb-4" role="alert">
-                                                    <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                                    } catch (error) {
+                                        setStatus(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                                    } finally {
+                                        setSubmitting(false);
+                                    }
+                                }}
+                            >
+                                {({ errors, touched, isSubmitting, status }) => (
+                                    <Form>
+                                        {/* Error Alert */}
+                                        {status && (
+                                            <div className="alert-custom alert-danger mb-4" role="alert">
+                                                <div className="alert-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                                     </svg>
-                                                    <div>{status}</div>
                                                 </div>
-                                            )}
+                                                <div className="alert-message">{status}</div>
+                                            </div>
+                                        )}
 
-                                            {/* Full Name Field */}
-                                            <div className="mb-3">
-                                                <label htmlFor="fullName" className="form-label fw-semibold">
-                                                    Họ và tên <span className="text-danger">*</span>
-                                                </label>
+                                        {/* Full Name Field */}
+                                        <div className="form-group mb-3">
+                                            <div className="input-wrapper">
+                                                <div className="input-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                                    </svg>
+                                                </div>
                                                 <Field
-                                                    id="fullName"
-                                                    name="fullName"
+                                                    id="displayName"
+                                                    name="displayName"
                                                     type="text"
                                                     placeholder="Nhập họ và tên"
-                                                    className={`form-control form-control-custom ${errors.fullName && touched.fullName ? 'form-control-error' : ''
-                                                        }`}
+                                                    className={`form-control-custom ${errors.displayName && touched.displayName ? 'is-invalid' : ''}`}
                                                 />
-                                                <ErrorMessage name="fullName" component="div" className="invalid-feedback d-block">
-                                                </ErrorMessage>
                                             </div>
+                                            <ErrorMessage name="displayName" component="div" className="error-message" />
+                                        </div>
 
-                                            {/* Email Field */}
-                                            <div className="mb-3">
-                                                <label htmlFor="email" className="form-label fw-semibold">
-                                                    Email <span className="text-danger">*</span>
-                                                </label>
+                                        {/* Email Field */}
+                                        <div className="form-group mb-3">
+                                            <div className="input-wrapper">
+                                                <div className="input-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                                    </svg>
+                                                </div>
                                                 <Field
                                                     id="email"
                                                     name="email"
                                                     type="email"
                                                     placeholder="Nhập email của bạn"
-                                                    className={`form-control form-control-custom ${errors.email && touched.email ? 'form-control-error' : ''
-                                                        }`}
+                                                    className={`form-control-custom ${errors.email && touched.email ? 'is-invalid' : ''}`}
                                                 />
-                                                <ErrorMessage name="email" component="div" className="invalid-feedback d-block">
-                                                </ErrorMessage>
                                             </div>
+                                            <ErrorMessage name="email" component="div" className="error-message" />
+                                        </div>
 
-                                            {/* Password Field */}
-                                            <div className="mb-3">
-                                                <label htmlFor="password" className="form-label fw-semibold">
-                                                    Mật khẩu <span className="text-danger">*</span>
-                                                </label>
+                                        {/* Password Field */}
+                                        <div className="form-group mb-3">
+                                            <div className="input-wrapper">
+                                                <div className="input-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                                    </svg>
+                                                </div>
                                                 <Field
                                                     id="password"
                                                     name="password"
                                                     type="password"
                                                     placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
-                                                    className={`form-control form-control-custom ${errors.password && touched.password ? 'form-control-error' : ''
-                                                        }`}
+                                                    className={`form-control-custom ${errors.password && touched.password ? 'is-invalid' : ''}`}
                                                 />
-                                                <ErrorMessage name="password" component="div" className="invalid-feedback d-block">
-                                                </ErrorMessage>
                                             </div>
+                                            <ErrorMessage name="password" component="div" className="error-message" />
+                                        </div>
 
-                                            {/* Confirm Password Field */}
-                                            <div className="mb-3">
-                                                <label htmlFor="confirmPassword" className="form-label fw-semibold">
-                                                    Xác nhận mật khẩu <span className="text-danger">*</span>
-                                                </label>
+                                        {/* Confirm Password Field */}
+                                        <div className="form-group mb-3">
+                                            <div className="input-wrapper">
+                                                <div className="input-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                                                    </svg>
+                                                </div>
                                                 <Field
                                                     id="confirmPassword"
                                                     name="confirmPassword"
                                                     type="password"
                                                     placeholder="Nhập lại mật khẩu"
-                                                    className={`form-control form-control-custom ${errors.confirmPassword && touched.confirmPassword ? 'form-control-error' : ''
-                                                        }`}
+                                                    className={`form-control-custom ${errors.confirmPassword && touched.confirmPassword ? 'is-invalid' : ''}`}
                                                 />
-                                                <ErrorMessage name="confirmPassword" component="div" className="invalid-feedback d-block">
-                                                </ErrorMessage>
                                             </div>
+                                            <ErrorMessage name="confirmPassword" component="div" className="error-message" />
+                                        </div>
 
-                                            {/* Terms Agreement */}
-                                            <div className="form-check mb-3">
+                                        {/* Phone Number Field */}
+                                        <div className="form-group mb-3">
+                                            <div className="input-wrapper">
+                                                <div className="input-icon">
+                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                                    </svg>
+                                                </div>
+                                                <Field
+                                                    id="phoneNumber"
+                                                    name="phoneNumber"
+                                                    type="text"
+                                                    placeholder="Nhập số điện thoại"
+                                                    className={`form-control-custom ${errors.phoneNumber && touched.phoneNumber ? 'is-invalid' : ''}`}
+                                                />
+                                            </div>
+                                            <ErrorMessage name="phoneNumber" component="div" className="error-message" />
+                                        </div>
+
+                                        {/* Terms Agreement */}
+                                        <div className="form-group mb-4">
+                                            <div className="terms-checkbox">
                                                 <Field
                                                     id="agreeTerms"
                                                     name="agreeTerms"
                                                     type="checkbox"
-                                                    className="form-check-input"
+                                                    className="form-check-input-custom"
                                                 />
-                                                <label className="form-check-label" htmlFor="agreeTerms">
+                                                <label className="form-check-label-custom" htmlFor="agreeTerms">
                                                     Tôi đồng ý với{' '}
-                                                    <a href="#" className="text-primary text-decoration-none fw-medium">
+                                                    <a href="#" className="terms-link">
                                                         Điều khoản dịch vụ
                                                     </a>{' '}
                                                     và{' '}
-                                                    <a href="#" className="text-primary text-decoration-none fw-medium">
+                                                    <a href="#" className="terms-link">
                                                         Chính sách bảo mật
                                                     </a>
                                                 </label>
-                                                <ErrorMessage name="agreeTerms" component="div" className="invalid-feedback d-block">
-                                                </ErrorMessage>
                                             </div>
+                                            <ErrorMessage name="agreeTerms" component="div" className="error-message" />
+                                        </div>
 
-                                            {/* Submit Button */}
-                                            <div className="d-grid mb-4">
-                                                <button
-                                                    type="submit"
-                                                    disabled={isSubmitting}
-                                                    className="btn btn-gradient btn-custom"
+                                        {/* Submit Button */}
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="btn-login w-100 mb-4"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                                                    Đang đăng ký...
+                                                </>
+                                            ) : (
+                                                'Đăng ký'
+                                            )}
+                                        </button>
+
+                                        {/* Divider */}
+                                        <div className="divider mb-4">
+                                            <span>hoặc</span>
+                                        </div>
+
+                                        {/* Login Link */}
+                                        <div className="text-center">
+                                            <span className="text-white opacity-75">
+                                                Đã có tài khoản?{' '}
+                                                <Link
+                                                    to="/login"
+                                                    className="btn-register"
                                                 >
-                                                    {isSubmitting ? (
-                                                        <>
-                                                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                            Đang đăng ký...
-                                                        </>
-                                                    ) : (
-                                                        'Đăng ký'
-                                                    )}
-                                                </button>
-                                            </div>
-
-                                            {/* Login Link */}
-                                            <div className="text-center pt-3 border-top">
-                                                <span className="text-muted">
-                                                    Đã có tài khoản?{' '}
-                                                    <Link
-                                                        to="/login"
-                                                        className="text-primary text-decoration-none fw-semibold"
-                                                    >
-                                                        Đăng nhập ngay
-                                                    </Link>
-                                                </span>
-                                            </div>
-                                        </Form>
-                                    )}
-                                </Formik>
-                            </div>
+                                                    Đăng nhập ngay
+                                                </Link>
+                                            </span>
+                                        </div>
+                                    </Form>
+                                )}
+                            </Formik>
                         </div>
                     </div>
                 </div>

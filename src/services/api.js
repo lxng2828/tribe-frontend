@@ -1,9 +1,7 @@
 import axios from 'axios';
-import mockApi from './mockApi';
 
-// Base URL cho API - thay đổi theo environment của bạn
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-const USE_MOCK_API = import.meta.env.VITE_USE_MOCK_API !== 'false'; // Mặc định sử dụng mock API
+// Base URL cho API - kết nối với Spring Boot backend
+const BASE_URL = 'http://localhost:8080/api'; // Thay đổi port nếu cần
 
 // Tạo axios instance
 const api = axios.create({
@@ -42,10 +40,7 @@ api.interceptors.response.use(
 
             try {
                 // Thử refresh token
-                const response = USE_MOCK_API
-                    ? await mockApi.post('/auth/refresh')
-                    : await api.post('/auth/refresh');
-
+                const response = await api.post('/auth/refresh');
                 const { token } = response.data;
 
                 localStorage.setItem('token', token);
@@ -63,15 +58,5 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-// Override post method để sử dụng mock API khi cần
-const originalPost = api.post.bind(api);
-api.post = function (url, data, config) {
-    // Sử dụng mock API cho auth endpoints trong development
-    if (USE_MOCK_API && url.startsWith('/auth/')) {
-        return mockApi.post(url, data);
-    }
-    return originalPost(url, data, config);
-};
 
 export default api;

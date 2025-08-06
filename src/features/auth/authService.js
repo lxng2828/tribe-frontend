@@ -5,25 +5,33 @@ class AuthService {
     async login(credentials) {
         try {
             const response = await api.post('/auth/login', credentials);
-            const { status, data } = response.data;
+            const { status, data: token } = response.data;
 
             if (status.success) {
                 // Lưu token vào localStorage
-                localStorage.setItem('token', data);
-                
-                // Lấy thông tin user từ token hoặc gọi API riêng
-                const userInfo = await this.getCurrentUserInfo();
+                localStorage.setItem('token', token);
+
+                // Giải mã phần payload của JWT (Base64URL Decode)
+                const payloadBase64 = token.split('.')[1];
+                const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
+                const decoded = JSON.parse(payloadJson);
+
+                const userInfo = {
+                    id: decoded.id,
+                    username: decoded.name,
+                    email: decoded.email
+                };
+
+                // Lưu user info vào localStorage
                 localStorage.setItem('user', JSON.stringify(userInfo));
 
-                return { token: data, user: userInfo };
+                return { token, user: userInfo };
             } else {
                 throw new Error(status.displayMessage || 'Đăng nhập thất bại');
             }
         } catch (error) {
-            if (error.response?.data?.status) {
-                throw new Error(error.response.data.status.displayMessage || 'Đăng nhập thất bại');
-            }
-            throw new Error(error.message || 'Đăng nhập thất bại');
+            const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng nhập thất bại';
+            throw new Error(message);
         }
     }
 
@@ -31,10 +39,10 @@ class AuthService {
     async register(userData) {
         try {
             const response = await api.post('/auth/register', userData);
-            const { status, data } = response.data;
+            const { status } = response.data;
 
             if (status.success) {
-                // Sau khi đăng ký thành công, tự động đăng nhập
+                // Đăng ký thành công → Tự động đăng nhập
                 return await this.login({
                     email: userData.email,
                     password: userData.password
@@ -43,10 +51,8 @@ class AuthService {
                 throw new Error(status.displayMessage || 'Đăng ký thất bại');
             }
         } catch (error) {
-            if (error.response?.data?.status) {
-                throw new Error(error.response.data.status.displayMessage || 'Đăng ký thất bại');
-            }
-            throw new Error(error.message || 'Đăng ký thất bại');
+            const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại';
+            throw new Error(message);
         }
     }
 
@@ -57,31 +63,32 @@ class AuthService {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
+            // Xóa token & user khỏi localStorage
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            // Redirect to login page
+
+            // Chuyển về trang login
             window.location.href = '/login';
         }
     }
 
-    // Kiểm tra trạng thái đăng nhập
+    // Kiểm tra có đang đăng nhập không
     isAuthenticated() {
-        const token = localStorage.getItem('token');
-        return !!token;
+        return !!localStorage.getItem('token');
     }
 
-    // Lấy thông tin user hiện tại
+    // Lấy user từ localStorage
     getCurrentUser() {
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
     }
 
-    // Lấy thông tin user từ server
+    // Lấy user info từ server (nếu cần)
     async getCurrentUserInfo() {
         try {
             const response = await api.get('/auth/me');
             const { status, data } = response.data;
-            
+
             if (status.success) {
                 return data;
             } else {
@@ -93,7 +100,7 @@ class AuthService {
         }
     }
 
-    // Lấy token
+    // Lấy token từ localStorage
     getToken() {
         return localStorage.getItem('token');
     }
@@ -110,10 +117,8 @@ class AuthService {
                 throw new Error(status.displayMessage || 'Gửi email thất bại');
             }
         } catch (error) {
-            if (error.response?.data?.status) {
-                throw new Error(error.response.data.status.displayMessage || 'Gửi email thất bại');
-            }
-            throw new Error(error.message || 'Gửi email thất bại');
+            const message = error.response?.data?.status?.displayMessage || error.message || 'Gửi email thất bại';
+            throw new Error(message);
         }
     }
 
@@ -129,10 +134,8 @@ class AuthService {
                 throw new Error(status.displayMessage || 'Đặt lại mật khẩu thất bại');
             }
         } catch (error) {
-            if (error.response?.data?.status) {
-                throw new Error(error.response.data.status.displayMessage || 'Đặt lại mật khẩu thất bại');
-            }
-            throw new Error(error.message || 'Đặt lại mật khẩu thất bại');
+            const message = error.response?.data?.status?.displayMessage || error.message || 'Đặt lại mật khẩu thất bại';
+            throw new Error(message);
         }
     }
 }

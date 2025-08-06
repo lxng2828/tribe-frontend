@@ -2,18 +2,43 @@ import api from '../../services/api';
 
 class PostService {
     // Lấy danh sách bài viết
-    async getPosts(page = 1, limit = 10) {
-        try {
-            const response = await api.get(`/posts?page=${page}&limit=${limit}`);
+    async getPosts(page = 0, size = 20) {
+    try {
+        const response = await api.get(`/posts/all`, {
+            params: { page, size }
+        });
+
+        const { status, data } = response.data;
+        console.log('API Response:', response.data);
+
+        if (status.success) {
+            const posts = data.map(post => ({
+                id: post.id,
+                user: post.user,
+                content: post.content,
+                visibility: post.visibility,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+                likesCount: post.reactionCount,
+                commentCount: post.commentCount,
+                liked: post.reactions.some(r => r.liked === true), // Hoặc điều kiện check phù hợp
+                mediaUrls: post.mediaUrls
+            }));
+
             return {
-                posts: response.data.posts,
-                hasMore: response.data.hasMore,
-                total: response.data.total
+                posts,
+                hasMore: data.length === size,
+                total: null // Nếu API có total thì lấy ra
             };
-        } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi tải bài viết');
+        } else {
+            throw new Error(status.displayMessage || 'Lỗi khi tải bài viết');
         }
+    } catch (error) {
+        console.error('API Error:', error);
+        throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tải bài viết');
     }
+}
+
 
     // Lấy chi tiết một bài viết
     async getPost(postId) {
@@ -31,17 +56,14 @@ class PostService {
             const formData = new FormData();
             formData.append('content', postData.content);
 
-            // Thêm hình ảnh nếu có
-            if (postData.images && postData.images.length > 0) {
-                postData.images.forEach((image, index) => {
-                    formData.append(`images`, image);
+            if (postData.images?.length) {
+                postData.images.forEach(image => {
+                    formData.append('images', image);
                 });
             }
 
             const response = await api.post('/posts', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
             return response.data;
         } catch (error) {
@@ -92,7 +114,9 @@ class PostService {
     // Lấy bình luận của bài viết
     async getComments(postId, page = 1, limit = 10) {
         try {
-            const response = await api.get(`/posts/${postId}/comments?page=${page}&limit=${limit}`);
+            const response = await api.get(`/posts/${postId}/comments`, {
+                params: { page, limit }
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Lỗi khi tải bình luận');
@@ -129,10 +153,12 @@ class PostService {
         }
     }
 
-    // Lấy bài viết theo user
+    // Lấy bài viết theo người dùng
     async getPostsByUser(userId, page = 1, limit = 10) {
         try {
-            const response = await api.get(`/users/${userId}/posts?page=${page}&limit=${limit}`);
+            const response = await api.get(`/users/${userId}/posts`, {
+                params: { page, limit }
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Lỗi khi tải bài viết của người dùng');
@@ -142,7 +168,9 @@ class PostService {
     // Tìm kiếm bài viết
     async searchPosts(query, page = 1, limit = 10) {
         try {
-            const response = await api.get(`/posts/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`);
+            const response = await api.get(`/posts/search`, {
+                params: { q: query, page, limit }
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.message || 'Lỗi khi tìm kiếm bài viết');
@@ -150,5 +178,4 @@ class PostService {
     }
 }
 
-const postService = new PostService();
-export default postService;
+export default new PostService();

@@ -4,6 +4,7 @@ import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
 import NewsFeed from './pages/NewsFeed';
 import ChatPage from './features/messages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
 import MainLayout from './layouts/MainLayout';
 
 // Component ProtectedRoute để bảo vệ các route yêu cầu đăng nhập
@@ -78,6 +79,7 @@ const AppRoutes = () => {
             <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<NewsFeed />} />
                 <Route path="/messages" element={<ChatPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
             </Route>
 
             {/* Route fallback - redirect về trang chủ */}

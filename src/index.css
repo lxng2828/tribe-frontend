@@ -1,0 +1,350 @@
+/* Import Bootstrap CSS */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Facebook-like color palette */
+:root {
+    --fb-blue: #1877f2;
+    --fb-blue-hover: #166fe5;
+    --fb-green: #00a400;
+    --fb-gray: #e4e6ea;
+    --fb-gray-dark: #8a8d91;
+    --fb-background: #f0f2f5;
+    --fb-card-bg: #ffffff;
+    --fb-border: #dadde1;
+    --fb-text: #1c1e21;
+    --fb-text-secondary: #65676b;
+}
+
+/* Custom body styling like Facebook */
+body {
+    background-color: var(--fb-background);
+    font-family: 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--fb-text);
+}
+
+/* Custom scrollbar */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Custom scrollbar for content areas */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--fb-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--fb-gray-dark);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Facebook-like navbar */
+.navbar-fb {
+    background-color: var(--fb-card-bg);
+    border-bottom: 1px solid var(--fb-border);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+}
+
+.navbar-fb .navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--fb-blue) !important;
+}
+
+.navbar-fb .nav-link {
+    color: var(--fb-text-secondary) !important;
+    font-weight: 500;
+    padding: 0.5rem 1rem !important;
+    border-radius: 8px;
+    margin: 0 0.25rem;
+}
+
+.navbar-fb .nav-link:hover {
+    background-color: var(--fb-gray);
+    color: var(--fb-text) !important;
+}
+
+.navbar-fb .nav-link.active {
+    color: var(--fb-blue) !important;
+    background-color: rgba(24, 119, 242, 0.1);
+}
+
+/* Facebook-like cards */
+.card-fb {
+    background-color: var(--fb-card-bg);
+    border: 1px solid var(--fb-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+
+.card-fb .card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--fb-border);
+    padding: 1rem;
+}
+
+.card-fb .card-body {
+    padding: 1rem;
+}
+
+/* Facebook-like buttons */
+.btn-fb-primary {
+    background-color: var(--fb-blue);
+    border-color: var(--fb-blue);
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.btn-fb-primary:hover {
+    background-color: var(--fb-blue-hover);
+    border-color: var(--fb-blue-hover);
+    color: white;
+}
+
+.btn-fb-secondary {
+    background-color: var(--fb-gray);
+    border-color: var(--fb-gray);
+    color: var(--fb-text);
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.btn-fb-secondary:hover {
+    background-color: #d8dadf;
+    border-color: #d8dadf;
+    color: var(--fb-text);
+}
+
+.btn-fb-success {
+    background-color: var(--fb-green);
+    border-color: var(--fb-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.btn-fb-success:hover {
+    background-color: #009100;
+    border-color: #009100;
+    color: white;
+}
+
+/* Facebook-like form controls */
+.form-control-fb {
+    border: 1px solid var(--fb-border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    background-color: var(--fb-card-bg);
+    color: var(--fb-text);
+    font-size: 1rem;
+}
+
+.form-control-fb:focus {
+    border-color: var(--fb-blue);
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+    background-color: var(--fb-card-bg);
+    color: var(--fb-text);
+}
+
+.form-control-fb::placeholder {
+    color: var(--fb-text-secondary);
+}
+
+/* Facebook-like post styling */
+.post-fb {
+    background-color: var(--fb-card-bg);
+    border: 1px solid var(--fb-border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.post-header-fb {
+    padding: 1rem;
+    border-bottom: 1px solid var(--fb-border);
+}
+
+.post-content-fb {
+    padding: 1rem;
+}
+
+.post-actions-fb {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--fb-border);
+    display: flex;
+    gap: 1rem;
+}
+
+.post-action-btn {
+    background: none;
+    border: none;
+    color: var(--fb-text-secondary);
+    font-weight: 600;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.post-action-btn:hover {
+    background-color: var(--fb-gray);
+    color: var(--fb-text);
+}
+
+/* Facebook-like sidebar */
+.sidebar-fb {
+    background-color: transparent;
+    padding: 1rem 0;
+}
+
+.sidebar-item-fb {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    color: var(--fb-text);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.sidebar-item-fb:hover {
+    background-color: var(--fb-gray);
+    color: var(--fb-text);
+    text-decoration: none;
+}
+
+.sidebar-item-fb.active {
+    background-color: rgba(24, 119, 242, 0.1);
+    color: var(--fb-blue);
+}
+
+/* Facebook-like profile picture */
+.profile-pic-fb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--fb-border);
+}
+
+.profile-pic-sm-fb {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-pic-lg-fb {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--fb-border);
+}
+
+/* Facebook-like search bar */
+.search-fb {
+    background-color: var(--fb-gray);
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    width: 240px;
+}
+
+.search-fb:focus {
+    background-color: var(--fb-card-bg);
+    border: 1px solid var(--fb-blue);
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+/* Facebook-like animations */
+.fade-in-fb {
+    animation: fadeInFb 0.3s ease-out;
+}
+
+@keyframes fadeInFb {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Facebook-like loading skeleton */
+.skeleton-fb {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loadingFb 1.5s infinite;
+    border-radius: 4px;
+}
+
+@keyframes loadingFb {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Facebook-like notification badge */
+.notification-badge-fb {
+    background-color: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 20px;
+    text-align: center;
+}
+
+/* Facebook-like hover effects */
+.hover-fb {
+    transition: all 0.2s ease;
+}
+
+.hover-fb:hover {
+    background-color: var(--fb-gray);
+    border-radius: 6px;
+}
+
+/* Facebook-like spacing */
+.spacing-fb {
+    margin-bottom: 1rem;
+}
+
+.spacing-fb-sm {
+    margin-bottom: 0.5rem;
+}
+
+.spacing-fb-lg {
+    margin-bottom: 2rem;
+}

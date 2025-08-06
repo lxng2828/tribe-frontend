@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
+import { DEFAULT_STORY_IMAGE, generatePlaceholderAvatar } from '../utils/placeholderImages';
 
 const NewsFeed = () => {
     const postListRef = useRef(null);
@@ -23,7 +24,7 @@ const NewsFeed = () => {
                             style={{ width: '112px', height: '200px' }}>
                             <div className="w-100 h-100 d-flex flex-column"
                                 style={{
-                                    background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 100%), url("https://via.placeholder.com/112x200") center/cover',
+                                    background: `linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5) 100%), url("${DEFAULT_STORY_IMAGE}") center/cover`,
                                     borderRadius: '12px',
                                     cursor: 'pointer',
                                     border: '2px solid var(--fb-border)'
@@ -54,12 +55,12 @@ const NewsFeed = () => {
                                 style={{ width: '112px', height: '200px' }}>
                                 <div className="w-100 h-100 position-relative"
                                     style={{
-                                        background: `linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 100%), url("https://via.placeholder.com/112x200?text=Story${story}") center/cover`,
+                                        background: `linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 100%), url("${DEFAULT_STORY_IMAGE}") center/cover`,
                                         borderRadius: '12px',
                                         cursor: 'pointer'
                                     }}>
                                     <img
-                                        src="https://via.placeholder.com/32"
+                                        src={generatePlaceholderAvatar(32, `U${story}`)}
                                         alt="User"
                                         className="position-absolute top-0 start-0 m-2"
                                         style={{

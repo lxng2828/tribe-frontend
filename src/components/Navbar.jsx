@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -150,7 +151,7 @@ const Navbar = () => {
                             style={{ backgroundColor: 'transparent' }}
                         >
                             <img
-                                src={user?.avatar || 'https://via.placeholder.com/40'}
+                                src={user?.avatar || DEFAULT_AVATAR}
                                 alt={user?.fullName || user?.displayName || user?.username || 'User'}
                                 className="profile-pic-fb"
                             />
@@ -167,7 +168,7 @@ const Navbar = () => {
                             <li className="px-3 py-2">
                                 <div className="d-flex align-items-center">
                                     <img
-                                        src={user?.avatar || 'https://via.placeholder.com/40'}
+                                        src={user?.avatar || DEFAULT_AVATAR}
                                         alt={user?.fullName || 'User'}
                                         className="profile-pic-fb me-3"
                                     />

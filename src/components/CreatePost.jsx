@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import postService from '../features/posts/postService';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 
 const CreatePost = ({ onPostCreate }) => {
     const [postText, setPostText] = useState('');
@@ -17,6 +18,7 @@ const CreatePost = ({ onPostCreate }) => {
         setIsSubmitting(true);
         try {
             const postData = {
+                userId: user?.id, // Thêm userId từ user context
                 content: postText,
                 images: selectedImages,
                 visibility: 'PUBLIC' // Mặc định là public
@@ -33,7 +35,7 @@ const CreatePost = ({ onPostCreate }) => {
             setShowPostBox(false);
         } catch (error) {
             console.error('Error creating post:', error);
-            alert('Có lỗi xảy ra khi đăng bài viết. Vui lòng thử lại.');
+            alert(`Có lỗi xảy ra khi đăng bài viết: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }
@@ -62,7 +64,7 @@ const CreatePost = ({ onPostCreate }) => {
                 {/* Create Post Header */}
                 <div className="d-flex align-items-center mb-3">
                     <img
-                        src={user?.avatar || 'https://via.placeholder.com/40'}
+                        src={user?.avatar || DEFAULT_AVATAR}
                         alt="Your Avatar"
                         className="profile-pic-fb me-3"
                     />
@@ -86,7 +88,7 @@ const CreatePost = ({ onPostCreate }) => {
                     <form onSubmit={handleSubmit} className="border-top pt-3">
                         <div className="d-flex align-items-start mb-3">
                             <img
-                                src={user?.avatar || 'https://via.placeholder.com/40'}
+                                src={user?.avatar || DEFAULT_AVATAR}
                                 alt="Your Avatar"
                                 className="profile-pic-fb me-3"
                             />

@@ -1,4 +1,5 @@
 import Navbar from '../components/Navbar';
+import { generatePlaceholderAvatar } from '../utils/placeholderImages';
 
 const MainLayout = ({ children }) => {
     return (
@@ -102,7 +103,7 @@ const MainLayout = ({ children }) => {
                                     <div className="card-fb p-3">
                                         <div className="d-flex align-items-center">
                                             <img
-                                                src="https://via.placeholder.com/80x80"
+                                                src={generatePlaceholderAvatar(80, 'AD')}
                                                 alt="Ad"
                                                 className="rounded me-3"
                                                 style={{ width: '80px', height: '80px', objectFit: 'cover' }}
@@ -128,7 +129,7 @@ const MainLayout = ({ children }) => {
                                     <div className="d-flex align-items-center hover-fb p-2 rounded">
                                         <div className="position-relative">
                                             <img
-                                                src="https://via.placeholder.com/32"
+                                                src={generatePlaceholderAvatar(32, 'F1')}
                                                 alt="Friend"
                                                 className="profile-pic-sm-fb me-3"
                                             />
@@ -147,7 +148,7 @@ const MainLayout = ({ children }) => {
                                     <div className="d-flex align-items-center hover-fb p-2 rounded">
                                         <div className="position-relative">
                                             <img
-                                                src="https://via.placeholder.com/32"
+                                                src={generatePlaceholderAvatar(32, 'F2')}
                                                 alt="Friend"
                                                 className="profile-pic-sm-fb me-3"
                                             />
@@ -166,7 +167,7 @@ const MainLayout = ({ children }) => {
                                     <div className="d-flex align-items-center hover-fb p-2 rounded">
                                         <div className="position-relative">
                                             <img
-                                                src="https://via.placeholder.com/32"
+                                                src={generatePlaceholderAvatar(32, 'F3')}
                                                 alt="Friend"
                                                 className="profile-pic-sm-fb me-3"
                                             />

@@ -1,4 +1,5 @@
 import api from '../../services/api';
+import { DEFAULT_AVATAR } from '../../utils/placeholderImages';
 
 class PostService {
     // Lấy danh sách bài viết
@@ -18,7 +19,7 @@ class PostService {
                     author: {
                         id: post.user?.id,
                         name: post.user?.displayName || post.user?.username || 'Người dùng',
-                        avatar: post.user?.avatar || 'https://via.placeholder.com/40'
+                        avatar: post.user?.avatar || DEFAULT_AVATAR
                     },
                     visibility: post.visibility,
                     createdAt: post.createdAt,
@@ -60,32 +61,54 @@ class PostService {
     // Tạo bài viết mới
     async createPost(postData) {
         try {
-            const formData = new FormData();
-            formData.append('content', postData.content);
+            // Nếu có file, sử dụng multipart/form-data
+            if (postData.images?.length > 0) {
+                const formData = new FormData();
 
-            if (postData.visibility) {
-                formData.append('visibility', postData.visibility);
-            }
+                // Tạo metadata object
+                const metadata = {
+                    userId: postData.userId || '1', // Lấy từ user context
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC'
+                };
 
-            if (postData.images?.length) {
+                formData.append('metadata', JSON.stringify(metadata));
+
+                // Thêm files
                 postData.images.forEach(image => {
-                    formData.append('images', image);
+                    formData.append('files', image);
                 });
-            }
 
-            const response = await api.post('/posts', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+                const response = await api.post('/posts/create', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
 
-            const { status, data } = response.data;
-            if (status.success) {
-                return data;
+                const { status, data } = response.data;
+                if (status.success) {
+                    return data;
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
+                }
             } else {
-                throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
+                // Không có file, sử dụng create-simple endpoint
+                const requestData = {
+                    userId: postData.userId || '1', // Lấy từ user context
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC'
+                };
+
+                const response = await api.post('/posts/create-simple', requestData);
+
+                const { status, data } = response.data;
+                if (status.success) {
+                    return data;
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
+                }
             }
         } catch (error) {
             console.error('Create post error:', error);
-            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tạo bài viết');
+            throw new Error(error.response?.data?.status?.displayMessage || 'Đã xảy ra lỗi không xác định');
         }
     }
 

@@ -151,9 +151,9 @@ const PostList = forwardRef((props, ref) => {
     return (
         <div>
             <div className="d-flex flex-column">
-                {posts.map(post => (
+                {posts.map((post, index) => (
                     <PostItem
-                        key={post.id}
+                        key={`${post.id}-${index}`}
                         post={post}
                         onLike={handleLike}
                         onDelete={handleDelete}

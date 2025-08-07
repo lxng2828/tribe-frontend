@@ -9,11 +9,15 @@ const PostList = forwardRef((props, ref) => {
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
+    const [isInitialized, setIsInitialized] = useState(false);
     const { user } = useAuth();
 
     useEffect(() => {
-        loadPosts();
-    }, []);
+        if (!isInitialized) {
+            loadPosts(0, true);
+            setIsInitialized(true);
+        }
+    }, [isInitialized]);
 
     // Expose refresh method to parent
     useImperativeHandle(ref, () => ({
@@ -25,9 +29,21 @@ const PostList = forwardRef((props, ref) => {
             setLoading(true);
             const response = await postService.getPosts(pageNumber);
 
-            setPosts(prev => reset ? response.posts : [...prev, ...response.posts]);
+            if (reset) {
+                // Reset posts khi refresh
+                setPosts(response.posts);
+                setPage(0);
+            } else {
+                // Thêm posts mới, tránh duplicate
+                setPosts(prev => {
+                    const existingIds = new Set(prev.map(post => post.id));
+                    const newPosts = response.posts.filter(post => !existingIds.has(post.id));
+                    return [...prev, ...newPosts];
+                });
+                setPage(pageNumber);
+            }
+            
             setHasMore(response.hasMore);
-            setPage(pageNumber);
         } catch (err) {
             setError(err.message || 'Đã xảy ra lỗi');
         } finally {
@@ -37,7 +53,7 @@ const PostList = forwardRef((props, ref) => {
 
     const handleLoadMore = () => {
         if (!loading && hasMore) {
-            loadPosts(page + 1);
+            loadPosts(page + 1, false);
         }
     };
 
@@ -151,9 +167,9 @@ const PostList = forwardRef((props, ref) => {
     return (
         <div>
             <div className="d-flex flex-column">
-                {posts.map((post, index) => (
+                {posts.map((post) => (
                     <PostItem
-                        key={`${post.id}-${index}`}
+                        key={post.id}
                         post={post}
                         onLike={handleLike}
                         onDelete={handleDelete}

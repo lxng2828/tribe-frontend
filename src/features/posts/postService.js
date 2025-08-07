@@ -1,6 +1,9 @@
 import api from '../../services/api';
 import { DEFAULT_AVATAR } from '../../utils/placeholderImages';
 
+// Base URL cho API
+const API_BASE_URL = 'http://localhost:8080';
+
 class PostService {
     // Lấy danh sách bài viết
     async getPosts(page = 0, size = 20) {
@@ -13,25 +16,47 @@ class PostService {
             console.log('API Response:', response.data);
 
             if (status.success) {
-                const posts = data.map(post => ({
-                    id: post.id,
-                    content: post.content,
-                    author: {
-                        id: post.user?.id,
-                        name: post.user?.displayName || post.user?.username || 'Người dùng',
-                        avatar: post.user?.avatar || DEFAULT_AVATAR
-                    },
-                    visibility: post.visibility,
-                    createdAt: post.createdAt,
-                    updatedAt: post.updatedAt,
-                    likesCount: post.reactionCount || 0,
-                    commentsCount: post.commentCount || 0,
-                    liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
-                    mediaUrls: post.mediaUrls || [],
-                    images: post.mediaUrls || [],
-                    isOwner: post.isOwner || false,
-                    comments: []
-                }));
+                const posts = data.map(post => {
+                    // Lấy thông tin user theo cấu trúc API thực tế
+                    const user = post.user || {};
+                    const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
+                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
+                    const userId = user.senderId || user.id || user.userId || post.userId;
+
+                    // Xử lý đường dẫn ảnh - thêm base URL nếu cần
+                    const processImageUrls = (urls) => {
+                        if (!urls || !Array.isArray(urls)) return [];
+                        return urls.map(url => {
+                            if (url.startsWith('http')) {
+                                return url; // Đã là URL đầy đủ
+                            } else if (url.startsWith('/')) {
+                                return `${API_BASE_URL}${url}`; // Thêm base URL
+                            } else {
+                                return `${API_BASE_URL}/${url}`; // Thêm base URL và dấu /
+                            }
+                        });
+                    };
+
+                    return {
+                        id: post.id,
+                        content: post.content,
+                        author: {
+                            id: userId,
+                            name: userName,
+                            avatar: userAvatar
+                        },
+                        visibility: post.visibility || 'PUBLIC',
+                        createdAt: post.createdAt,
+                        updatedAt: post.updatedAt,
+                        likesCount: post.reactionCount || post.likesCount || 0,
+                        commentsCount: post.commentCount || post.commentsCount || 0,
+                        liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
+                        mediaUrls: processImageUrls(post.mediaUrls),
+                        images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
+                        isOwner: post.isOwner || false,
+                        comments: []
+                    };
+                });
 
                 return {
                     posts,

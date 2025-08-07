@@ -753,16 +753,29 @@ body {
     border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.alert-custom.alert-success {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
 .alert-icon {
     margin-right: 0.75rem;
     color: var(--fb-error);
     font-size: 1.25rem;
 }
 
+.alert-custom.alert-success .alert-icon {
+    color: #10b981;
+}
+
 .alert-message {
     color: var(--fb-error);
     font-weight: 500;
     font-size: 0.875rem;
+}
+
+.alert-custom.alert-success .alert-message {
+    color: #10b981;
 }
 
 /* Terms Checkbox */
@@ -936,4 +949,77 @@ body {
         padding: 0.875rem 0.875rem 0.875rem 3rem;
         font-size: 0.875rem;
     }
+}
+
+/* Password Toggle Button */
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.password-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Password Requirements */
+.password-requirements {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.requirements-list li {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.requirements-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.requirements-list li.valid {
+    color: #10b981;
+}
+
+.requirements-list li.valid::before {
+    content: "✓";
+    color: #10b981;
+}
+
+.requirements-list li.invalid {
+    color: #ef4444;
+}
+
+.requirements-list li.invalid::before {
+    content: "✗";
+    color: #ef4444;
 }

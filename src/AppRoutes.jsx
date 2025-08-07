@@ -2,6 +2,9 @@ import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import LoginPage from './features/auth/LoginPage';
 import RegisterPage from './features/auth/RegisterPage';
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
+import VerifyOTPPage from './features/auth/VerifyOTPPage';
+import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import NewsFeed from './pages/NewsFeed';
 import ChatPage from './features/messages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
@@ -71,6 +74,30 @@ const AppRoutes = () => {
                 element={
                     <PublicRoute>
                         <RegisterPage />
+                    </PublicRoute>
+                }
+            />
+            <Route
+                path="/forgot-password"
+                element={
+                    <PublicRoute>
+                        <ForgotPasswordPage />
+                    </PublicRoute>
+                }
+            />
+            <Route
+                path="/verify-otp"
+                element={
+                    <PublicRoute>
+                        <VerifyOTPPage />
+                    </PublicRoute>
+                }
+            />
+            <Route
+                path="/reset-password"
+                element={
+                    <PublicRoute>
+                        <ResetPasswordPage />
                     </PublicRoute>
                 }
             />

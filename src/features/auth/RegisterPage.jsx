@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
@@ -98,15 +99,27 @@ const RegisterPage = () => {
                                     try {
                                         setStatus(null);
                                         const { confirmPassword, agreeTerms, ...registerData } = values;
-                                        const result = await register(registerData);
+                                        
+                                        // Gọi API đăng ký nhưng không tự động đăng nhập
+                                        const response = await api.post('/auth/register', registerData);
+                                        const { status, data } = response.data;
 
-                                        if (result.success) {
-                                            navigate('/', { replace: true });
+                                        if (status?.success) {
+                                            // Đăng ký thành công → chuyển đến trang đăng nhập
+                                            navigate('/login', { 
+                                                replace: true,
+                                                state: { 
+                                                    message: 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.',
+                                                    email: registerData.email 
+                                                }
+                                            });
                                         } else {
-                                            setStatus(result.error);
+                                            setStatus(status?.displayMessage || 'Đăng ký thất bại. Vui lòng thử lại.');
                                         }
                                     } catch (error) {
-                                        setStatus(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                                        console.error('Register error:', error);
+                                        const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+                                        setStatus(message);
                                     } finally {
                                         setSubmitting(false);
                                     }

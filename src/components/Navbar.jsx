@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import NotificationDropdown from './NotificationDropdown';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -94,21 +95,7 @@ const Navbar = () => {
                     </button>
 
                     {/* Notifications */}
-                    <button
-                        className="btn position-relative me-2"
-                        style={{
-                            backgroundColor: 'var(--fb-gray)',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            border: 'none'
-                        }}
-                    >
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2a7 7 0 0 1 7 7v4.29l1.68 2.52a1 1 0 0 1-.84 1.61H4.16a1 1 0 0 1-.84-1.61L5 13.29V9a7 7 0 0 1 7-7zm0 18a3 3 0 0 1-3-3h6a3 3 0 0 1-3 3z" />
-                        </svg>
-                        <span className="notification-badge-fb">3</span>
-                    </button>
+                    <NotificationDropdown />
 
                     {/* Messages */}
                     <button

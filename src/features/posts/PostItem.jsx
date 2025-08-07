@@ -25,14 +25,36 @@ const PostItem = ({ post, onLike, onDelete }) => {
         }
     };
 
+    const getVisibilityInfo = (visibility) => {
+        switch (visibility) {
+            case 'PUBLIC':
+                return {
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>,
+                    text: 'Công khai'
+                };
+            case 'FRIENDS':
+                return {
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01 1l-1.7 2.26A3.997 3.997 0 0 0 10 15c-2.21 0-4 1.79-4 4v2h14zm-8-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z"/></svg>,
+                    text: 'Bạn bè'
+                };
+            case 'PRIVATE':
+                return {
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>,
+                    text: 'Chỉ mình tôi'
+                };
+            default:
+                return {
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>,
+                    text: 'Công khai'
+                };
+        }
+    };
+
     const handleLike = () => {
         onLike(post.id);
     };
 
-    const handleShare = () => {
-        // Implement share functionality
-        console.log('Share post:', post.id);
-    };
+
 
     return (
         <div className="post-fb spacing-fb fade-in-fb">
@@ -57,10 +79,13 @@ const PostItem = ({ post, onLike, onDelete }) => {
                                     style={{ color: 'var(--fb-text-secondary)' }}>
                                     <circle cx="2" cy="2" r="2" />
                                 </svg>
-                                <svg width="12" height="12" fill="currentColor"
-                                    style={{ color: 'var(--fb-text-secondary)' }}>
-                                    <path d="M12 1a2 2 0 0 1 2 2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1 2-2z" />
-                                </svg>
+                                {/* Visibility Indicator */}
+                                <div className="d-flex align-items-center" style={{ color: 'var(--fb-text-secondary)' }}>
+                                    {getVisibilityInfo(post.visibility).icon}
+                                    <span className="ms-1" style={{ fontSize: '0.75rem' }}>
+                                        {getVisibilityInfo(post.visibility).text}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -150,24 +175,204 @@ const PostItem = ({ post, onLike, onDelete }) => {
                 {post.images && post.images.length > 0 && (
                     <div className="mb-3">
                         {post.images.length === 1 ? (
-                            <img
-                                src={post.images[0]}
-                                alt="Post content"
-                                className="w-100 rounded"
-                                style={{ maxHeight: '500px', objectFit: 'cover' }}
-                            />
-                        ) : (
-                            <div className="row g-2">
+                            <div className="single-image-container">
+                                <img
+                                    src={post.images[0]}
+                                    alt="Post content"
+                                    className="post-image-single"
+                                    style={{
+                                        width: '100%',
+                                        maxHeight: '500px',
+                                        objectFit: 'cover',
+                                        borderRadius: '12px',
+                                        cursor: 'pointer',
+                                        transition: 'transform 0.2s ease-in-out'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                />
+                            </div>
+                        ) : post.images.length === 2 ? (
+                            <div className="two-images-container" style={{ display: 'flex', gap: '4px' }}>
                                 {post.images.map((image, index) => (
-                                    <div key={index} className={`col-${post.images.length === 2 ? '6' : '4'}`}>
+                                    <div key={index} style={{ flex: 1 }}>
                                         <img
                                             src={image}
                                             alt={`Post content ${index + 1}`}
-                                            className="w-100 rounded"
-                                            style={{ height: '200px', objectFit: 'cover' }}
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '100%',
+                                                height: '250px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                                         />
                                     </div>
                                 ))}
+                            </div>
+                        ) : post.images.length === 3 ? (
+                            <div className="three-images-container">
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                    <img
+                                        src={post.images[0]}
+                                        alt="Post content 1"
+                                        className="post-image-multiple"
+                                        style={{
+                                            width: '50%',
+                                            height: '200px',
+                                            objectFit: 'cover',
+                                            borderRadius: '12px',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s ease-in-out'
+                                        }}
+                                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                    />
+                                    <div style={{ width: '50%', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <img
+                                            src={post.images[1]}
+                                            alt="Post content 2"
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '100%',
+                                                height: '98px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                        />
+                                        <img
+                                            src={post.images[2]}
+                                            alt="Post content 3"
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '100%',
+                                                height: '98px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : post.images.length === 4 ? (
+                            <div className="four-images-container">
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                    {post.images.slice(0, 2).map((image, index) => (
+                                        <img
+                                            key={index}
+                                            src={image}
+                                            alt={`Post content ${index + 1}`}
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '50%',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                        />
+                                    ))}
+                                </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                    {post.images.slice(2, 4).map((image, index) => (
+                                        <img
+                                            key={index + 2}
+                                            src={image}
+                                            alt={`Post content ${index + 3}`}
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '50%',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="multiple-images-container">
+                                <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+                                    {post.images.slice(0, 3).map((image, index) => (
+                                        <img
+                                            key={index}
+                                            src={image}
+                                            alt={`Post content ${index + 1}`}
+                                            className="post-image-multiple"
+                                            style={{
+                                                width: '33.33%',
+                                                height: '150px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer',
+                                                transition: 'transform 0.2s ease-in-out'
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                        />
+                                    ))}
+                                </div>
+                                {post.images.length > 4 && (
+                                    <div style={{ display: 'flex', gap: '4px' }}>
+                                        {post.images.slice(3, 6).map((image, index) => (
+                                            <div key={index + 3} style={{ position: 'relative', width: '33.33%' }}>
+                                                <img
+                                                    src={image}
+                                                    alt={`Post content ${index + 4}`}
+                                                    className="post-image-multiple"
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '150px',
+                                                        objectFit: 'cover',
+                                                        borderRadius: '12px',
+                                                        cursor: 'pointer',
+                                                        transition: 'transform 0.2s ease-in-out'
+                                                    }}
+                                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                                                />
+                                                {index === 2 && post.images.length > 6 && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        left: 0,
+                                                        right: 0,
+                                                        bottom: 0,
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                                                        borderRadius: '12px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontSize: '18px',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        +{post.images.length - 6}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -200,13 +405,10 @@ const PostItem = ({ post, onLike, onDelete }) => {
                         </div>
                         <div className="d-flex align-items-center">
                             {post.commentsCount > 0 && (
-                                <small style={{ color: 'var(--fb-text-secondary)' }} className="me-3">
+                                <small style={{ color: 'var(--fb-text-secondary)' }}>
                                     {post.commentsCount} bình luận
                                 </small>
                             )}
-                            <small style={{ color: 'var(--fb-text-secondary)' }}>
-                                2 lượt chia sẻ
-                            </small>
                         </div>
                     </div>
                 )}
@@ -234,16 +436,6 @@ const PostItem = ({ post, onLike, onDelete }) => {
                         <path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                     </svg>
                     Bình luận
-                </button>
-
-                <button
-                    className="post-action-btn flex-grow-1"
-                    onClick={handleShare}
-                >
-                    <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Z" />
-                    </svg>
-                    Chia sẻ
                 </button>
             </div>
 

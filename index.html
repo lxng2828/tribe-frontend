@@ -12,6 +12,12 @@
     rel="stylesheet">
   <title>Tribe - Kết nối cộng đồng</title>
   <meta name="description" content="Kết nối mọi người, chia sẻ khoảnh khắc đáng nhớ cùng Tribe">
+  <script>
+    // Polyfill for sockjs-client compatibility
+    if (typeof global === 'undefined') {
+      window.global = window;
+    }
+  </script>
 </head>
 
 <body>

@@ -108,21 +108,26 @@ const Navbar = () => {
                     <NotificationDropdown />
 
                     {/* Messages */}
-                    <button
+                    <Link
+                        to="/messages"
                         className="btn position-relative me-2"
                         style={{
                             backgroundColor: 'var(--fb-gray)',
                             borderRadius: '50%',
                             width: '40px',
                             height: '40px',
-                            border: 'none'
+                            border: 'none',
+                            textDecoration: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                         }}
                     >
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.17L2.546 20.4a1 1 0 0 0 1.053 1.054l3.23-.892A9.958 9.958 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
                         </svg>
                         <span className="notification-badge-fb">5</span>
-                    </button>
+                    </Link>
 
                     {/* Profile Dropdown */}
                     <div className="dropdown">

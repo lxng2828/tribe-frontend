@@ -10,6 +10,7 @@
     --fb-blue: #0866ff;
     /* Accent blue for buttons and links */
     --fb-blue-hover: #0053cc;
+    --fb-blue-dark: #166fe5;
     --fb-green: #00a400;
     --fb-green-hover: #008800;
     --fb-gray: #e5e7eb;
@@ -20,10 +21,20 @@
     /* Dark text for contrast */
     --fb-text-secondary: #4b5563;
     /* Secondary text */
+    --fb-secondary-text: #65676b;
+    /* Facebook-style secondary text */
     --fb-border: #d1d5db;
     /* Subtle border color */
+    --fb-hover: #e4e6ea;
+    /* Hover background */
+    --fb-selected: #e7f3ff;
+    /* Selected item background */
     --fb-error: #ef4444;
     /* Error color */
+    --fb-red: #e41e3f;
+    /* Facebook red */
+    --fb-red-dark: #c9184a;
+    /* Darker red */
 }
 
 /* Body styling with white background */
@@ -43,6 +54,8 @@ body {
     /* Facebook main background */
     --fb-card-bg: #ffffff;
     /* Card background */
+    --fb-gray: #f0f2f5;
+    /* Update to match Facebook */
 }
 
 /* Custom scrollbar */

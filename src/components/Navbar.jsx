@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import NotificationDropdown from './NotificationDropdown';
+import SearchBar from './SearchBar';
 
 const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -45,12 +46,7 @@ const Navbar = () => {
 
                     {/* Search Bar */}
                     <div className="d-none d-md-block">
-                        <input
-                            type="text"
-                            className="search-fb"
-                            placeholder="Tìm kiếm trên Tribe"
-                            style={{ width: '240px' }}
-                        />
+                        <SearchBar style={{ width: '240px' }} />
                     </div>
                 </div>
 
@@ -223,6 +219,11 @@ const Navbar = () => {
                 {/* Mobile Menu */}
                 <div className={`collapse navbar-collapse ${isMenuOpen ? 'show' : ''}`}>
                     <div className="d-lg-none mt-3">
+                        {/* Mobile Search */}
+                        <div className="px-3 mb-3">
+                            <SearchBar />
+                        </div>
+
                         <div className="border-top pt-3">
                             <Link
                                 className="sidebar-item-fb"

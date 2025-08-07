@@ -81,6 +81,8 @@ export const AuthProvider = ({ children }) => {
     // Cập nhật thông tin user
     const updateUser = (userData) => {
         setUser(userData);
+        console.log('User updated:', userData);
+        
         localStorage.setItem('user', JSON.stringify(userData));
     };
 

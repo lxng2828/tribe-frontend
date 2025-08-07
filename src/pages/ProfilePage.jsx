@@ -137,15 +137,7 @@ const ProfilePage = () => {
                                 }
                             }}
                         />
-                        <button
-                            className="btn btn-light d-flex align-items-center"
-                            onClick={() => document.getElementById('coverPhotoInput').click()}
-                        >
-                            <svg width="16" height="16" className="me-2" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
-                            </svg>
-                            Chỉnh sửa ảnh bìa
-                        </button>
+                        
                     </div>
                 </div>
 
@@ -200,7 +192,7 @@ const ProfilePage = () => {
                                 {/* Name and Actions */}
                                 <div className="flex-grow-1 ms-md-3 text-center text-md-start">
                                     <h1 className="mb-1 fw-bold" style={{ fontSize: '2rem' }}>
-                                        {profileData?.fullName || user?.fullName || user?.displayName || user?.username || 'Người dùng'}
+                                        {user?.fullName || user?.displayName || user?.username || localStorage.getItem('name') || profileData?.fullName || 'Người dùng'}
                                     </h1>
                                     <p className="text-muted mb-2">{userStats.friends} bạn bè</p>
 
@@ -223,26 +215,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="d-flex gap-2 mt-3 mt-md-0">
-                                    <button className="btn btn-primary">
-                                        <svg width="16" height="16" className="me-2" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                        </svg>
-                                        Thêm vào tin
-                                    </button>
-                                    <button className="btn btn-secondary">
-                                        <svg width="16" height="16" className="me-2" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M3 5a2 2 0 0 1 2-2h3.28a1 1 0 0 1 .948.684l1.498 4.493a1 1 0 0 1-.502 1.21l-2.257 1.13a11.042 11.042 0 0 0 5.516 5.516l1.13-2.257a1 1 0 0 1 1.21-.502l4.493 1.498a1 1 0 0 1 .684.949V19a2 2 0 0 1-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                        Chỉnh sửa trang cá nhân
-                                    </button>
-                                    <button className="btn btn-secondary">
-                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.11v1.054c0 .604-.53 1.104-1.154 1.044a20.923 20.923 0 0 0-15.692 0C3.63 7.006 3.1 6.506 3.1 5.902V4.848c0-.554.384-1.02.917-1.11C6.545 3.232 9.245 3 12 3z" />
-                                            <path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
-                                        </svg>
-                                    </button>
-                                </div>
+                               
                             </div>
                         </div>
                     </div>
@@ -293,7 +266,7 @@ const ProfilePage = () => {
                     {/* Left Sidebar */}
                     <div className="col-12 col-lg-5">
                         {/* Intro Card */}
-                        <div className="card mb-4" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
+                        {/* <div className="card mb-4" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
                             <div className="card-body">
                                 <h5 className="fw-bold mb-3">Giới thiệu</h5>
                                 <div className="mb-3">
@@ -343,7 +316,7 @@ const ProfilePage = () => {
                                     Chỉnh sửa chi tiết
                                 </button>
                             </div>
-                        </div>
+                        </div> */}
 
                         {/* Photos Card */}
                         <div className="card mb-4" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
@@ -490,7 +463,7 @@ const ProfilePage = () => {
                                                 <div className="card border-0">
                                                     <img
                                                         src={friend.avatar || `https://i.pravatar.cc/200?img=${i + 1}`}
-                                                        alt={friend.fullName || `Friend ${i + 1}`}
+                                                        alt={friend.displayName || `Friend ${i + 1}`}
                                                         className="card-img-top rounded"
                                                         style={{ aspectRatio: '1', objectFit: 'cover' }}
                                                     />

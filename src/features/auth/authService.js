@@ -1,3 +1,4 @@
+import { jwtDecode } from 'jwt-decode';
 import api from '../../services/api';
 
 class AuthService {
@@ -7,42 +8,17 @@ class AuthService {
             const response = await api.post('/auth/login', credentials);
             const { status, data } = response.data;
 
-            if (status.success) {
-                const token = data.token || data;
-
-                // Lưu token vào localStorage
-                localStorage.setItem('token', token);
-
-                // Lấy thông tin user từ API hoặc decode JWT
-                let userInfo;
-                if (data.user) {
-                    userInfo = data.user;
-                } else {
-                    // Giải mã phần payload của JWT (Base64URL Decode)
-                    try {
-                        const payloadBase64 = token.split('.')[1];
-                        const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-                        const decoded = JSON.parse(payloadJson);
-
-                        userInfo = {
-                            id: decoded.id || decoded.userId || decoded.sub,
-                            username: decoded.name || decoded.username,
-                            email: decoded.email,
-                            fullName: decoded.fullName || decoded.displayName || decoded.name
-                        };
-                    } catch (jwtError) {
-                        // Nếu không decode được JWT, lấy thông tin từ API
-                        userInfo = await this.getCurrentUserInfo();
-                    }
-                }
-
-                // Lưu user info vào localStorage
-                localStorage.setItem('user', JSON.stringify(userInfo));
-
-                return { token, user: userInfo };
-            } else {
+            if (!status.success) {
                 throw new Error(status.displayMessage || 'Đăng nhập thất bại');
             }
+
+            const token = data.token || data;
+            localStorage.setItem('token', token);
+
+            const userInfo = await this.extractUserInfo(token, data.user);
+            this.storeUserInfo(userInfo);
+
+            return { token, user: userInfo };
         } catch (error) {
             const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng nhập thất bại';
             throw new Error(message);
@@ -55,43 +31,26 @@ class AuthService {
             const response = await api.post('/auth/register', userData);
             const { status, data } = response.data;
 
-            if (status.success) {
-                // Nếu đăng ký trả về token luôn
-                if (data.token) {
-                    const token = data.token;
-                    localStorage.setItem('token', token);
-
-                    let userInfo = data.user;
-                    if (!userInfo) {
-                        // Giải mã JWT hoặc lấy từ API
-                        try {
-                            const payloadBase64 = token.split('.')[1];
-                            const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-                            const decoded = JSON.parse(payloadJson);
-
-                            userInfo = {
-                                id: decoded.id || decoded.userId || decoded.sub,
-                                username: decoded.name || decoded.username,
-                                email: decoded.email,
-                                fullName: decoded.fullName || decoded.displayName || decoded.name
-                            };
-                        } catch (jwtError) {
-                            userInfo = await this.getCurrentUserInfo();
-                        }
-                    }
-
-                    localStorage.setItem('user', JSON.stringify(userInfo));
-                    return { token, user: userInfo };
-                } else {
-                    // Đăng ký thành công → Tự động đăng nhập
-                    return await this.login({
-                        email: userData.email,
-                        password: userData.password
-                    });
-                }
-            } else {
+            if (!status.success) {
                 throw new Error(status.displayMessage || 'Đăng ký thất bại');
             }
+
+            // Nếu có token trả về ngay
+            if (data.token) {
+                const token = data.token;
+                localStorage.setItem('token', token);
+
+                const userInfo = await this.extractUserInfo(token, data.user);
+                this.storeUserInfo(userInfo);
+
+                return { token, user: userInfo };
+            }
+
+            // Nếu không có token → tự động đăng nhập lại
+            return await this.login({
+                email: userData.email,
+                password: userData.password
+            });
         } catch (error) {
             const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại';
             throw new Error(message);
@@ -105,27 +64,25 @@ class AuthService {
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Xóa token & user khỏi localStorage
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-
-            // Chuyển về trang login
+            localStorage.removeItem('name');
             window.location.href = '/login';
         }
     }
 
-    // Kiểm tra có đang đăng nhập không
+    // Kiểm tra trạng thái đăng nhập
     isAuthenticated() {
         return !!localStorage.getItem('token');
     }
 
-    // Lấy user từ localStorage
+    // Lấy thông tin user từ localStorage
     getCurrentUser() {
         const userStr = localStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
     }
 
-    // Lấy user info từ server (nếu cần)
+    // Gọi API lấy thông tin user
     async getCurrentUserInfo() {
         try {
             const response = await api.get('/auth/me');
@@ -179,6 +136,30 @@ class AuthService {
             const message = error.response?.data?.status?.displayMessage || error.message || 'Đặt lại mật khẩu thất bại';
             throw new Error(message);
         }
+    }
+
+  
+    async extractUserInfo(token, fallbackUser = null) {
+        try {
+            const decoded = jwtDecode(token);
+            return {
+                id: decoded.id || decoded.userId || decoded.sub,
+                username: decoded.username || decoded.name,
+                email: decoded.email,
+                fullName: decoded.fullName || decoded.displayName || decoded.name
+            };
+        } catch (e) {
+            // fallback nếu token sai hoặc bị lỗi
+            if (fallbackUser) return fallbackUser;
+            return await this.getCurrentUserInfo();
+        }
+    }
+
+   
+    storeUserInfo(userInfo) {
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        const name = userInfo.fullName || userInfo.displayName || userInfo.username || '';
+        localStorage.setItem('name', name);
     }
 }
 

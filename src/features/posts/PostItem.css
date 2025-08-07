@@ -1,0 +1,248 @@
+.post-fb {
+    /* Assuming spacing-fb and fade-in-fb are defined elsewhere */
+}
+
+.post-header-fb {
+    /* Add any specific header styling if needed */
+}
+
+.post-author-name {
+    color: var(--fb-text);
+}
+
+.post-timestamp,
+.post-visibility,
+.post-stats-text,
+.comment-timestamp,
+.comment-action-btn {
+    color: var(--fb-text-secondary);
+}
+
+.post-dot {
+    color: var(--fb-text-secondary);
+}
+
+.post-visibility-text {
+    font-size: 0.75rem;
+}
+
+.post-options-btn {
+    background-color: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    color: var(--fb-text-secondary);
+}
+
+.post-dropdown-menu {
+    border: 1px solid var(--fb-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.post-dropdown-item {
+    border-radius: 6px;
+    margin: 4px 8px;
+}
+
+.post-content-text {
+    color: var(--fb-text);
+    font-size: 15px;
+    line-height: 1.33;
+    white-space: pre-wrap;
+    margin-bottom: 1rem;
+}
+
+.single-image-container .post-image-single,
+.post-image-multiple,
+.three-image-main,
+.three-image-sub,
+.four-image,
+.multiple-image {
+    width: 100%;
+    max-height: 500px;
+    object-fit: cover;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+.post-image-hover {
+    transform: scale(1.02);
+}
+
+.two-images-container {
+    display: flex;
+    gap: 4px;
+}
+
+.two-image-item {
+    flex: 1;
+}
+
+.three-images-container .three-images-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.three-images-container .three-image-main {
+    width: 50%;
+    height: 200px;
+}
+
+.three-images-container .three-images-column {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.three-image-sub {
+    width: 100%;
+    height: 98px;
+}
+
+.four-images-container .four-images-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.four-image {
+    width: 50%;
+    height: 150px;
+}
+
+.multiple-images-container .multiple-images-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.multiple-image {
+    width: 33.33%;
+    height: 150px;
+}
+
+.multiple-image-wrapper {
+    position: relative;
+    width: 33.33%;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.post-stats {
+    margin-bottom: 0.5rem;
+}
+
+.like-icon-wrapper {
+    width: 18px;
+    height: 18px;
+    background-color: var(--fb-blue);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+}
+
+.post-action-btn {
+    /* Assuming flex-grow-1 and text-primary are defined in Bootstrap */
+}
+
+.liked-text {
+    color: var(--fb-blue);
+}
+
+.post-comments-section {
+    border-top: 1px solid var(--fb-border);
+    padding: 0.75rem 1rem;
+}
+
+.comment-input-container {
+    margin-bottom: 0.75rem;
+}
+
+.comment-input-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+.comment-input {
+    width: 100%;
+    padding-right: 2.5rem;
+    border-radius: 20px;
+    background-color: var(--fb-gray);
+    border: none;
+    font-size: 14px;
+}
+
+.comment-send-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: transparent;
+    border: none;
+    padding: 4px;
+    color: var(--fb-text-secondary);
+}
+
+.comment-item {
+    margin-bottom: 0.75rem;
+}
+
+.comment-content-wrapper {
+    flex-grow: 1;
+}
+
+.comment-content {
+    background-color: var(--fb-gray);
+    border-radius: 16px;
+    padding: 0.5rem;
+}
+
+.comment-author {
+    font-weight: bold;
+    font-size: 13px;
+    color: var(--fb-text);
+}
+
+.comment-text {
+    font-size: 14px;
+    color: var(--fb-text);
+}
+
+.comment-actions {
+    display: flex;
+    align-items: center;
+    margin-top: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.comment-action-btn {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 0.75rem;
+}

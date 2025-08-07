@@ -57,19 +57,40 @@ class UserService {
                 return [];
             }
 
-            // Tìm kiếm theo email trước
-            const emailResults = await this.searchUsersByEmail(keyword.trim());
+            // Tìm kiếm theo displayName trước
+            const nameResults = await this.searchUsersByDisplayName(keyword.trim());
+            if (nameResults.data && nameResults.data.length > 0) {
+                return nameResults.data;
+            }
 
-            // Nếu có kết quả email, trả về luôn
+            // Nếu không có kết quả theo tên, tìm theo email
+            const emailResults = await this.searchUsersByEmail(keyword.trim());
             if (emailResults.data && emailResults.data.length > 0) {
                 return emailResults.data;
             }
 
-            // Nếu không có kết quả, có thể mở rộng tìm kiếm theo tên sau này
+            // Không có kết quả
             return [];
         } catch (error) {
             console.error('Error searching users:', error);
             return [];
+        }
+    }
+
+    /**
+     * Tìm kiếm người dùng theo tên hiển thị
+     * @param {string} displayName - Tên hiển thị để tìm kiếm
+     * @returns {Promise} Response từ API
+     */
+    async searchUsersByDisplayName(displayName) {
+        try {
+            console.log('Gọi API tìm kiếm theo tên displayName:', displayName); // log giá trị truyền vào
+            const response = await api.get(`/users/search-by-name?name=${encodeURIComponent(displayName)}`);
+            return response.data;
+            console.log('Kết quả tìm kiếm theo tên displayName:', response.data);
+        } catch (error) {
+            console.error('Error searching users by displayName:', error);
+            throw error;
         }
     }
 

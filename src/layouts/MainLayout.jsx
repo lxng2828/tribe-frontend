@@ -27,58 +27,12 @@ const MainLayout = ({ children }) => {
                                     Bạn bè
                                 </a>
                                 <a href="#" className="sidebar-item-fb">
-                                    <svg className="me-3" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.17L2.546 20.4a1 1 0 0 0 1.053 1.054l3.23-.892A9.958 9.958 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
+                                    <svg className="me-3" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M12 4a4 4 0 1 1-8 0 4 4 0 0 1 8 0zM8 4a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" />
+                                        <path fillRule="evenodd" d="M13 14H3a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1z" />
+                                        <path fillRule="evenodd" d="M14 8a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h12z" />
                                     </svg>
-                                    Tin nhắn
-                                </a>
-                                <a href="#" className="sidebar-item-fb">
-                                    <svg className="me-3" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M9 2a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H9zM6.5 6a.5.5 0 0 0-.5.5v13a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-13a.5.5 0 0 0-.5-.5h-11z" />
-                                    </svg>
-                                    Trang
-                                </a>
-                                <a href="#" className="sidebar-item-fb">
-                                    <svg className="me-3" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                                    </svg>
-                                    Yêu thích
-                                </a>
-                                <a href="#" className="sidebar-item-fb">
-                                    <svg className="me-3" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M9 11H7v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9h-2m-6 0V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5m-6 0h6m-9 0h12" />
-                                    </svg>
-                                    Marketplace
-                                </a>
-                                <hr style={{ color: 'var(--fb-border)' }} />
-                                <div className="text-muted small mb-2 px-3">Lối tắt của bạn</div>
-                                <a href="#" className="sidebar-item-fb">
-                                    <div className="me-3" style={{
-                                        width: '28px',
-                                        height: '28px',
-                                        backgroundColor: 'var(--fb-blue)',
-                                        borderRadius: '6px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <span className="text-white fw-bold small">A</span>
-                                    </div>
-                                    Anime Lovers
-                                </a>
-                                <a href="#" className="sidebar-item-fb">
-                                    <div className="me-3" style={{
-                                        width: '28px',
-                                        height: '28px',
-                                        backgroundColor: 'var(--fb-green)',
-                                        borderRadius: '6px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
-                                        <span className="text-white fw-bold small">T</span>
-                                    </div>
-                                    Tech Group
+                                    Lời mời kết bạn
                                 </a>
                             </div>
                         </div>
@@ -95,26 +49,6 @@ const MainLayout = ({ children }) => {
                     <div className="col-xl-3 d-none d-xl-block">
                         <div className="position-sticky" style={{ top: '70px' }}>
                             <div className="p-3">
-                                {/* Sponsored */}
-                                <div className="mb-4">
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 className="mb-0" style={{ color: 'var(--fb-text-secondary)' }}>Được tài trợ</h6>
-                                    </div>
-                                    <div className="card-fb p-3">
-                                        <div className="d-flex align-items-center">
-                                            <img
-                                                src={generatePlaceholderAvatar(80, 'AD')}
-                                                alt="Ad"
-                                                className="rounded me-3"
-                                                style={{ width: '80px', height: '80px', objectFit: 'cover' }}
-                                            />
-                                            <div>
-                                                <div className="fw-bold small">Quảng cáo mẫu</div>
-                                                <div className="text-muted small">example.com</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 {/* Contacts */}
                                 <div>

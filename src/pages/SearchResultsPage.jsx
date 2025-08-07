@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
 import UserSearchTestPanel from '../components/UserSearchTestPanel';
+import FriendshipButton from '../components/FriendshipButton';
 import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 
 const SearchResultsPage = () => {
@@ -147,27 +148,28 @@ const SearchResultsPage = () => {
 
                                                 <div className="list-group list-group-flush">
                                                     {searchResults.map((user) => (
-                                                        <button
+                                                        <div
                                                             key={user.id}
-                                                            onClick={() => handleUserClick(user)}
-                                                            className="list-group-item list-group-item-action d-flex align-items-center p-3 border-0"
-                                                            style={{
-                                                                cursor: 'pointer',
-                                                                transition: 'background-color 0.2s'
-                                                            }}
+                                                            className="list-group-item d-flex align-items-center p-3 border-0"
                                                         >
                                                             <img
                                                                 src={user.avatar || DEFAULT_AVATAR}
                                                                 alt={user.displayName}
                                                                 className="rounded-circle me-3"
                                                                 style={{
-                                                                    width: '50px',
-                                                                    height: '50px',
-                                                                    objectFit: 'cover'
+                                                                    width: '60px',
+                                                                    height: '60px',
+                                                                    objectFit: 'cover',
+                                                                    cursor: 'pointer'
                                                                 }}
+                                                                onClick={() => handleUserClick(user)}
                                                             />
                                                             <div className="flex-grow-1 text-start">
-                                                                <div className="fw-medium text-dark mb-1">
+                                                                <div
+                                                                    className="fw-medium text-dark mb-1"
+                                                                    style={{ cursor: 'pointer' }}
+                                                                    onClick={() => handleUserClick(user)}
+                                                                >
                                                                     {user.displayName}
                                                                 </div>
                                                                 <div className="small text-muted">
@@ -179,10 +181,15 @@ const SearchResultsPage = () => {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <svg width="16" height="16" fill="currentColor" className="text-muted">
-                                                                <path d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
-                                                            </svg>
-                                                        </button>
+
+                                                            {/* Friendship Button */}
+                                                            <div style={{ minWidth: '120px' }}>
+                                                                <FriendshipButton
+                                                                    targetUserId={user.id}
+                                                                    targetUserName={user.displayName}
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </>

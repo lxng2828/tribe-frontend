@@ -10,6 +10,7 @@ import ChatPage from './features/messages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import SearchResultsPage from './pages/SearchResultsPage';
+import FriendsPage from './pages/FriendsPage';
 import MainLayout from './layouts/MainLayout';
 
 // Component ProtectedRoute để bảo vệ các route yêu cầu đăng nhập
@@ -112,6 +113,7 @@ const AppRoutes = () => {
                 <Route path="/profile/:userId" element={<ProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/search" element={<SearchResultsPage />} />
+                <Route path="/friends" element={<FriendsPage />} />
             </Route>
 
             {/* Route fallback - redirect về trang chủ */}

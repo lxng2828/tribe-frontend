@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 import Loading from '../components/Loading';
+import FriendsList from '../components/FriendsList';
+import FriendshipButton from '../components/FriendshipButton';
 import profileService from '../services/profileService';
+import userService from '../services/userService';
 
 const ProfilePage = () => {
+    const { userId: urlUserId } = useParams(); // Lấy userId từ URL
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('posts');
     const [loading, setLoading] = useState(true);
@@ -22,6 +27,10 @@ const ProfilePage = () => {
     const [friends, setFriends] = useState([]);
     const [photos, setPhotos] = useState([]);
 
+    // Kiểm tra xem có phải profile của mình không
+    const isOwnProfile = !urlUserId || urlUserId === user?.id;
+    const targetUserId = urlUserId || user?.id;
+
     // Load dữ liệu profile khi component mount
     useEffect(() => {
         const loadProfileData = async () => {
@@ -29,18 +38,53 @@ const ProfilePage = () => {
                 setLoading(true);
                 setError(null);
 
-                // Load profile data, stats, friends và photos song song
-                const [profileResponse, statsResponse, friendsResponse, photosResponse] = await Promise.all([
-                    profileService.getCurrentUserProfile(),
-                    profileService.getUserStats(),
-                    profileService.getFriends(null, 0, 9), // Lấy 9 bạn bè đầu tiên
-                    profileService.getUserPhotos(null, 0, 9) // Lấy 9 ảnh đầu tiên
-                ]);
+                if (isOwnProfile) {
+                    // Load profile của bản thân
+                    const [profileResponse, statsResponse, friendsResponse, photosResponse] = await Promise.all([
+                        profileService.getCurrentUserProfile(),
+                        profileService.getUserStats(),
+                        profileService.getFriends(null, 0, 9), // Lấy 9 bạn bè đầu tiên
+                        profileService.getUserPhotos(null, 0, 9) // Lấy 9 ảnh đầu tiên
+                    ]);
 
-                setProfileData(profileResponse);
-                setUserStats(statsResponse);
-                setFriends(friendsResponse.content || friendsResponse.data || []);
-                setPhotos(photosResponse.content || photosResponse.data || []);
+                    setProfileData(profileResponse);
+                    setUserStats(statsResponse);
+                    setFriends(friendsResponse.content || friendsResponse.data || []);
+                    setPhotos(photosResponse.content || photosResponse.data || []);
+                } else {
+                    // Load profile của người khác
+                    try {
+                        const userResponse = await userService.getUserById(targetUserId);
+
+                        if (userResponse.status && userResponse.status.success) {
+                            setProfileData(userResponse.data);
+                            setUserStats({ friends: 0, followers: 0, following: 0 });
+
+                            // Thử load friends, nhưng không fail nếu API không hỗ trợ
+                            try {
+                                const friendsResponse = await profileService.getFriends(targetUserId, 0, 9);
+                                setFriends(friendsResponse.content || friendsResponse.data || []);
+                            } catch (friendsError) {
+                                console.log('API không hỗ trợ lấy danh sách bạn bè của người khác:', friendsError);
+                                setFriends([]);
+                            }
+
+                            // Thử load photos, nhưng không fail nếu API không hỗ trợ
+                            try {
+                                const photosResponse = await profileService.getUserPhotos(targetUserId, 0, 9);
+                                setPhotos(photosResponse.content || photosResponse.data || []);
+                            } catch (photosError) {
+                                console.log('API không hỗ trợ lấy ảnh của người khác:', photosError);
+                                setPhotos([]);
+                            }
+                        } else {
+                            setError('Không tìm thấy người dùng này');
+                        }
+                    } catch (userError) {
+                        console.error('Error loading user profile:', userError);
+                        setError('Không tìm thấy người dùng này');
+                    }
+                }
 
             } catch (err) {
                 console.error('Error loading profile data:', err);
@@ -53,7 +97,7 @@ const ProfilePage = () => {
         if (user) {
             loadProfileData();
         }
-    }, [user]);
+    }, [user, isOwnProfile, targetUserId]);
 
     // Handle update avatar
     const handleUpdateAvatar = async (file) => {
@@ -125,20 +169,30 @@ const ProfilePage = () => {
                         backgroundPosition: 'center'
                     }}
                 >
-                    <div className="position-absolute bottom-0 end-0 p-3">
-                        <input
-                            type="file"
-                            id="coverPhotoInput"
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            onChange={(e) => {
-                                if (e.target.files[0]) {
-                                    handleUpdateCoverPhoto(e.target.files[0]);
-                                }
-                            }}
-                        />
-                        
-                    </div>
+                    {isOwnProfile && (
+                        <div className="position-absolute bottom-0 end-0 p-3">
+                            <input
+                                type="file"
+                                id="coverPhotoInput"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                    if (e.target.files[0]) {
+                                        handleUpdateCoverPhoto(e.target.files[0]);
+                                    }
+                                }}
+                            />
+                            <button
+                                className="btn btn-light"
+                                onClick={() => document.getElementById('coverPhotoInput').click()}
+                            >
+                                <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
+                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                </svg>
+                                Chỉnh sửa ảnh bìa
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Profile Info Section */}
@@ -151,7 +205,7 @@ const ProfilePage = () => {
                                 <div className="position-relative mb-3 mb-md-0">
                                     <img
                                         src={profileData?.avatar || user?.avatar || DEFAULT_AVATAR}
-                                        alt={profileData?.fullName || user?.fullName || 'User'}
+                                        alt={profileData?.fullName || profileData?.displayName || user?.fullName || 'User'}
                                         className="rounded-circle border border-4 border-white"
                                         style={{
                                             width: '168px',
@@ -159,40 +213,47 @@ const ProfilePage = () => {
                                             objectFit: 'cover'
                                         }}
                                     />
-                                    <input
-                                        type="file"
-                                        id="avatarInput"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        onChange={(e) => {
-                                            if (e.target.files[0]) {
-                                                handleUpdateAvatar(e.target.files[0]);
-                                            }
-                                        }}
-                                    />
-                                    <button
-                                        className="btn btn-light position-absolute"
-                                        style={{
-                                            bottom: '8px',
-                                            right: '8px',
-                                            borderRadius: '50%',
-                                            width: '36px',
-                                            height: '36px',
-                                            padding: '0',
-                                            border: '3px solid white'
-                                        }}
-                                        onClick={() => document.getElementById('avatarInput').click()}
-                                    >
-                                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
-                                        </svg>
-                                    </button>
+                                    {isOwnProfile && (
+                                        <>
+                                            <input
+                                                type="file"
+                                                id="avatarInput"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={(e) => {
+                                                    if (e.target.files[0]) {
+                                                        handleUpdateAvatar(e.target.files[0]);
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                className="btn btn-light position-absolute"
+                                                style={{
+                                                    bottom: '8px',
+                                                    right: '8px',
+                                                    borderRadius: '50%',
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    padding: '0',
+                                                    border: '3px solid white'
+                                                }}
+                                                onClick={() => document.getElementById('avatarInput').click()}
+                                            >
+                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                                </svg>
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Name and Actions */}
                                 <div className="flex-grow-1 ms-md-3 text-center text-md-start">
                                     <h1 className="mb-1 fw-bold" style={{ fontSize: '2rem' }}>
-                                        {user?.fullName || user?.displayName || user?.username || localStorage.getItem('name') || profileData?.fullName || 'Người dùng'}
+                                        {isOwnProfile
+                                            ? (user?.fullName || user?.displayName || user?.username || localStorage.getItem('name') || profileData?.fullName || 'Người dùng')
+                                            : (profileData?.displayName || profileData?.fullName || profileData?.username || 'Người dùng')
+                                        }
                                     </h1>
                                     <p className="text-muted mb-2">{userStats.friends} bạn bè</p>
 
@@ -215,7 +276,41 @@ const ProfilePage = () => {
                                 </div>
 
                                 {/* Action Buttons */}
-                               
+                                <div className="d-flex gap-2 justify-content-center justify-content-md-start mt-3">
+                                    {isOwnProfile ? (
+                                        // Buttons cho profile bản thân
+                                        <>
+                                            <button className="btn btn-primary">
+                                                <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                                </svg>
+                                                Chỉnh sửa trang cá nhân
+                                            </button>
+                                            <button className="btn btn-outline-secondary">
+                                                <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4 6h-3V5a1 1 0 0 0-2 0v3H8a1 1 0 0 0 0 2h3v3a1 1 0 0 0 2 0v-3h3a1 1 0 0 0 0-2z" />
+                                                </svg>
+                                                Thêm vào tin
+                                            </button>
+                                        </>
+                                    ) : (
+                                        // Buttons cho profile người khác
+                                        <>
+                                            <div style={{ minWidth: '200px' }}>
+                                                <FriendshipButton
+                                                    targetUserId={targetUserId}
+                                                    targetUserName={profileData?.displayName || profileData?.fullName || profileData?.username || 'Người dùng'}
+                                                />
+                                            </div>
+                                            <button className="btn btn-outline-primary">
+                                                <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
+                                                    <path d="M12.013 6.75c-2.903 0-5.25 2.347-5.25 5.25s2.347 5.25 5.25 5.25 5.25-2.347 5.25-5.25-2.347-5.25-5.25-5.25zm0 1.5c2.072 0 3.75 1.678 3.75 3.75s-1.678 3.75-3.75 3.75-3.75-1.678-3.75-3.75 1.678-3.75 3.75-3.75z" />
+                                                </svg>
+                                                Nhắn tin
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -349,33 +444,10 @@ const ProfilePage = () => {
                         {/* Friends Card */}
                         <div className="card" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
                             <div className="card-body">
-                                <div className="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 className="fw-bold mb-0">Bạn bè</h5>
-                                    <a href="#" className="text-primary text-decoration-none">Xem tất cả bạn bè</a>
-                                </div>
-                                <p className="text-muted small mb-3">{userStats.friends} bạn bè</p>
-
-                                <div className="row g-3">
-                                    {friends.slice(0, 9).map((friend, i) => (
-                                        <div key={friend.id || i} className="col-4">
-                                            <div className="text-center">
-                                                <img
-                                                    src={friend.avatar || `https://i.pravatar.cc/120?img=${i + 1}`}
-                                                    alt={friend.fullName || `Friend ${i}`}
-                                                    className="img-fluid rounded"
-                                                    style={{
-                                                        aspectRatio: '1',
-                                                        objectFit: 'cover',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                />
-                                                <p className="small mt-1 mb-0 fw-semibold">
-                                                    {friend.fullName || `Bạn bè ${i + 1}`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <FriendsList
+                                    userId={isOwnProfile ? user?.id : targetUserId}
+                                    maxItems={9}
+                                />
                             </div>
                         </div>
                     </div>
@@ -384,8 +456,8 @@ const ProfilePage = () => {
                     <div className="col-12 col-lg-7 mt-4 mt-lg-0">
                         {activeTab === 'posts' && (
                             <>
-                                {/* Create Post */}
-                                <CreatePost />
+                                {/* Create Post - chỉ hiển thị cho profile bản thân */}
+                                {isOwnProfile && <CreatePost />}
 
                                 {/* Posts List */}
                                 <PostList />
@@ -501,6 +573,17 @@ const ProfilePage = () => {
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'friends' && (
+                            <div className="card" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
+                                <div className="card-body">
+                                    <FriendsList
+                                        userId={isOwnProfile ? user?.id : targetUserId}
+                                        showHeader={true}
+                                    />
                                 </div>
                             </div>
                         )}

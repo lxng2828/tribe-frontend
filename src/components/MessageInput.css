@@ -1,0 +1,277 @@
+/* Message Input Styles */
+.message-input-container {
+    border-top: 1px solid var(--fb-border, #e4e6ea);
+    background-color: white;
+}
+
+/* File Preview */
+.file-preview-container {
+    padding: 12px 16px 0 16px;
+    border-bottom: 1px solid var(--fb-border, #e4e6ea);
+}
+
+.file-preview-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+
+.file-preview-item {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.preview-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.preview-file {
+    width: 120px;
+    padding: 12px;
+    border: 1px solid var(--fb-border, #e4e6ea);
+    border-radius: 8px;
+    background-color: var(--fb-gray, #f0f2f5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-icon {
+    font-size: 20px;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+
+.file-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fb-text, #1c1e21);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size {
+    font-size: 10px;
+    color: var(--fb-secondary-text, #65676b);
+}
+
+.remove-file-btn {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--fb-red, #e41e3f);
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.remove-file-btn:hover {
+    background-color: var(--fb-red-dark, #c9184a);
+}
+
+/* Message Input Wrapper */
+.message-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+/* Input Actions */
+.input-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.input-action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: transparent;
+    color: var(--fb-blue, #1877f2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.input-action-btn:hover {
+    background-color: var(--fb-hover, #f2f3f5);
+}
+
+/* Text Input Container */
+.text-input-container {
+    flex: 1;
+    position: relative;
+}
+
+.message-textarea {
+    width: 100%;
+    min-height: 36px;
+    max-height: 120px;
+    padding: 8px 12px;
+    border: 1px solid var(--fb-border, #e4e6ea);
+    border-radius: 20px;
+    background-color: var(--fb-gray, #f0f2f5);
+    color: var(--fb-text, #1c1e21);
+    font-size: 14px;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    transition: all 0.2s;
+    line-height: 1.4;
+}
+
+.message-textarea:focus {
+    background-color: white;
+    border-color: var(--fb-blue, #1877f2);
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+}
+
+.message-textarea::placeholder {
+    color: var(--fb-secondary-text, #65676b);
+}
+
+/* Send Button */
+.send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--fb-blue, #1877f2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.send-btn:hover {
+    background-color: var(--fb-blue-dark, #166fe5);
+    transform: scale(1.05);
+}
+
+.send-btn:active {
+    transform: scale(0.95);
+}
+
+/* Voice Button */
+.voice-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--fb-blue, #1877f2);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.voice-btn:hover {
+    background-color: var(--fb-blue-dark, #166fe5);
+}
+
+.voice-btn.recording {
+    background-color: var(--fb-red, #e41e3f);
+    animation: pulse 1.5s infinite;
+}
+
+.voice-btn.recording:hover {
+    background-color: var(--fb-red-dark, #c9184a);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(228, 30, 63, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(228, 30, 63, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(228, 30, 63, 0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .message-input-wrapper {
+        padding: 8px 12px;
+        gap: 6px;
+    }
+
+    .input-actions {
+        gap: 2px;
+    }
+
+    .input-action-btn,
+    .send-btn,
+    .voice-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .file-preview-container {
+        padding: 8px 12px 0 12px;
+    }
+
+    .preview-image {
+        width: 60px;
+        height: 60px;
+    }
+
+    .preview-file {
+        width: 100px;
+        padding: 8px;
+    }
+}
+
+/* Custom Scrollbar for File Preview */
+.file-preview-list::-webkit-scrollbar {
+    height: 4px;
+}
+
+.file-preview-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.file-preview-list::-webkit-scrollbar-thumb {
+    background-color: var(--fb-border, #e4e6ea);
+    border-radius: 2px;
+}
+
+.file-preview-list::-webkit-scrollbar-thumb:hover {
+    background-color: var(--fb-secondary-text, #65676b);
+}

@@ -6,7 +6,7 @@ import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import VerifyOTPPage from './features/auth/VerifyOTPPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import NewsFeed from './pages/NewsFeed';
-import ChatPage from './features/messages/ChatPage';
+import MessagesPage from './pages/MessagesPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -108,7 +108,8 @@ const AppRoutes = () => {
             {/* Route yêu cầu đăng nhập */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<NewsFeed />} />
-                <Route path="/messages" element={<ChatPage />} />
+                <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/messages/:conversationId" element={<MessagesPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/profile/:userId" element={<ProfilePage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />

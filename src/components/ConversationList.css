@@ -1,0 +1,312 @@
+/* Conversation List Styles */
+.conversation-list {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: white;
+}
+
+/* Header */
+.conversation-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--fb-border, #e4e6ea);
+}
+
+.conversation-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.conversation-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--fb-text, #1c1e21);
+}
+
+.new-conversation-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--fb-gray, #f0f2f5);
+    color: var(--fb-blue, #1877f2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.new-conversation-btn:hover {
+    background-color: var(--fb-hover, #e4e6ea);
+}
+
+/* Search */
+.conversation-search {
+    padding: 0 16px 16px 16px;
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--fb-secondary-text, #65676b);
+    pointer-events: none;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px 8px 36px;
+    border: none;
+    border-radius: 20px;
+    background-color: var(--fb-gray, #f0f2f5);
+    color: var(--fb-text, #1c1e21);
+    font-size: 14px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.search-input:focus {
+    background-color: white;
+    box-shadow: 0 0 0 2px var(--fb-blue, #1877f2);
+}
+
+.search-input::placeholder {
+    color: var(--fb-secondary-text, #65676b);
+}
+
+/* Conversations Container */
+.conversations-container {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.conversations-list {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Loading State */
+.conversations-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--fb-secondary-text, #65676b);
+}
+
+.loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--fb-gray, #f0f2f5);
+    border-top: 3px solid var(--fb-blue, #1877f2);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Empty State */
+.conversations-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--fb-secondary-text, #65676b);
+}
+
+.empty-icon {
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.conversations-empty p {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+}
+
+.start-chat-btn,
+.clear-search-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--fb-blue, #1877f2);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.start-chat-btn:hover,
+.clear-search-btn:hover {
+    background-color: var(--fb-blue-dark, #166fe5);
+}
+
+.clear-search-btn {
+    background-color: var(--fb-gray, #f0f2f5);
+    color: var(--fb-text, #1c1e21);
+}
+
+.clear-search-btn:hover {
+    background-color: var(--fb-hover, #e4e6ea);
+}
+
+/* Conversation Item */
+.conversation-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.2s;
+    position: relative;
+}
+
+.conversation-item:hover {
+    background-color: var(--fb-hover, #f2f3f5);
+}
+
+.conversation-item.selected {
+    background-color: var(--fb-selected, #e7f3ff);
+}
+
+.conversation-item.selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--fb-blue, #1877f2);
+}
+
+.conversation-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+    position: relative;
+}
+
+.conversation-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.conversation-header-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.conversation-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--fb-text, #1c1e21);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.conversation-time {
+    font-size: 12px;
+    color: var(--fb-secondary-text, #65676b);
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.conversation-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.conversation-last-message {
+    font-size: 13px;
+    color: var(--fb-secondary-text, #65676b);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.conversation-item.unread .conversation-last-message {
+    color: var(--fb-text, #1c1e21);
+    font-weight: 600;
+}
+
+.conversation-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.unread-badge {
+    background-color: var(--fb-blue, #1877f2);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+}
+
+.online-indicator {
+    width: 12px;
+    height: 12px;
+    background-color: #42b883;
+    border: 2px solid white;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .conversation-header {
+        padding: 12px 16px;
+    }
+
+    .conversation-header h2 {
+        font-size: 20px;
+    }
+
+    .conversation-item {
+        padding: 12px 16px;
+    }
+
+    .conversation-avatar {
+        width: 48px;
+        height: 48px;
+    }
+}

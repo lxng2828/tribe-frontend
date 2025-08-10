@@ -17,18 +17,17 @@ const ForgotPasswordPage = () => {
     const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
         setIsSubmitting(true);
         try {
-            // Giả lập API call để gửi OTP
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const message = await authService.sendForgotPasswordOTP(values.email);
             
             // Chuyển hướng đến trang nhập OTP với email
             navigate('/verify-otp', { 
                 state: { 
                     email: values.email,
-                    message: 'Mã OTP đã được gửi đến email của bạn'
+                    message: message
                 } 
             });
         } catch (error) {
-            setFieldError('email', 'Có lỗi xảy ra. Vui lòng thử lại.');
+            setFieldError('email', error.message);
         } finally {
             setIsSubmitting(false);
             setSubmitting(false);

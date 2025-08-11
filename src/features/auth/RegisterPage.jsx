@@ -2,18 +2,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
-import api from '../../services/api';
 
-// Validation schema với Yup
+// Validation schema với Yup - phù hợp với API backend
 const validationSchema = Yup.object({
     displayName: Yup.string()
         .min(2, 'Họ tên phải có ít nhất 2 ký tự')
+        .max(100, 'Họ tên không được quá 100 ký tự')
         .required('Vui lòng nhập họ tên'),
     email: Yup.string()
         .email('Email không hợp lệ')
         .required('Vui lòng nhập email'),
     password: Yup.string()
         .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+        .max(100, 'Mật khẩu không được quá 100 ký tự')
         .required('Vui lòng nhập mật khẩu'),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password'), null], 'Mật khẩu xác nhận không khớp')
@@ -23,7 +24,8 @@ const validationSchema = Yup.object({
         .required('Vui lòng nhập số điện thoại'),
     birthday: Yup.string()
         .matches(/^\d{4}-\d{2}-\d{2}$/, 'Ngày sinh phải đúng định dạng yyyy-MM-dd')
-        .nullable(),
+        .nullable()
+        .optional(),
     agreeTerms: Yup.boolean()
         .oneOf([true], 'Bạn phải đồng ý với điều khoản dịch vụ')
 });
@@ -99,40 +101,48 @@ const RegisterPage = () => {
                                     agreeTerms: false
                                 }}
                                 validationSchema={validationSchema}
-                                onSubmit={async (values, { setSubmitting, setStatus }) => {
+                                                                onSubmit={async (values, { setSubmitting }) => {
                                     try {
-                                        setStatus(null);
                                         const { confirmPassword, agreeTerms, ...registerData } = values;
-                                        // Nếu birthday là rỗng thì bỏ qua trường này
-                                        if (!registerData.birthday) delete registerData.birthday;
-                                        await register(registerData);
-                                        navigate('/login', {
-                                            replace: true,
-                                            state: {
-                                                message: 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.',
-                                                email: registerData.email
-                                            }
+                                        
+                                        // Chuẩn bị dữ liệu theo format API backend
+                                        const dataToSend = {
+                                            email: registerData.email,
+                                            password: registerData.password,
+                                            displayName: registerData.displayName,
+                                            phoneNumber: registerData.phoneNumber,
+                                            birthday: registerData.birthday || null,
+                                            avatarUrl: null // Có thể thêm sau
+                                        };
+
+                                        // Loại bỏ các trường rỗng
+                                        Object.keys(dataToSend).forEach(key => {
+                                            if (!dataToSend[key]) delete dataToSend[key];
                                         });
+
+                                        const result = await register(dataToSend);
+                                        
+                                        // Kiểm tra nếu đăng ký thành công
+                                        if (result && result.success) {
+                                            navigate('/login', {
+                                                replace: true,
+                                                state: {
+                                                    message: result.message || 'Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.',
+                                                    email: registerData.email
+                                                }
+                                            });
+                                        }
                                     } catch (error) {
-                                        setStatus(error.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+                                        console.error('Registration error:', error);
+                                        // Error đã được xử lý trong authService qua toast
                                     } finally {
                                         setSubmitting(false);
                                     }
                                 }}
                             >
-                                {({ errors, touched, isSubmitting, status }) => (
+                                {({ errors, touched, isSubmitting }) => (
                                     <Form>
-                                        {/* Error Alert */}
-                                        {status && (
-                                            <div className="alert-custom alert-danger mb-4" role="alert">
-                                                <div className="alert-icon">
-                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                                    </svg>
-                                                </div>
-                                                <div className="alert-message">{status}</div>
-                                            </div>
-                                        )}
+
 
                                         {/* Full Name Field */}
                                         <div className="form-group mb-3">

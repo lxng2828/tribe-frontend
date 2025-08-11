@@ -61,10 +61,10 @@ export const AuthProvider = ({ children }) => {
     // Đăng ký
     const register = async (userData) => {
         try {
-            const { token, user: newUser } = await authService.register(userData);
-            setUser(newUser);
-            setIsAuthenticated(true);
-            return { success: true, user: newUser };
+            const result = await authService.register(userData);
+            // Đăng ký thành công nhưng không tự động đăng nhập
+            // User sẽ cần đăng nhập riêng
+            return result;
         } catch (error) {
             console.error('Register error:', error);
             return { success: false, error: error.message };

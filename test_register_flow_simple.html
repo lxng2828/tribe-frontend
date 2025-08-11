@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Register Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #f9f9f9; }
+        .success { border-color: #28a745; background: #d4edda; }
+        .error { border-color: #dc3545; background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h1>Test Register Flow</h1>
+    
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="displayName">Họ và tên:</label>
+            <input type="text" id="displayName" name="displayName" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Mật khẩu:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phoneNumber">Số điện thoại:</label>
+            <input type="tel" id="phoneNumber" name="phoneNumber">
+        </div>
+        
+        <div class="form-group">
+            <label for="birthday">Ngày sinh (yyyy-MM-dd):</label>
+            <input type="text" id="birthday" name="birthday" placeholder="2020-01-01">
+        </div>
+        
+        <button type="submit">Đăng ký</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                displayName: formData.get('displayName'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                phoneNumber: formData.get('phoneNumber'),
+                birthday: formData.get('birthday')
+            };
+            
+            // Loại bỏ các trường rỗng
+            Object.keys(data).forEach(key => {
+                if (!data[key]) delete data[key];
+            });
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Đang đăng ký...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                console.log('API Response:', result);
+                
+                if (result.status && result.status.code === '00' && result.status.success) {
+                    resultDiv.innerHTML = `
+                        <h3>✅ Đăng ký thành công!</h3>
+                        <p><strong>Message:</strong> ${result.status.displayMessage || 'Đăng ký thành công'}</p>
+                        <p><strong>Data:</strong> ${JSON.stringify(result.data, null, 2)}</p>
+                        <p><strong>Next step:</strong> Chuyển đến trang login</p>
+                    `;
+                    resultDiv.className = 'result success';
+                    
+                    // Simulate navigation to login
+                    setTimeout(() => {
+                        resultDiv.innerHTML += '<p><strong>🎯 Đang chuyển đến trang login...</strong></p>';
+                    }, 2000);
+                } else {
+                    resultDiv.innerHTML = `
+                        <h3>❌ Đăng ký thất bại</h3>
+                        <p><strong>Error:</strong> ${result.status?.displayMessage || result.status?.message || 'Lỗi không xác định'}</p>
+                        <p><strong>Response:</strong> ${JSON.stringify(result, null, 2)}</p>
+                    `;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>❌ Lỗi kết nối</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+                resultDiv.className = 'result error';
+            }
+        });
+    </script>
+</body>
+</html>

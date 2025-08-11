@@ -3,6 +3,7 @@ import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
 import authService from './authService';
+import { authToasts } from '../../utils/toast';
 import OTPInput from '../../components/OTPInput';
 import SuccessMessage from '../../components/SuccessMessage';
 
@@ -39,7 +40,7 @@ const VerifyOTPPage = () => {
         }
     }, [countdown]);
 
-    const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
+    const handleSubmit = async (values, { setSubmitting }) => {
         setIsSubmitting(true);
         try {
             await authService.verifyOTP(email, values.otp);
@@ -53,7 +54,7 @@ const VerifyOTPPage = () => {
                 } 
             });
         } catch (error) {
-            setFieldError('otp', error.message);
+            // Error đã được xử lý trong authService
         } finally {
             setIsSubmitting(false);
             setSubmitting(false);
@@ -65,10 +66,9 @@ const VerifyOTPPage = () => {
         try {
             await authService.forgotPassword(email);
             setCountdown(60); // 60 giây countdown
-            // Hiển thị thông báo thành công
-            alert('Mã OTP mới đã được gửi đến email của bạn!');
+            // Toast đã được hiển thị trong authService
         } catch (error) {
-            alert(error.message);
+            // Error đã được xử lý trong authService
         } finally {
             setIsResending(false);
         }

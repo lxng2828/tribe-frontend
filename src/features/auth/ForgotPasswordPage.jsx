@@ -3,6 +3,7 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState } from 'react';
 import authService from './authService';
+import { authToasts } from '../../utils/toast';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
@@ -15,12 +16,12 @@ const ForgotPasswordPage = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
+    const handleSubmit = async (values, { setSubmitting }) => {
         setIsSubmitting(true);
         try {
             const message = await authService.forgotPassword(values.email);
             
-            // Hiển thị thông báo thành công và chuyển hướng
+            // Chuyển hướng sau khi gửi OTP thành công
             navigate('/verify-otp', { 
                 state: { 
                     email: values.email,
@@ -29,7 +30,7 @@ const ForgotPasswordPage = () => {
                 } 
             });
         } catch (error) {
-            setFieldError('email', error.message);
+            // Error đã được xử lý trong authService
         } finally {
             setIsSubmitting(false);
             setSubmitting(false);

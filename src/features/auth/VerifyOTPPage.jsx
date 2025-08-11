@@ -1,13 +1,15 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
+import authService from './authService';
+import OTPInput from '../../components/OTPInput';
+import SuccessMessage from '../../components/SuccessMessage';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
     otp: Yup.string()
-        .length(6, 'Mã OTP phải có 6 chữ số')
-        .matches(/^[0-9]+$/, 'Mã OTP chỉ được chứa số')
+        .matches(/^\d{6}$/, 'Mã OTP phải có 6 số')
         .required('Vui lòng nhập mã OTP')
 });
 
@@ -15,45 +17,43 @@ const VerifyOTPPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [countdown, setCountdown] = useState(60);
-    const [canResend, setCanResend] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
     const email = location.state?.email;
     const message = location.state?.message;
+    const isEmailSent = location.state?.isEmailSent;
 
-    // Redirect nếu không có email
+    // Redirect nếu không có email hoặc email chưa được gửi
     useEffect(() => {
-        if (!email) {
+        if (!email || !isEmailSent) {
             navigate('/forgot-password');
         }
-    }, [email, navigate]);
+    }, [email, isEmailSent, navigate]);
 
-    // Countdown timer
+    // Countdown timer cho resend
     useEffect(() => {
         if (countdown > 0) {
             const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
             return () => clearTimeout(timer);
-        } else {
-            setCanResend(true);
         }
     }, [countdown]);
 
     const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
         setIsSubmitting(true);
         try {
-            // Giả lập API call để verify OTP
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await authService.verifyOTP(email, values.otp);
             
             // Chuyển hướng đến trang đặt lại mật khẩu
             navigate('/reset-password', { 
                 state: { 
                     email: email,
                     otp: values.otp,
-                    message: 'Xác thực thành công! Vui lòng đặt lại mật khẩu mới.'
+                    message: 'Mã OTP hợp lệ. Vui lòng nhập mật khẩu mới.'
                 } 
             });
         } catch (error) {
-            setFieldError('otp', 'Mã OTP không chính xác. Vui lòng thử lại.');
+            setFieldError('otp', error.message);
         } finally {
             setIsSubmitting(false);
             setSubmitting(false);
@@ -61,18 +61,20 @@ const VerifyOTPPage = () => {
     };
 
     const handleResendOTP = async () => {
-        setCanResend(false);
-        setCountdown(60);
+        setIsResending(true);
         try {
-            // Giả lập API call để gửi lại OTP
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            // Có thể hiển thị thông báo thành công ở đây
+            await authService.forgotPassword(email);
+            setCountdown(60); // 60 giây countdown
+            // Hiển thị thông báo thành công
+            alert('Mã OTP mới đã được gửi đến email của bạn!');
         } catch (error) {
-            // Xử lý lỗi
+            alert(error.message);
+        } finally {
+            setIsResending(false);
         }
     };
 
-    if (!email) {
+    if (!email || !isEmailSent) {
         return null;
     }
 
@@ -94,7 +96,7 @@ const VerifyOTPPage = () => {
                                 </h1>
                             </div>
                             <p className="lead fs-3 mb-4 text-white opacity-90">
-                                Xác thực email để bảo vệ tài khoản của bạn.
+                                Nhập mã OTP để xác thực và đặt lại mật khẩu.
                             </p>
                             <div className="features-list">
                                 <div className="feature-item">
@@ -103,7 +105,15 @@ const VerifyOTPPage = () => {
                                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                         </svg>
                                     </div>
-                                    <span>Bảo mật 2 lớp</span>
+                                    <span>Mã OTP 6 số an toàn</span>
+                                </div>
+                                <div className="feature-item">
+                                    <div className="feature-icon">
+                                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                    </div>
+                                    <span>Có hiệu lực trong 5 phút</span>
                                 </div>
                                 <div className="feature-item">
                                     <div className="feature-icon">
@@ -113,38 +123,23 @@ const VerifyOTPPage = () => {
                                     </div>
                                     <span>Xác thực nhanh chóng</span>
                                 </div>
-                                <div className="feature-item">
-                                    <div className="feature-icon">
-                                        <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                        </svg>
-                                    </div>
-                                    <span>Bảo vệ tài khoản an toàn</span>
-                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Side - OTP Form */}
+                    {/* Right Side - OTP Verification Form */}
                     <div className="col-lg-4">
                         <div className="login-card animate-fade-in-right">
                             <div className="card-header text-center mb-4">
-                                <h2 className="h3 fw-bold text-white mb-2">Nhập mã OTP</h2>
+                                <h2 className="h3 fw-bold text-white mb-2">Xác thực OTP</h2>
                                 <p className="text-white opacity-75">
-                                    Mã đã được gửi đến <strong>{email}</strong>
+                                    Nhập mã OTP đã được gửi đến <strong>{email}</strong>
                                 </p>
                             </div>
 
                             {/* Success Message */}
                             {message && (
-                                <div className="alert-custom alert-success mb-4" role="alert">
-                                    <div className="alert-icon">
-                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                        </svg>
-                                    </div>
-                                    <div className="alert-message">{message}</div>
-                                </div>
+                                <SuccessMessage message={message} />
                             )}
 
                             <Formik
@@ -153,25 +148,25 @@ const VerifyOTPPage = () => {
                                 }}
                                 validationSchema={validationSchema}
                                 onSubmit={handleSubmit}
+                                enableReinitialize={false}
                             >
-                                {({ errors, touched }) => (
+                                {({ errors, touched, setFieldValue, setFieldTouched, values }) => (
                                     <Form>
                                         {/* OTP Field */}
                                         <div className="form-group mb-4">
-                                            <div className="input-wrapper">
-                                                <div className="input-icon">
-                                                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                                    </svg>
-                                                </div>
-                                                <Field
-                                                    type="text"
-                                                    name="otp"
-                                                    className={`form-control-custom ${errors.otp && touched.otp ? 'is-invalid' : ''}`}
-                                                    placeholder="Nhập mã 6 chữ số"
-                                                    maxLength="6"
-                                                />
-                                            </div>
+                                            <OTPInput
+                                                value={values.otp}
+                                                onChange={(value) => {
+                                                    setFieldValue('otp', value);
+                                                    setFieldTouched('otp', true);
+                                                }}
+                                                onComplete={(value) => {
+                                                    setFieldValue('otp', value);
+                                                    setFieldTouched('otp', true);
+                                                }}
+                                                disabled={isSubmitting}
+                                                error={errors.otp && touched.otp}
+                                            />
                                             <ErrorMessage name="otp" component="div" className="error-message" />
                                         </div>
 
@@ -191,35 +186,50 @@ const VerifyOTPPage = () => {
                                             )}
                                         </button>
 
-                                        {/* Resend OTP */}
-                                        <div className="text-center mb-3">
-                                            {canResend ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleResendOTP}
-                                                    className="forgot-link"
-                                                >
-                                                    Gửi lại mã OTP
-                                                </button>
-                                            ) : (
-                                                <p className="text-white opacity-75">
-                                                    Gửi lại mã sau {countdown}s
-                                                </p>
-                                            )}
+                                        {/* Resend OTP Button */}
+                                        <div className="text-center mb-4">
+                                            <button
+                                                type="button"
+                                                onClick={handleResendOTP}
+                                                disabled={isResending || countdown > 0}
+                                                className="btn btn-outline-light"
+                                            >
+                                                {isResending ? (
+                                                    <>
+                                                        <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                                                        Đang gửi lại...
+                                                    </>
+                                                ) : countdown > 0 ? (
+                                                    `Gửi lại sau ${countdown}s`
+                                                ) : (
+                                                    'Gửi lại mã OTP'
+                                                )}
+                                            </button>
                                         </div>
 
-                                        {/* Back to Forgot Password */}
+                                        {/* Back to Login */}
                                         <div className="text-center">
                                             <Link
-                                                to="/forgot-password"
+                                                to="/login"
                                                 className="forgot-link"
                                             >
-                                                ← Quay lại
+                                                ← Quay lại đăng nhập
                                             </Link>
                                         </div>
                                     </Form>
                                 )}
                             </Formik>
+
+                            {/* Instructions */}
+                            <div className="instructions mt-4">
+                                <h6 className="text-white mb-3">Hướng dẫn:</h6>
+                                <ol className="text-white opacity-75">
+                                    <li>Kiểm tra hộp thư email của bạn</li>
+                                    <li>Nhập mã OTP 6 số từ email</li>
+                                    <li>Nhấn "Xác thực OTP" để tiếp tục</li>
+                                    <li>Nhập mật khẩu mới khi được chuyển hướng</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
                 </div>

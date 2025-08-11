@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
+import authService from './authService';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
@@ -20,33 +21,37 @@ const ResetPasswordPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [email, setEmail] = useState(null);
+    const [otp, setOtp] = useState(null);
 
-    const email = location.state?.email;
-    const otp = location.state?.otp;
-    const message = location.state?.message;
-
-    // Redirect nếu không có email hoặc OTP
+    // Lấy email và OTP từ location state
     useEffect(() => {
-        if (!email || !otp) {
+        const emailFromState = location.state?.email;
+        const otpFromState = location.state?.otp;
+        
+        if (!emailFromState || !otpFromState) {
             navigate('/forgot-password');
+            return;
         }
-    }, [email, otp, navigate]);
+        
+        setEmail(emailFromState);
+        setOtp(otpFromState);
+    }, [location.state, navigate]);
 
     const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
         setIsSubmitting(true);
         try {
-            // Giả lập API call để đặt lại mật khẩu
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            const message = await authService.resetPasswordWithOTP(email, otp, values.password);
             
             // Chuyển hướng đến trang đăng nhập với thông báo thành công
             navigate('/login', { 
                 state: { 
-                    message: 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.',
+                    message: message || 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.',
                     email: email
                 } 
             });
         } catch (error) {
-            setFieldError('password', 'Có lỗi xảy ra. Vui lòng thử lại.');
+            setFieldError('password', error.message || 'Có lỗi xảy ra. Vui lòng thử lại.');
         } finally {
             setIsSubmitting(false);
             setSubmitting(false);
@@ -112,19 +117,21 @@ const ResetPasswordPage = () => {
                             <div className="card-header text-center mb-4">
                                 <h2 className="h3 fw-bold text-white mb-2">Đặt lại mật khẩu</h2>
                                 <p className="text-white opacity-75">
-                                    Tạo mật khẩu mới cho <strong>{email}</strong>
+                                    Tạo mật khẩu mới cho {email}
                                 </p>
                             </div>
 
                             {/* Success Message */}
-                            {message && (
+                            {location.state?.message && (
                                 <div className="alert-custom alert-success mb-4" role="alert">
                                     <div className="alert-icon">
                                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                         </svg>
                                     </div>
-                                    <div className="alert-message">{message}</div>
+                                    <div className="alert-message">
+                                        {location.state.message}
+                                    </div>
                                 </div>
                             )}
 

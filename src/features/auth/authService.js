@@ -28,12 +28,15 @@ class AuthService {
     // Đăng ký
     async register(userData) {
         try {
-            const response = await api.post('/auth/register', userData);
-            const { status, data } = response.data;
+            // Nếu birthday là rỗng hoặc không hợp lệ thì bỏ qua trường này
+            const dataToSend = { ...userData };
+            if (!dataToSend.birthday) delete dataToSend.birthday;
+            const response = await api.post('/auth/register', dataToSend);
+            const { code, message, data } = response.data;
 
-            if (status.code === '00') {
+            if (code === '00') {
                 // Nếu có token trả về ngay
-                if (data.token) {
+                if (data && data.token) {
                     const token = data.token;
                     localStorage.setItem('token', token);
 
@@ -49,10 +52,10 @@ class AuthService {
                     password: userData.password
                 });
             } else {
-                throw new Error(status.message || 'Đăng ký thất bại');
+                throw new Error(message || 'Đăng ký thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại';
+            const message = error.response?.data?.message || error.message || 'Đăng ký thất bại';
             throw new Error(message);
         }
     }

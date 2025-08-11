@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState } from 'react';
+import authService from './authService';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
@@ -17,13 +18,14 @@ const ForgotPasswordPage = () => {
     const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
         setIsSubmitting(true);
         try {
-            const message = await authService.sendForgotPasswordOTP(values.email);
+            const message = await authService.forgotPassword(values.email);
             
-            // Chuyển hướng đến trang nhập OTP với email
+            // Hiển thị thông báo thành công và chuyển hướng
             navigate('/verify-otp', { 
                 state: { 
                     email: values.email,
-                    message: message
+                    message: message,
+                    isEmailSent: true
                 } 
             });
         } catch (error) {
@@ -88,7 +90,7 @@ const ForgotPasswordPage = () => {
                         <div className="login-card animate-fade-in-right">
                             <div className="card-header text-center mb-4">
                                 <h2 className="h3 fw-bold text-white mb-2">Quên mật khẩu?</h2>
-                                <p className="text-white opacity-75">Nhập email để nhận mã xác thực</p>
+                                <p className="text-white opacity-75">Nhập email để nhận liên kết đặt lại mật khẩu</p>
                             </div>
 
                             <Formik
@@ -127,10 +129,10 @@ const ForgotPasswordPage = () => {
                                             {isSubmitting ? (
                                                 <>
                                                     <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                                                    Đang gửi mã...
+                                                    Đang gửi email...
                                                 </>
                                             ) : (
-                                                'Gửi mã xác thực'
+                                                'Gửi email đặt lại mật khẩu'
                                             )}
                                         </button>
 

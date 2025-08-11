@@ -4,6 +4,7 @@ import postService from './postService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const PostList = forwardRef((props, ref) => {
+    const { userId, isUserPosts = false } = props; // Thêm props để xác định loại bài viết
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -19,6 +20,13 @@ const PostList = forwardRef((props, ref) => {
         }
     }, [isInitialized]);
 
+    // Reload posts when userId or isUserPosts changes
+    useEffect(() => {
+        if (isInitialized) {
+            loadPosts(0, true);
+        }
+    }, [userId, isUserPosts, isInitialized]);
+
     // Expose refresh method to parent
     useImperativeHandle(ref, () => ({
         refreshPosts: () => loadPosts(0, true)
@@ -27,7 +35,15 @@ const PostList = forwardRef((props, ref) => {
     const loadPosts = async (pageNumber = 0, reset = false) => {
         try {
             setLoading(true);
-            const response = await postService.getPosts(pageNumber);
+            let response;
+
+            // Kiểm tra nếu là trang cá nhân thì gọi API theo user
+            if (isUserPosts && userId) {
+                response = await postService.getPostsByUser(userId, pageNumber);
+            } else {
+                // Nếu không thì lấy tất cả bài viết (newsfeed)
+                response = await postService.getPosts(pageNumber);
+            }
 
             if (reset) {
                 // Reset posts khi refresh
@@ -42,7 +58,7 @@ const PostList = forwardRef((props, ref) => {
                 });
                 setPage(pageNumber);
             }
-            
+
             setHasMore(response.hasMore);
         } catch (err) {
             setError(err.message || 'Đã xảy ra lỗi');

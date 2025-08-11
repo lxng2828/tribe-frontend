@@ -232,14 +232,94 @@ class PostService {
     }
 
     // Lấy bài viết theo người dùng
-    async getPostsByUser(userId, page = 1, limit = 10) {
+    async getPostsByUser(userId, page = 0, size = 20) {
         try {
-            const response = await api.get(`/users/${userId}/posts`, {
-                params: { page, limit }
+            console.log('Loading posts for user:', userId);
+
+            // Fallback: Lấy tất cả bài viết và filter theo userId
+            const response = await api.get(`/posts/all`, {
+                params: { page: 0, size: 100 } // Lấy nhiều hơn để filter
             });
-            return response.data;
+
+            const { status, data } = response.data;
+            console.log('API Response for all posts:', response.data);
+
+            if (status.success) {
+                // Filter posts by userId
+                const allPosts = data || [];
+                const userPosts = allPosts.filter(post => {
+                    const postUserId = post.user?.senderId || post.user?.id || post.user?.userId || post.userId;
+                    console.log('Comparing postUserId:', postUserId, 'with targetUserId:', userId);
+                    return postUserId === userId || postUserId === String(userId);
+                });
+
+                console.log('Filtered user posts:', userPosts.length, 'out of', allPosts.length);
+
+                // Simulate pagination for filtered results
+                const startIndex = page * size;
+                const endIndex = startIndex + size;
+                const paginatedPosts = userPosts.slice(startIndex, endIndex);
+
+                const posts = paginatedPosts.map(post => {
+                    // Lấy thông tin user theo cấu trúc API thực tế
+                    const user = post.user || {};
+                    const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
+                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
+                    const userPostId = user.senderId || user.id || user.userId || post.userId;
+
+                    // Xử lý đường dẫn ảnh - thêm base URL nếu cần
+                    const processImageUrls = (urls) => {
+                        if (!urls || !Array.isArray(urls)) return [];
+                        return urls.map(url => {
+                            if (url.startsWith('http')) {
+                                return url; // Đã là URL đầy đủ
+                            } else if (url.startsWith('/')) {
+                                return `${API_BASE_URL}${url}`; // Thêm base URL
+                            } else {
+                                return `${API_BASE_URL}/${url}`; // Thêm base URL và dấu /
+                            }
+                        });
+                    };
+
+                    return {
+                        id: post.id,
+                        content: post.content,
+                        author: {
+                            id: userPostId,
+                            name: userName,
+                            avatar: userAvatar
+                        },
+                        visibility: post.visibility || 'PUBLIC',
+                        createdAt: post.createdAt,
+                        updatedAt: post.updatedAt,
+                        likesCount: post.reactionCount || post.likesCount || 0,
+                        commentsCount: post.commentCount || post.commentsCount || 0,
+                        liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
+                        mediaUrls: processImageUrls(post.mediaUrls),
+                        images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
+                        isOwner: post.isOwner || false,
+                        comments: []
+                    };
+                });
+
+                return {
+                    posts,
+                    hasMore: endIndex < userPosts.length, // Check if there are more posts
+                    total: userPosts.length
+                };
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi tải bài viết của người dùng');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi tải bài viết của người dùng');
+            console.error('API Error for user posts:', error);
+
+            // Nếu tất cả đều fail, trả về empty array thay vì throw error
+            console.warn('Cannot load user posts, returning empty list');
+            return {
+                posts: [],
+                hasMore: false,
+                total: 0
+            };
         }
     }
 

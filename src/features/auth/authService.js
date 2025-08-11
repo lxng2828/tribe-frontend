@@ -1,5 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 import api from '../../services/api';
+import { authToasts } from '../../utils/toast';
 
 class AuthService {
     // Đăng nhập
@@ -8,19 +9,24 @@ class AuthService {
             const response = await api.post('/auth/login', credentials);
             const { status, data } = response.data;
 
-            if (status.code === '00') {
+            if (status.code === '00' && status.success) {
                 const token = data.token || data;
                 localStorage.setItem('token', token);
 
                 const userInfo = await this.extractUserInfo(token, data.user);
                 this.storeUserInfo(userInfo);
 
+                authToasts.loginSuccess();
                 return { token, user: userInfo };
             } else {
-                throw new Error(status.message || 'Đăng nhập thất bại');
+                throw new Error(status.displayMessage || status.message || 'Đăng nhập thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đăng nhập thất bại';
+            const message = error.response?.data?.status?.displayMessage || 
+                           error.response?.data?.status?.message || 
+                           error.message || 
+                           'Đăng nhập thất bại';
+            authToasts.loginError(message);
             throw new Error(message);
         }
     }
@@ -28,34 +34,40 @@ class AuthService {
     // Đăng ký
     async register(userData) {
         try {
-            // Nếu birthday là rỗng hoặc không hợp lệ thì bỏ qua trường này
-            const dataToSend = { ...userData };
-            if (!dataToSend.birthday) delete dataToSend.birthday;
+            // Chuẩn bị dữ liệu theo format API backend
+            const dataToSend = {
+                email: userData.email,
+                password: userData.password,
+                displayName: userData.displayName || userData.fullName,
+                phoneNumber: userData.phoneNumber,
+                birthday: userData.birthday,
+                avatarUrl: userData.avatarUrl
+            };
+
+            // Loại bỏ các trường rỗng
+            Object.keys(dataToSend).forEach(key => {
+                if (!dataToSend[key]) delete dataToSend[key];
+            });
+
             const response = await api.post('/auth/register', dataToSend);
-            const { code, message, data } = response.data;
+            const { status, data } = response.data;
 
-            if (code === '00') {
-                // Nếu có token trả về ngay
-                if (data && data.token) {
-                    const token = data.token;
-                    localStorage.setItem('token', token);
-
-                    const userInfo = await this.extractUserInfo(token, data.user);
-                    this.storeUserInfo(userInfo);
-
-                    return { token, user: userInfo };
-                }
-
-                // Nếu không có token → tự động đăng nhập lại
-                return await this.login({
-                    email: userData.email,
-                    password: userData.password
-                });
+            if (status.code === '00' && status.success) {
+                authToasts.registerSuccess();
+                return { 
+                    success: true, 
+                    message: status.displayMessage || 'Đăng ký thành công',
+                    data: data 
+                };
             } else {
-                throw new Error(message || 'Đăng ký thất bại');
+                throw new Error(status.displayMessage || status.message || 'Đăng ký thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.message || error.message || 'Đăng ký thất bại';
+            const message = error.response?.data?.status?.displayMessage || 
+                           error.response?.data?.status?.message || 
+                           error.message || 
+                           'Đăng ký thất bại';
+            authToasts.registerError(message);
             throw new Error(message);
         }
     }
@@ -64,8 +76,9 @@ class AuthService {
     async logout() {
         try {
             await api.post('/auth/logout');
+            authToasts.logoutSuccess();
         } catch (error) {
-            console.error('Logout error:', error);
+            authToasts.logoutError(error.message);
         } finally {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -110,23 +123,18 @@ class AuthService {
     // Quên mật khẩu - Gửi OTP
     async forgotPassword(email) {
         try {
-            console.log('Sending forgot password request for:', email);
             const response = await api.post('/auth/forgot-password', { email });
-            console.log('Response received:', response.data);
-            
             const { status, data } = response.data;
 
             if (status.code === '00') {
-                console.log('Success - returning:', data);
+                authToasts.forgotPasswordSuccess(data);
                 return data || 'Nếu email tồn tại, mã OTP đã được gửi.';
             } else {
-                console.log('Error from backend:', status.message);
                 throw new Error(status.message || 'Gửi OTP thất bại');
             }
         } catch (error) {
-            console.error('Error in forgotPassword:', error);
-            console.error('Error response:', error.response?.data);
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Gửi OTP thất bại';
+            authToasts.forgotPasswordError(message);
             throw new Error(message);
         }
     }
@@ -138,12 +146,14 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00') {
+                authToasts.verifyOTPSuccess(data);
                 return data || 'Mã OTP hợp lệ';
             } else {
                 throw new Error(status.message || 'Mã OTP không hợp lệ');
             }
         } catch (error) {
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Xác thực OTP thất bại';
+            authToasts.verifyOTPError(message);
             throw new Error(message);
         }
     }
@@ -159,12 +169,14 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00') {
+                authToasts.resetPasswordSuccess(data);
                 return data || 'Mật khẩu đã được đặt lại thành công';
             } else {
                 throw new Error(status.message || 'Đặt lại mật khẩu thất bại');
             }
         } catch (error) {
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đặt lại mật khẩu thất bại';
+            authToasts.resetPasswordError(message);
             throw new Error(message);
         }
     }

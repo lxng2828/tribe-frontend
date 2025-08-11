@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
+import { authToasts } from '../../utils/toast';
 
 // Validation schema với Yup
 const validationSchema = Yup.object({
@@ -96,12 +97,12 @@ const LoginPage = () => {
                                     rememberMe: false
                                 }}
                                 validationSchema={validationSchema}
-                                onSubmit={async (values, { setSubmitting, setFieldError }) => {
+                                onSubmit={async (values, { setSubmitting }) => {
                                     try {
                                         await login({ email: values.email, password: values.password });
                                         navigate(from, { replace: true });
                                     } catch (error) {
-                                        setFieldError('password', error.message || 'Email hoặc mật khẩu không chính xác');
+                                        // Error đã được xử lý trong authService
                                     } finally {
                                         setSubmitting(false);
                                     }

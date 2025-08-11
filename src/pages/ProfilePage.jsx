@@ -459,8 +459,11 @@ const ProfilePage = () => {
                                 {/* Create Post - chỉ hiển thị cho profile bản thân */}
                                 {isOwnProfile && <CreatePost />}
 
-                                {/* Posts List */}
-                                <PostList />
+                                {/* Posts List - Chỉ hiển thị bài viết của user này */}
+                                <PostList
+                                    userId={targetUserId}
+                                    isUserPosts={true}
+                                />
                             </>
                         )}
 

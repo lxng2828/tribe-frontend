@@ -71,7 +71,7 @@ const ForgotPasswordPage = () => {
                                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                                         </svg>
                                     </div>
-                                    <span>Xác thực qua email</span>
+                                    <span>Xác thực qua mã OTP</span>
                                 </div>
                                 <div className="feature-item">
                                     <div className="feature-icon">
@@ -90,7 +90,7 @@ const ForgotPasswordPage = () => {
                         <div className="login-card animate-fade-in-right">
                             <div className="card-header text-center mb-4">
                                 <h2 className="h3 fw-bold text-white mb-2">Quên mật khẩu?</h2>
-                                <p className="text-white opacity-75">Nhập email để nhận liên kết đặt lại mật khẩu</p>
+                                <p className="text-white opacity-75">Nhập email để nhận mã OTP đặt lại mật khẩu</p>
                             </div>
 
                             <Formik
@@ -129,10 +129,10 @@ const ForgotPasswordPage = () => {
                                             {isSubmitting ? (
                                                 <>
                                                     <div className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
-                                                    Đang gửi email...
+                                                    Đang gửi OTP...
                                                 </>
                                             ) : (
-                                                'Gửi email đặt lại mật khẩu'
+                                                'Gửi mã OTP'
                                             )}
                                         </button>
 

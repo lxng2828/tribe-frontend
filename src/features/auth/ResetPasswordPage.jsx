@@ -21,32 +21,27 @@ const ResetPasswordPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [token, setToken] = useState(null);
     const [email, setEmail] = useState(null);
+    const [otp, setOtp] = useState(null);
 
-    // Lấy token từ URL query parameter
+    // Lấy email và OTP từ location state
     useEffect(() => {
-        const urlParams = new URLSearchParams(location.search);
-        const tokenFromUrl = urlParams.get('token');
+        const emailFromState = location.state?.email;
+        const otpFromState = location.state?.otp;
         
-        if (!tokenFromUrl) {
+        if (!emailFromState || !otpFromState) {
             navigate('/forgot-password');
             return;
         }
         
-        setToken(tokenFromUrl);
-        
-        // Có thể lấy email từ URL nếu có
-        const emailFromUrl = urlParams.get('email');
-        if (emailFromUrl) {
-            setEmail(emailFromUrl);
-        }
-    }, [location.search, navigate]);
+        setEmail(emailFromState);
+        setOtp(otpFromState);
+    }, [location.state, navigate]);
 
     const handleSubmit = async (values, { setSubmitting, setFieldError }) => {
         setIsSubmitting(true);
         try {
-            const message = await authService.resetPassword(token, values.password);
+            const message = await authService.resetPasswordWithOTP(email, otp, values.password);
             
             // Chuyển hướng đến trang đăng nhập với thông báo thành công
             navigate('/login', { 
@@ -63,7 +58,7 @@ const ResetPasswordPage = () => {
         }
     };
 
-    if (!token) {
+    if (!email || !otp) {
         return null;
     }
 
@@ -122,9 +117,23 @@ const ResetPasswordPage = () => {
                             <div className="card-header text-center mb-4">
                                 <h2 className="h3 fw-bold text-white mb-2">Đặt lại mật khẩu</h2>
                                 <p className="text-white opacity-75">
-                                    {email ? `Tạo mật khẩu mới cho ${email}` : 'Tạo mật khẩu mới cho tài khoản của bạn'}
+                                    Tạo mật khẩu mới cho {email}
                                 </p>
                             </div>
+
+                            {/* Success Message */}
+                            {location.state?.message && (
+                                <div className="alert-custom alert-success mb-4" role="alert">
+                                    <div className="alert-icon">
+                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                        </svg>
+                                    </div>
+                                    <div className="alert-message">
+                                        {location.state.message}
+                                    </div>
+                                </div>
+                            )}
 
                             <Formik
                                 initialValues={{

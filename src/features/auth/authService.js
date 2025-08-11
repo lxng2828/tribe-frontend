@@ -8,19 +8,19 @@ class AuthService {
             const response = await api.post('/auth/login', credentials);
             const { status, data } = response.data;
 
-            if (!status.success) {
-                throw new Error(status.displayMessage || 'Đăng nhập thất bại');
+            if (status.code === '00') {
+                const token = data.token || data;
+                localStorage.setItem('token', token);
+
+                const userInfo = await this.extractUserInfo(token, data.user);
+                this.storeUserInfo(userInfo);
+
+                return { token, user: userInfo };
+            } else {
+                throw new Error(status.message || 'Đăng nhập thất bại');
             }
-
-            const token = data.token || data;
-            localStorage.setItem('token', token);
-
-            const userInfo = await this.extractUserInfo(token, data.user);
-            this.storeUserInfo(userInfo);
-
-            return { token, user: userInfo };
         } catch (error) {
-            const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng nhập thất bại';
+            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đăng nhập thất bại';
             throw new Error(message);
         }
     }
@@ -31,28 +31,28 @@ class AuthService {
             const response = await api.post('/auth/register', userData);
             const { status, data } = response.data;
 
-            if (!status.success) {
-                throw new Error(status.displayMessage || 'Đăng ký thất bại');
+            if (status.code === '00') {
+                // Nếu có token trả về ngay
+                if (data.token) {
+                    const token = data.token;
+                    localStorage.setItem('token', token);
+
+                    const userInfo = await this.extractUserInfo(token, data.user);
+                    this.storeUserInfo(userInfo);
+
+                    return { token, user: userInfo };
+                }
+
+                // Nếu không có token → tự động đăng nhập lại
+                return await this.login({
+                    email: userData.email,
+                    password: userData.password
+                });
+            } else {
+                throw new Error(status.message || 'Đăng ký thất bại');
             }
-
-            // Nếu có token trả về ngay
-            if (data.token) {
-                const token = data.token;
-                localStorage.setItem('token', token);
-
-                const userInfo = await this.extractUserInfo(token, data.user);
-                this.storeUserInfo(userInfo);
-
-                return { token, user: userInfo };
-            }
-
-            // Nếu không có token → tự động đăng nhập lại
-            return await this.login({
-                email: userData.email,
-                password: userData.password
-            });
         } catch (error) {
-            const message = error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại';
+            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đăng ký thất bại';
             throw new Error(message);
         }
     }
@@ -104,24 +104,69 @@ class AuthService {
         return localStorage.getItem('token');
     }
 
-    // Quên mật khẩu
+    // Quên mật khẩu - Gửi OTP
     async forgotPassword(email) {
         try {
+            console.log('Sending forgot password request for:', email);
             const response = await api.post('/auth/forgot-password', { email });
-            const { status } = response.data;
+            console.log('Response received:', response.data);
+            
+            const { status, data } = response.data;
 
-            if (status.success) {
-                return status.displayMessage || 'Email đặt lại mật khẩu đã được gửi';
+            if (status.code === '00') {
+                console.log('Success - returning:', data);
+                return data || 'Nếu email tồn tại, mã OTP đã được gửi.';
             } else {
-                throw new Error(status.displayMessage || 'Gửi email thất bại');
+                console.log('Error from backend:', status.message);
+                throw new Error(status.message || 'Gửi OTP thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.status?.displayMessage || error.message || 'Gửi email thất bại';
+            console.error('Error in forgotPassword:', error);
+            console.error('Error response:', error.response?.data);
+            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Gửi OTP thất bại';
             throw new Error(message);
         }
     }
 
-    // Đặt lại mật khẩu
+    // Xác thực OTP
+    async verifyOTP(email, otp) {
+        try {
+            const response = await api.post('/auth/verify-otp', { email, otp });
+            const { status, data } = response.data;
+
+            if (status.code === '00') {
+                return data || 'Mã OTP hợp lệ';
+            } else {
+                throw new Error(status.message || 'Mã OTP không hợp lệ');
+            }
+        } catch (error) {
+            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Xác thực OTP thất bại';
+            throw new Error(message);
+        }
+    }
+
+    // Đặt lại mật khẩu với OTP
+    async resetPasswordWithOTP(email, otp, newPassword) {
+        try {
+            const response = await api.post('/auth/reset-password-otp', { 
+                email, 
+                otp, 
+                newPassword 
+            });
+            const { status, data } = response.data;
+
+            if (status.code === '00') {
+                return data || 'Mật khẩu đã được đặt lại thành công';
+            } else {
+                throw new Error(status.message || 'Đặt lại mật khẩu thất bại');
+            }
+        } catch (error) {
+            const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đặt lại mật khẩu thất bại';
+            throw new Error(message);
+        }
+    }
+
+    // Đặt lại mật khẩu (API cũ - giữ lại để tương thích)
     async resetPassword(token, newPassword) {
         try {
             const response = await api.post('/auth/reset-password', { token, newPassword });
@@ -138,7 +183,6 @@ class AuthService {
         }
     }
 
-  
     async extractUserInfo(token, fallbackUser = null) {
         try {
             const decoded = jwtDecode(token);
@@ -155,7 +199,6 @@ class AuthService {
         }
     }
 
-   
     storeUserInfo(userInfo) {
         localStorage.setItem('user', JSON.stringify(userInfo));
         const name = userInfo.fullName || userInfo.displayName || userInfo.username || '';

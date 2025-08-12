@@ -12,7 +12,7 @@ import userService from '../services/userService';
 
 const ProfilePage = () => {
     const { userId: urlUserId } = useParams(); // Lấy userId từ URL
-    const { user } = useAuth();
+    const { user, refreshUserInfo } = useAuth();
     const [activeTab, setActiveTab] = useState('posts');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,6 +114,7 @@ const ProfilePage = () => {
             // Response giờ đây là { avatarUrl: "url_string" }
             if (response.avatarUrl) {
                 setProfileData(prev => ({ ...prev, avatarUrl: response.avatarUrl }));
+                refreshUserInfo(); // Cập nhật thông tin user sau khi upload avatar
             }
         } catch (err) {
             console.error('Error updating avatar:', err);
@@ -136,6 +137,7 @@ const ProfilePage = () => {
             // Response giờ đây là { coverPhotoUrl: "url_string" }
             if (response.coverPhotoUrl) {
                 setProfileData(prev => ({ ...prev, coverPhoto: response.coverPhotoUrl }));
+                refreshUserInfo(); // Cập nhật thông tin user sau khi upload cover photo
             }
         } catch (err) {
             console.error('Error updating cover photo:', err);

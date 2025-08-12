@@ -65,7 +65,7 @@ function EditProfilePage() {
                 <div className="col-lg-8">
                     <div className="card shadow">
                         <div className="card-header">
-                            <h3 className="card-title mb-0">Chỉnh sửa thông tin</h3>
+                            <h3 className="card-title mb-0">Thông tin cá nhân và mật khẩu</h3>
                         </div>
                         <div className="card-body">
                             {message.content && (

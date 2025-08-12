@@ -192,7 +192,7 @@ const Navbar = () => {
                             <li>
                                 <Link
                                     className="dropdown-item d-flex align-items-center py-2"
-                                    to="/settings"
+                                    to="/edit-profile"
                                     onClick={() => setIsProfileMenuOpen(false)}
                                     style={{ borderRadius: '6px', margin: '0 8px' }}
                                 >

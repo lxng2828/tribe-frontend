@@ -12,6 +12,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import SearchResultsPage from './pages/SearchResultsPage';
 import FriendsPage from './pages/FriendsPage';
 import MainLayout from './layouts/MainLayout';
+import EditProfilePage from './features/edit-profile-feature/EditProfilePage';
 
 // Component ProtectedRoute để bảo vệ các route yêu cầu đăng nhập
 const ProtectedRoute = () => {
@@ -115,6 +116,7 @@ const AppRoutes = () => {
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/search" element={<SearchResultsPage />} />
                 <Route path="/friends" element={<FriendsPage />} />
+                <Route path="/edit-profile" element={<EditProfilePage />} />
             </Route>
 
             {/* Route fallback - redirect về trang chủ */}

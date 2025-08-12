@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 import Loading from '../components/Loading';
@@ -16,6 +16,8 @@ const ProfilePage = () => {
     const [activeTab, setActiveTab] = useState('posts');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [uploadingCover, setUploadingCover] = useState(false);
 
     // State cho dữ liệu profile
     const [profileData, setProfileData] = useState(null);
@@ -102,28 +104,44 @@ const ProfilePage = () => {
     // Handle update avatar
     const handleUpdateAvatar = async (file) => {
         try {
+            setUploadingAvatar(true);
+            setError(null);
+            
             const formData = new FormData();
-            formData.append('avatar', file);
+            formData.append('file', file); // Sửa từ 'avatar' thành 'file' theo API docs
 
             const response = await profileService.updateAvatar(formData);
-            setProfileData(prev => ({ ...prev, avatar: response.avatarUrl }));
+            // Response giờ đây là { avatarUrl: "url_string" }
+            if (response.avatarUrl) {
+                setProfileData(prev => ({ ...prev, avatarUrl: response.avatarUrl }));
+            }
         } catch (err) {
             console.error('Error updating avatar:', err);
             setError('Không thể cập nhật ảnh đại diện.');
+        } finally {
+            setUploadingAvatar(false);
         }
     };
 
     // Handle update cover photo
     const handleUpdateCoverPhoto = async (file) => {
         try {
+            setUploadingCover(true);
+            setError(null);
+            
             const formData = new FormData();
-            formData.append('cover', file);
+            formData.append('file', file); // Sửa từ 'cover' thành 'file' theo API docs
 
             const response = await profileService.updateCoverPhoto(formData);
-            setProfileData(prev => ({ ...prev, coverPhoto: response.coverPhotoUrl }));
+            // Response giờ đây là { coverPhotoUrl: "url_string" }
+            if (response.coverPhotoUrl) {
+                setProfileData(prev => ({ ...prev, coverPhoto: response.coverPhotoUrl }));
+            }
         } catch (err) {
             console.error('Error updating cover photo:', err);
             setError('Không thể cập nhật ảnh bìa.');
+        } finally {
+            setUploadingCover(false);
         }
     };
 
@@ -163,7 +181,7 @@ const ProfilePage = () => {
                         height: '348px',
                         backgroundColor: '#4267B2',
                         backgroundImage: profileData?.coverPhoto
-                            ? `url(${profileData.coverPhoto})`
+                            ? `url(${getFullUrl(profileData.coverPhoto)})`
                             : `linear-gradient(135deg, #4267B2, #365899, #42b883)`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center'
@@ -185,11 +203,23 @@ const ProfilePage = () => {
                             <button
                                 className="btn btn-light"
                                 onClick={() => document.getElementById('coverPhotoInput').click()}
+                                disabled={uploadingCover}
                             >
-                                <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
-                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
-                                </svg>
-                                Chỉnh sửa ảnh bìa
+                                {uploadingCover ? (
+                                    <>
+                                        <div className="spinner-border spinner-border-sm me-2" role="status">
+                                            <span className="visually-hidden">Loading...</span>
+                                        </div>
+                                        Đang tải lên...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                        </svg>
+                                        Chỉnh sửa ảnh bìa
+                                    </>
+                                )}
                             </button>
                         </div>
                     )}
@@ -204,8 +234,8 @@ const ProfilePage = () => {
                                 {/* Profile Picture */}
                                 <div className="position-relative mb-3 mb-md-0">
                                     <img
-                                        src={profileData?.avatar || user?.avatar || DEFAULT_AVATAR}
-                                        alt={profileData?.fullName || profileData?.displayName || user?.fullName || 'User'}
+                                        src={getFullUrl(profileData?.avatarUrl) || getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                        alt={profileData?.displayName || profileData?.fullName || user?.displayName || 'User'}
                                         className="rounded-circle border border-4 border-white"
                                         style={{
                                             width: '168px',
@@ -238,10 +268,17 @@ const ProfilePage = () => {
                                                     border: '3px solid white'
                                                 }}
                                                 onClick={() => document.getElementById('avatarInput').click()}
+                                                disabled={uploadingAvatar}
                                             >
-                                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
-                                                </svg>
+                                                {uploadingAvatar ? (
+                                                    <div className="spinner-border spinner-border-sm" role="status">
+                                                        <span className="visually-hidden">Loading...</span>
+                                                    </div>
+                                                ) : (
+                                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                                    </svg>
+                                                )}
                                             </button>
                                         </>
                                     )}
@@ -251,7 +288,7 @@ const ProfilePage = () => {
                                 <div className="flex-grow-1 ms-md-3 text-center text-md-start">
                                     <h1 className="mb-1 fw-bold" style={{ fontSize: '2rem' }}>
                                         {isOwnProfile
-                                            ? (user?.fullName || user?.displayName || user?.username || localStorage.getItem('name') || profileData?.fullName || 'Người dùng')
+                                            ? (profileData?.displayName || user?.displayName || user?.fullName || user?.username || localStorage.getItem('name') || 'Người dùng')
                                             : (profileData?.displayName || profileData?.fullName || profileData?.username || 'Người dùng')
                                         }
                                     </h1>
@@ -259,19 +296,19 @@ const ProfilePage = () => {
 
                                     {/* Friend avatars preview */}
                                     <div className="d-flex justify-content-center justify-content-md-start">
-                                        {friends.slice(0, 6).map((friend, i) => (
-                                            <img
-                                                key={friend.id || i}
-                                                src={friend.avatar || `https://i.pravatar.cc/32?img=${i + 1}`}
-                                                alt={friend.fullName || `Friend ${i}`}
-                                                className="rounded-circle border border-2 border-white"
-                                                style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    marginLeft: i > 0 ? '-8px' : '0'
-                                                }}
-                                            />
-                                        ))}
+                                                                            {friends.slice(0, 6).map((friend, i) => (
+                                        <img
+                                            key={friend.id || i}
+                                            src={getFullUrl(friend.avatarUrl) || `https://i.pravatar.cc/32?img=${i + 1}`}
+                                            alt={friend.displayName || friend.fullName || `Friend ${i}`}
+                                            className="rounded-circle border border-2 border-white"
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                marginLeft: i > 0 ? '-8px' : '0'
+                                            }}
+                                        />
+                                    ))}
                                     </div>
                                 </div>
 
@@ -512,6 +549,14 @@ const ProfilePage = () => {
                                             </svg>
                                             <span>{profileData?.email || user?.email}</span>
                                         </div>
+                                        {profileData?.phoneNumber && (
+                                            <div className="d-flex align-items-center mb-2">
+                                                <svg width="16" height="16" className="me-3 text-muted" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                                                </svg>
+                                                <span>{profileData.phoneNumber}</span>
+                                            </div>
+                                        )}
                                         {profileData?.website && (
                                             <div className="d-flex align-items-center">
                                                 <svg width="16" height="16" className="me-3 text-muted" fill="currentColor" viewBox="0 0 24 24">
@@ -523,6 +568,41 @@ const ProfilePage = () => {
                                             </div>
                                         )}
                                     </div>
+
+                                    {profileData?.birthday && (
+                                        <div className="mb-4">
+                                            <h6 className="fw-semibold mb-3">Thông tin cá nhân</h6>
+                                            <div className="d-flex align-items-center mb-2">
+                                                <svg width="16" height="16" className="me-3 text-muted" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" />
+                                                </svg>
+                                                <span>Sinh ngày: {new Date(profileData.birthday).toLocaleDateString('vi-VN')}</span>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {profileData?.createdAt && (
+                                        <div className="mb-4">
+                                            <h6 className="fw-semibold mb-3">Thông tin tài khoản</h6>
+                                            <div className="d-flex align-items-center mb-2">
+                                                <svg width="16" height="16" className="me-3 text-muted" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                                </svg>
+                                                <span>Tham gia từ: {new Date(profileData.createdAt).toLocaleDateString('vi-VN', {
+                                                    year: 'numeric',
+                                                    month: 'long'
+                                                })}</span>
+                                            </div>
+                                            {profileData?.status && (
+                                                <div className="d-flex align-items-center">
+                                                    <svg width="16" height="16" className="me-3 text-muted" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                                    </svg>
+                                                    <span>Trạng thái: {profileData.status === 'active' ? 'Hoạt động' : profileData.status}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -537,14 +617,14 @@ const ProfilePage = () => {
                                             <div key={friend.id || i} className="col-6 col-md-4 col-lg-3">
                                                 <div className="card border-0">
                                                     <img
-                                                        src={friend.avatar || `https://i.pravatar.cc/200?img=${i + 1}`}
+                                                        src={getFullUrl(friend.avatarUrl) || `https://i.pravatar.cc/200?img=${i + 1}`}
                                                         alt={friend.displayName || `Friend ${i + 1}`}
                                                         className="card-img-top rounded"
                                                         style={{ aspectRatio: '1', objectFit: 'cover' }}
                                                     />
                                                     <div className="card-body p-2 text-center">
                                                         <h6 className="card-title small mb-0">
-                                                            {friend.fullName || `Bạn bè ${i + 1}`}
+                                                            {friend.displayName || friend.fullName || `Bạn bè ${i + 1}`}
                                                         </h6>
                                                     </div>
                                                 </div>

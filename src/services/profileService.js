@@ -1,11 +1,15 @@
 import api from './api';
 
+// Base URL cho backend
+const BACKEND_BASE_URL = 'http://localhost:8080';
+
 class ProfileService {
     // Lấy thông tin profile của user hiện tại
     async getCurrentUserProfile() {
         try {
             const response = await api.get('/users/profile');
-            return response.data;
+            // API trả về {status, data}, cần lấy data
+            return response.data.data;
         } catch (error) {
             console.error('Error fetching current user profile:', error);
             throw error;
@@ -16,7 +20,7 @@ class ProfileService {
     async getUserProfile(userId) {
         try {
             const response = await api.get(`/users/${userId}/profile`);
-            return response.data;
+            return response.data.data;
         } catch (error) {
             console.error('Error fetching user profile:', error);
             throw error;
@@ -27,22 +31,24 @@ class ProfileService {
     async updateProfile(profileData) {
         try {
             const response = await api.put('/users/profile', profileData);
-            return response.data;
+            return response.data.data;
         } catch (error) {
             console.error('Error updating profile:', error);
             throw error;
         }
     }
 
-    // Cập nhật avatar
+    // Cập nhật avatar - sửa endpoint và field name theo API docs
     async updateAvatar(formData) {
         try {
-            const response = await api.post('/users/profile/avatar', formData, {
+            const response = await api.post('/users/avatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            return response.data;
+            // Backend trả về trực tiếp avatarUrl string, thêm base URL
+            const avatarUrl = response.data.startsWith('http') ? response.data : BACKEND_BASE_URL + response.data;
+            return { avatarUrl };
         } catch (error) {
             console.error('Error updating avatar:', error);
             throw error;
@@ -52,12 +58,14 @@ class ProfileService {
     // Cập nhật ảnh bìa
     async updateCoverPhoto(formData) {
         try {
-            const response = await api.post('/users/profile/cover', formData, {
+            const response = await api.post('/users/cover', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            return response.data;
+            // Backend trả về trực tiếp coverUrl string, thêm base URL
+            const coverPhotoUrl = response.data.startsWith('http') ? response.data : BACKEND_BASE_URL + response.data;
+            return { coverPhotoUrl };
         } catch (error) {
             console.error('Error updating cover photo:', error);
             throw error;
@@ -71,7 +79,7 @@ class ProfileService {
             const response = await api.get(url, {
                 params: { page, size }
             });
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error fetching friends:', error);
             throw error;
@@ -85,7 +93,7 @@ class ProfileService {
             const response = await api.get(url, {
                 params: { page, size }
             });
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error fetching user photos:', error);
             throw error;
@@ -97,7 +105,7 @@ class ProfileService {
         try {
             const url = userId ? `/users/${userId}/stats` : '/users/stats';
             const response = await api.get(url);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error fetching user stats:', error);
             throw error;
@@ -108,7 +116,7 @@ class ProfileService {
     async sendFriendRequest(userId) {
         try {
             const response = await api.post(`/users/${userId}/friend-request`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error sending friend request:', error);
             throw error;
@@ -119,7 +127,7 @@ class ProfileService {
     async acceptFriendRequest(requestId) {
         try {
             const response = await api.post(`/friend-requests/${requestId}/accept`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error accepting friend request:', error);
             throw error;
@@ -130,7 +138,7 @@ class ProfileService {
     async declineFriendRequest(requestId) {
         try {
             const response = await api.post(`/friend-requests/${requestId}/decline`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error declining friend request:', error);
             throw error;
@@ -141,7 +149,7 @@ class ProfileService {
     async unfriend(userId) {
         try {
             const response = await api.delete(`/users/${userId}/friend`);
-            return response.data;
+            return response.data.data || response.data;
         } catch (error) {
             console.error('Error unfriending user:', error);
             throw error;

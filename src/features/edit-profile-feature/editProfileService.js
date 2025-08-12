@@ -1,3 +1,5 @@
+// editProfileService.js
+
 import api from '../../services/api';
 
 class EditProfileService {
@@ -5,85 +7,59 @@ class EditProfileService {
     async getCurrentProfile() {
         try {
             const response = await api.get('/users/profile');
-            console.log('Profile API response:', response.data); // Log response thực tế
             const { status, data } = response.data;
             if (status?.code === '00' && data) {
                 return data;
             }
-            throw new Error(status?.message || 'Không thể lấy thông tin profile');
+            throw new Error(status?.displayMessage || 'Không thể lấy thông tin profile');
         } catch (error) {
-            const message = error.response?.data?.status?.message || error.message || 'Lỗi khi lấy thông tin profile';
+            const message = error.response?.data?.status?.displayMessage || error.message;
             throw new Error(message);
         }
     }
 
-    // Cập nhật thông tin profile
+    // Cập nhật thông tin profile (đã thêm email)
     async updateProfile(profileData) {
         try {
-            // Chỉ gửi các trường đúng với API docs
+            // Payload giờ đây bao gồm cả email để khớp với API docs
             const payload = {
                 displayName: profileData.displayName,
                 phoneNumber: profileData.phoneNumber || '',
+                email: profileData.email || '',
                 birthday: profileData.birthday || null
             };
             const response = await api.put('/users/profile', payload);
-            // Chuẩn hóa lấy code, message đúng với API docs
-            const code = response.data.code || response.data.status?.code;
-            const message = response.data.message || response.data.status?.message;
-            const data = response.data.data;
-            if (code === '00') {
+
+            const { status, data } = response.data;
+            if (status?.code === '00') {
                 return data;
             } else {
-                throw new Error(message || 'Cập nhật profile thất bại');
+                throw new Error(status?.displayMessage || 'Cập nhật profile thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.message || error.message || 'Lỗi khi cập nhật profile';
+            const message = error.response?.data?.status?.displayMessage || error.message;
             throw new Error(message);
         }
     }
 
-    // Upload avatar
-    async uploadAvatar(file) {
+    // Đổi mật khẩu (đã sửa tên trường để khớp API)
+    async changePassword(currentPassword, newPassword) {
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await api.post('/users/avatar', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-
-            const { code, message, data } = response.data;
-
-            if (code === '00') {
-                return data.avatarUrl;
-            } else {
-                throw new Error(message || 'Upload avatar thất bại');
-            }
-        } catch (error) {
-            const message = error.response?.data?.message || error.message || 'Lỗi khi upload avatar';
-            throw new Error(message);
-        }
-    }
-
-    // Đổi mật khẩu
-    async changePassword(oldPassword, newPassword) {
-        try {
+            // Sửa tên trường `oldPassword` -> `currentPassword`
             const response = await api.put('/users/change-password', {
-                oldPassword,
+                currentPassword,
                 newPassword
             });
 
-            const { code, message } = response.data;
+            const { status } = response.data;
 
-            if (code === '00') {
-                return message || 'Đổi mật khẩu thành công';
+            if (status?.code === '00') {
+                return status.displayMessage || 'Đổi mật khẩu thành công';
             } else {
-                throw new Error(message || 'Đổi mật khẩu thất bại');
+                throw new Error(status?.displayMessage || 'Đổi mật khẩu thất bại');
             }
         } catch (error) {
-            const message = error.response?.data?.message || error.message || 'Lỗi khi đổi mật khẩu';
+            const message = error.response?.data?.status?.displayMessage || error.message;
             throw new Error(message);
         }
     }
@@ -91,4 +67,3 @@ class EditProfileService {
 
 const editProfileService = new EditProfileService();
 export default editProfileService;
-

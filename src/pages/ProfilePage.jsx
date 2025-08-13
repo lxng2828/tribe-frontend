@@ -271,7 +271,7 @@ const ProfilePage = () => {
                         )}
 
                         {/* Posts */}
-                        <PostList ref={postListRef} userId={targetUserId} />
+                        <PostList ref={postListRef} userId={targetUserId} isUserPosts={true} />
                     </div>
                 </div>
             </div>

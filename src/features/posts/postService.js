@@ -273,7 +273,7 @@ class PostService {
     // Lấy bài viết theo người dùng
     async getPostsByUser(userId, page = 0, size = 20) {
         try {
-            console.log('Loading posts for user:', userId);
+
 
             // Fallback: Lấy tất cả bài viết và filter theo userId
             const response = await api.get(`/posts/all`, {
@@ -281,18 +281,20 @@ class PostService {
             });
 
             const { status, data } = response.data;
-            console.log('API Response for all posts:', response.data);
+
 
             if (status.success) {
-                // Filter posts by userId
+                // Filter posts by userId - chỉ lấy bài đăng của user cụ thể
                 const allPosts = data || [];
                 const userPosts = allPosts.filter(post => {
                     const postUserId = post.user?.senderId || post.user?.id || post.user?.userId || post.userId;
-                    console.log('Comparing postUserId:', postUserId, 'with targetUserId:', userId);
-                    return postUserId === userId || postUserId === String(userId);
+                    const targetUserIdStr = String(userId);
+                    const postUserIdStr = String(postUserId);
+                    
+                    return postUserIdStr === targetUserIdStr;
                 });
 
-                console.log('Filtered user posts:', userPosts.length, 'out of', allPosts.length);
+
 
                 // Simulate pagination for filtered results
                 const startIndex = page * size;

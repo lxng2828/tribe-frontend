@@ -2,7 +2,7 @@
 
 ## Tổng quan
 
-Hệ thống avatar đồng bộ đã được cập nhật để đảm bảo tất cả avatar trong ứng dụng được hiển thị nhất quán và đồng bộ với avatar người dùng, **bao gồm cả avatar trong bài đăng**.
+Hệ thống avatar đồng bộ đã được cập nhật để đảm bảo tất cả avatar trong ứng dụng được hiển thị nhất quán và đồng bộ với avatar người dùng, **bao gồm cả avatar trong bài đăng**. Ngoài ra, **trang cá nhân chỉ hiển thị bài đăng của người dùng đó**.
 
 ## Các tính năng chính
 
@@ -64,6 +64,18 @@ const { posts: syncedPosts, refreshAllAvatars } = usePostAvatarSync(posts);
 // Tự động đồng bộ avatar bài đăng với avatar user thực tế
 ```
 
+### 5. Lọc Bài đăng Trang Cá nhân
+
+```jsx
+// Trong ProfilePage.jsx
+<PostList ref={postListRef} userId={targetUserId} isUserPosts={true} />
+
+// Trong PostList.jsx - Tự động lọc bài đăng theo userId
+if (userId) {
+    response = await postService.getPostsByUser(userId, pageNumber);
+}
+```
+
 ## Cách sử dụng
 
 ### Thay thế avatar cũ
@@ -108,7 +120,7 @@ import Avatar from '../components/Avatar';
 1. **PostItem.jsx** - Avatar tác giả bài đăng và bình luận
 2. **CreatePost.jsx** - Avatar người dùng hiện tại
 3. **Navbar.jsx** - Avatar trong dropdown menu
-4. **ProfilePage.jsx** - Avatar profile với đồng bộ bài đăng
+4. **ProfilePage.jsx** - Avatar profile với đồng bộ bài đăng + lọc bài đăng theo user
 5. **UserSearchDropdown.jsx** - Avatar trong kết quả tìm kiếm
 6. **SearchResultsPage.jsx** - Avatar trong trang kết quả
 7. **ChatWindow.jsx** - Avatar conversation
@@ -117,11 +129,11 @@ import Avatar from '../components/Avatar';
 10. **MessageItem.jsx** - Avatar người gửi tin nhắn
 11. **FriendCard.jsx** - Avatar bạn bè
 12. **FriendRequests.jsx** - Avatar yêu cầu kết bạn
-13. **postService.js** - Logic xử lý avatar cải thiện
-14. **PostList.jsx** - Sử dụng usePostAvatarSync hook
+13. **postService.js** - Logic xử lý avatar cải thiện + lọc bài đăng theo user
+14. **PostList.jsx** - Sử dụng usePostAvatarSync hook + logic lọc bài đăng
 15. **NewsFeed.jsx** - Đồng bộ avatar trong newsfeed
 16. **usePostAvatarSync.js** - Hook đồng bộ avatar bài đăng
-17. **avatarDebug.js** - Utility debug avatar
+
 
 ## Lợi ích
 
@@ -131,7 +143,7 @@ import Avatar from '../components/Avatar';
 4. **Performance**: Tạo placeholder dựa trên tên thay vì tải ảnh mặc định
 5. **Đồng bộ**: Avatar được cập nhật ngay lập tức khi user thay đổi
 6. **Đồng bộ bài đăng**: Avatar trong bài đăng tự động đồng bộ với avatar user thực tế
-7. **Debug tools**: Có tools để debug và theo dõi quá trình đồng bộ
+7. **Lọc bài đăng**: Trang cá nhân chỉ hiển thị bài đăng của người dùng đó
 
 ## Cách thêm avatar mới
 
@@ -158,5 +170,5 @@ import Avatar from '../components/Avatar';
 - Avatar sẽ được đồng bộ ngay lập tức khi user cập nhật
 - Component Avatar hỗ trợ nhiều kích thước khác nhau
 - Avatar trong bài đăng sẽ tự động đồng bộ với avatar user thực tế
-- Có thể debug quá trình đồng bộ trong console browser
-- Hook usePostAvatarSync tự động xử lý việc đồng bộ avatar bài đăng 
+- Hook usePostAvatarSync tự động xử lý việc đồng bộ avatar bài đăng
+- Trang cá nhân tự động lọc và chỉ hiển thị bài đăng của người dùng đó 

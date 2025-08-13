@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAvatarUrl } from '../utils/placeholderImages';
-import { debugPostAvatar, logAvatarSync } from '../utils/avatarDebug';
+
 
 // Hook để đồng bộ avatar bài đăng với avatar người dùng thực tế
 export const usePostAvatarSync = (posts) => {
@@ -11,9 +11,6 @@ export const usePostAvatarSync = (posts) => {
     // Function để đồng bộ avatar cho một bài đăng
     const syncPostAvatar = useCallback((post) => {
         if (!post || !post.author) return post;
-
-        // Debug avatar trước khi sync
-        debugPostAvatar(post, user);
 
         // Nếu bài đăng thuộc về user hiện tại, sử dụng avatar thực tế của user
         if (post.author.id === user?.id) {
@@ -28,12 +25,6 @@ export const usePostAvatarSync = (posts) => {
                     avatarUrl: user?.avatarUrl
                 }
             };
-            
-            logAvatarSync('Post synced', {
-                postId: post.id,
-                oldAvatar: post.author.avatar,
-                newAvatar: syncedPost.author.avatar
-            });
             
             return syncedPost;
         }

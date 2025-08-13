@@ -17,6 +17,8 @@ const PostList = forwardRef((props, ref) => {
     // Sử dụng hook để đồng bộ avatar bài đăng
     const { posts: syncedPosts, refreshAllAvatars } = usePostAvatarSync(posts);
 
+
+
     useEffect(() => {
         if (!isInitialized) {
             loadPosts(0, true);
@@ -41,8 +43,8 @@ const PostList = forwardRef((props, ref) => {
             setLoading(true);
             let response;
 
-            // Kiểm tra nếu là trang cá nhân thì gọi API theo user
-            if (isUserPosts && userId) {
+            // Kiểm tra nếu có userId thì gọi API theo user (trang cá nhân)
+            if (userId) {
                 response = await postService.getPostsByUser(userId, pageNumber);
             } else {
                 // Nếu không thì lấy tất cả bài viết (newsfeed)
@@ -182,26 +184,45 @@ const PostList = forwardRef((props, ref) => {
         </div>
     );
 
+    const renderNoPosts = () => (
+        <div className="card-fb p-4 text-center">
+            <svg className="text-muted mb-3" width="48" height="48" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+            <h5 className="mb-2">Chưa có bài viết nào</h5>
+            <p className="text-muted mb-3">
+                {userId ? 'Người dùng này chưa đăng bài viết nào.' : 'Chưa có bài viết nào trong bảng tin.'}
+            </p>
+            {!userId && (
+                <button onClick={handleRefresh} className="btn btn-fb-primary">Làm mới</button>
+            )}
+        </div>
+    );
+
     if (error) return renderError();
 
     return (
         <div>
-            <div className="d-flex flex-column">
-                {syncedPosts.map((post) => (
-                    <PostItem
-                        key={post.id}
-                        post={post}
-                        onLike={handleLike}
-                        onDelete={handleDelete}
-                    />
-                ))}
-            </div>
+            {!loading && syncedPosts.length === 0 && renderNoPosts()}
+            
+            {syncedPosts.length > 0 && (
+                <div className="d-flex flex-column">
+                    {syncedPosts.map((post) => (
+                        <PostItem
+                            key={post.id}
+                            post={post}
+                            onLike={handleLike}
+                            onDelete={handleDelete}
+                        />
+                    ))}
+                </div>
+            )}
 
             {loading && renderSkeleton()}
 
-            {!loading && hasMore && renderLoadMoreButton()}
+            {!loading && hasMore && syncedPosts.length > 0 && renderLoadMoreButton()}
 
-            {!loading && !hasMore && posts.length > 0 && renderNoMorePosts()}
+            {!loading && !hasMore && syncedPosts.length > 0 && renderNoMorePosts()}
         </div>
     );
 });

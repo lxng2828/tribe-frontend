@@ -13,11 +13,19 @@ class AuthService {
                 const token = data.token || data;
                 localStorage.setItem('token', token);
 
-                const userInfo = await this.extractUserInfo(token, data.user);
-                this.storeUserInfo(userInfo);
-
-                authToasts.loginSuccess();
-                return { token, user: userInfo };
+                // Lấy thông tin user đầy đủ từ API profile
+                const userInfo = await this.getCurrentUserInfo();
+                if (userInfo) {
+                    this.storeUserInfo(userInfo);
+                    authToasts.loginSuccess();
+                    return { token, user: userInfo };
+                } else {
+                    // Fallback nếu không lấy được thông tin đầy đủ
+                    const fallbackUserInfo = await this.extractUserInfo(token, data.user);
+                    this.storeUserInfo(fallbackUserInfo);
+                    authToasts.loginSuccess();
+                    return { token, user: fallbackUserInfo };
+                }
             } else {
                 throw new Error(status.displayMessage || status.message || 'Đăng nhập thất bại');
             }
@@ -101,7 +109,7 @@ class AuthService {
     // Gọi API lấy thông tin user
     async getCurrentUserInfo() {
         try {
-            const response = await api.get('/auth/me');
+            const response = await api.get('/users/profile');
             const { status, data } = response.data;
 
             if (status.success) {

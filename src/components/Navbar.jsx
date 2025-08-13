@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
 import NotificationDropdown from './NotificationDropdown';
 import SearchBar from './SearchBar';
 
@@ -138,8 +138,8 @@ const Navbar = () => {
                             style={{ backgroundColor: 'transparent' }}
                         >
                             <img
-                                src={user?.avatar || DEFAULT_AVATAR}
-                                alt={user?.fullName || user?.displayName || user?.username || 'User'}
+                                src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                alt={user?.displayName || user?.fullName || user?.username || 'User'}
                                 className="profile-pic-fb"
                             />
                         </button>
@@ -155,13 +155,13 @@ const Navbar = () => {
                             <li className="px-3 py-2">
                                 <div className="d-flex align-items-center">
                                     <img
-                                        src={user?.avatar || DEFAULT_AVATAR}
-                                        alt={user?.fullName || 'User'}
+                                        src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                        alt={user?.displayName || user?.fullName || 'User'}
                                         className="profile-pic-fb me-3"
                                     />
                                     <div>
                                         <div className="fw-bold" style={{ color: 'var(--fb-text)' }}>
-                                            {user?.fullName || user?.displayName || user?.username || 'Người dùng'}
+                                            {user?.displayName || user?.fullName || user?.username || 'Người dùng'}
                                         </div>
                                         <div className="text-muted small">{user?.email}</div>
                                     </div>

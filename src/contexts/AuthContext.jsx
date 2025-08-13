@@ -24,6 +24,13 @@ export const AuthProvider = ({ children }) => {
         checkAuth();
     }, []);
 
+    // Refresh user info khi component mount nếu đã đăng nhập
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            refreshUserInfo();
+        }
+    }, [isAuthenticated]);
+
     const checkAuth = () => {
         try {
             const token = authService.getToken();
@@ -86,6 +93,21 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
     };
 
+    // Refresh thông tin user từ API
+    const refreshUserInfo = async () => {
+        try {
+            const userData = await authService.getCurrentUserInfo();
+            if (userData) {
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+                return userData;
+            }
+        } catch (error) {
+            console.error('Error refreshing user info:', error);
+        }
+        return null;
+    };
+
     // Value để provide cho children components
     const value = {
         user,
@@ -95,6 +117,7 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         updateUser,
+        refreshUserInfo,
         checkAuth
     };
 

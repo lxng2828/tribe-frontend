@@ -57,6 +57,13 @@ export const generatePlaceholderImage = (width = 200, height = 200, text = '') =
 };
 
 // Default placeholder images
-export const DEFAULT_AVATAR = generatePlaceholderAvatar(40);
+export const DEFAULT_AVATAR = 'https://i.pravatar.cc/150?img=1';
 export const DEFAULT_STORY_IMAGE = generatePlaceholderImage(112, 200, 'Story');
 export const DEFAULT_POST_IMAGE = generatePlaceholderImage(400, 300, 'Image');
+
+// Utility function để xử lý URL từ backend
+export const getFullUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `http://localhost:8080${url}`;
+};

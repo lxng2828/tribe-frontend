@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getUserAvatar } from '../../utils/placeholderImages';
+import { DEFAULT_AVATAR } from '../../utils/placeholderImages';
 
 const PostItem = ({ post, onLike, onDelete }) => {
     const [showComments, setShowComments] = useState(false);
@@ -63,7 +63,7 @@ const PostItem = ({ post, onLike, onDelete }) => {
                 <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
                         <img
-                            src={post.author?.id === user?.id ? getUserAvatar(user) : getUserAvatar(post.author)}
+                            src={post.author?.avatar || DEFAULT_AVATAR}
                             alt={post.author?.name || 'User'}
                             className="profile-pic-fb me-3"
                         />
@@ -445,7 +445,7 @@ const PostItem = ({ post, onLike, onDelete }) => {
                     {/* Comment Input */}
                     <div className="d-flex align-items-center mb-3">
                         <img
-                            src={getUserAvatar(user)}
+                            src={user?.avatar || DEFAULT_AVATAR}
                             alt="Your avatar"
                             className="profile-pic-sm-fb me-2"
                         />
@@ -475,7 +475,7 @@ const PostItem = ({ post, onLike, onDelete }) => {
                     {post.comments && post.comments.map((comment) => (
                         <div key={comment.id} className="d-flex mb-3">
                             <img
-                                src={comment.author?.id === user?.id ? getUserAvatar(user) : getUserAvatar(comment.author)}
+                                src={comment.author?.avatar || DEFAULT_AVATAR}
                                 alt={comment.author?.name || 'User'}
                                 className="profile-pic-sm-fb me-2"
                             />

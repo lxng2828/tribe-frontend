@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserAvatar } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
 import NotificationDropdown from './NotificationDropdown';
 import SearchBar from './SearchBar';
 
@@ -26,16 +26,17 @@ const Navbar = () => {
 
     return (
         <nav className="navbar navbar-expand-lg navbar-fb sticky-top">
-            <div className="container-fluid px-3">
-                {/* Logo và Search */}
+            <div className="container-fluid px-4">
+                {/* Left Section - Logo */}
                 <div className="d-flex align-items-center">
-                    <Link className="navbar-brand d-flex align-items-center me-3" to="/">
+                    <Link className="navbar-brand d-flex align-items-center me-4" to="/">
                         <div className="d-flex align-items-center justify-content-center me-2"
                             style={{
                                 width: '40px',
                                 height: '40px',
                                 backgroundColor: 'var(--fb-blue)',
-                                borderRadius: '50%'
+                                borderRadius: '50%',
+                                boxShadow: '0 2px 4px rgba(8, 102, 255, 0.2)'
                             }}>
                             <span className="text-white fw-bold fs-5">T</span>
                         </div>
@@ -43,18 +44,20 @@ const Navbar = () => {
                             Tribe
                         </span>
                     </Link>
+                </div>
 
-                    {/* Search Bar */}
-                    <div className="d-none d-md-block">
-                        <SearchBar style={{ width: '240px' }} />
+                {/* Center Section - Search Bar */}
+                <div className="d-flex align-items-center flex-grow-1 justify-content-center">
+                    <div className="d-none d-lg-block" style={{ maxWidth: '600px', width: '100%' }}>
+                        <SearchBar />
                     </div>
                 </div>
 
-                {/* Right Side Actions */}
+                {/* Right Section - 3 Action Buttons */}
                 <div className="d-flex align-items-center">
                     {/* Mobile Menu Button */}
                     <button
-                        className="btn d-lg-none me-2"
+                        className="btn d-lg-none me-3"
                         type="button"
                         onClick={toggleMenu}
                         style={{
@@ -62,7 +65,10 @@ const Navbar = () => {
                             borderRadius: '50%',
                             width: '40px',
                             height: '40px',
-                            border: 'none'
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
                         }}
                     >
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
@@ -70,13 +76,15 @@ const Navbar = () => {
                         </svg>
                     </button>
 
-                    {/* Notifications */}
-                    <NotificationDropdown />
+                    {/* Button 1: Notifications */}
+                    <div className="me-3">
+                        <NotificationDropdown />
+                    </div>
 
-                    {/* Messages */}
+                    {/* Button 2: Messages */}
                     <Link
                         to="/messages"
-                        className="btn position-relative me-2"
+                        className="btn position-relative me-3"
                         style={{
                             backgroundColor: 'var(--fb-gray)',
                             borderRadius: '50%',
@@ -86,28 +94,49 @@ const Navbar = () => {
                             textDecoration: 'none',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            transition: 'background-color 0.2s ease'
                         }}
                     >
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.17L2.546 20.4a1 1 0 0 0 1.053 1.054l3.23-.892A9.958 9.958 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" />
+                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
                         </svg>
                         <span className="notification-badge-fb">5</span>
                     </Link>
 
-                    {/* Profile Dropdown */}
+                    {/* Button 3: Profile Dropdown */}
                     <div className="dropdown">
                         <button
-                            className="btn dropdown-toggle border-0 p-0"
+                            className="btn dropdown-toggle border-0 p-0 position-relative"
                             onClick={toggleProfileMenu}
                             aria-expanded={isProfileMenuOpen}
-                            style={{ backgroundColor: 'transparent' }}
+                            style={{ 
+                                backgroundColor: 'transparent',
+                                borderRadius: '50%',
+                                padding: '2px',
+                                transition: 'background-color 0.2s ease'
+                            }}
                         >
                             <img
-                                src={getUserAvatar(user)}
+                                src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
                                 alt={user?.displayName || user?.fullName || user?.username || 'User'}
                                 className="profile-pic-fb"
                             />
+                            {/* Dropdown Arrow */}
+                            <svg 
+                                className="position-absolute bottom-0 end-0" 
+                                width="12" 
+                                height="12" 
+                                fill="currentColor" 
+                                viewBox="0 0 24 24"
+                                style={{
+                                    backgroundColor: 'var(--fb-white)',
+                                    borderRadius: '50%',
+                                    padding: '1px'
+                                }}
+                            >
+                                <path d="M7 10l5 5 5-5z"/>
+                            </svg>
                         </button>
 
                         {/* Dropdown Menu */}
@@ -121,7 +150,7 @@ const Navbar = () => {
                             <li className="px-3 py-2">
                                 <div className="d-flex align-items-center">
                                     <img
-                                        src={getUserAvatar(user)}
+                                        src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
                                         alt={user?.displayName || user?.fullName || 'User'}
                                         className="profile-pic-fb me-3"
                                     />

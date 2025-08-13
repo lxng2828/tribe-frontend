@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMessage } from '../contexts/MessageContext';
-import { getUserAvatar } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import './MessageItem.css';
 
 const MessageItem = ({ message, isOwn, showAvatar, showTime }) => {
@@ -157,11 +157,11 @@ const MessageItem = ({ message, isOwn, showAvatar, showTime }) => {
         <div className={`message-item ${isOwn ? 'own' : 'other'}`}>
             {/* Avatar */}
             {showAvatar && !isOwn && (
-                                        <img
-                            src={getUserAvatar({ avatar: message.senderAvatar })}
-                            alt={message.senderName}
-                            className="message-avatar"
-                        />
+                <img
+                    src={message.senderAvatar || DEFAULT_AVATAR}
+                    alt={message.senderName}
+                    className="message-avatar"
+                />
             )}
 
             {/* Message Content */}

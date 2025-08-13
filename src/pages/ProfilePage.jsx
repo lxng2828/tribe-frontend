@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserAvatar, getFullUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 import Loading from '../components/Loading';
@@ -12,7 +12,7 @@ import userService from '../services/userService';
 
 const ProfilePage = () => {
     const { userId: urlUserId } = useParams(); // Lấy userId từ URL
-    const { user, refreshUserInfo, updateUser } = useAuth();
+    const { user, refreshUserInfo } = useAuth();
     const [activeTab, setActiveTab] = useState('posts');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -114,18 +114,7 @@ const ProfilePage = () => {
             // Response giờ đây là { avatarUrl: "url_string" }
             if (response.avatarUrl) {
                 setProfileData(prev => ({ ...prev, avatarUrl: response.avatarUrl }));
-                
-                // Cập nhật ngay lập tức thông tin user trong AuthContext
-                // Đồng bộ cả avatarUrl và avatar để tương thích
-                const updatedUser = { 
-                    ...user, 
-                    avatarUrl: response.avatarUrl,
-                    avatar: response.avatarUrl // Đồng bộ cả hai thuộc tính
-                };
-                updateUser(updatedUser);
-                
-                // Sau đó refresh từ server để đảm bảo đồng bộ hoàn toàn
-                await refreshUserInfo();
+                refreshUserInfo(); // Cập nhật thông tin user sau khi upload avatar
             }
         } catch (err) {
             console.error('Error updating avatar:', err);
@@ -247,7 +236,7 @@ const ProfilePage = () => {
                                 {/* Profile Picture */}
                                 <div className="position-relative mb-3 mb-md-0">
                                     <img
-                                        src={getUserAvatar(profileData) || getUserAvatar(user)}
+                                        src={getFullUrl(profileData?.avatarUrl) || getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
                                         alt={profileData?.displayName || profileData?.fullName || user?.displayName || 'User'}
                                         className="rounded-circle border border-4 border-white"
                                         style={{

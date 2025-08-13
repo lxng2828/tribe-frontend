@@ -65,13 +65,17 @@ const SearchBar = ({ className = '' }) => {
                     onFocus={handleInputFocus}
                     onKeyDown={handleKeyDown}
                     className="form-control ps-5 pe-4"
-                    placeholder="Tìm kiếm người dùng..."
+                    placeholder="Tìm kiếm trên Tribe"
                     style={{
                         backgroundColor: 'var(--fb-gray)',
                         border: 'none',
                         borderRadius: '20px',
                         height: '40px',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        paddingLeft: '40px',
+                        paddingRight: '40px',
+                        transition: 'all 0.2s ease',
+                        boxShadow: 'none'
                     }}
                 />
 

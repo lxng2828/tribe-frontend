@@ -67,16 +67,3 @@ export const getFullUrl = (url) => {
     if (url.startsWith('http')) return url;
     return `http://localhost:8080${url}`;
 };
-
-// Utility function để lấy avatar URL với fallback
-export const getUserAvatar = (user, fallback = DEFAULT_AVATAR) => {
-    if (!user) return fallback;
-    
-    // Ưu tiên avatar trước, sau đó mới đến avatarUrl để tương thích
-    const avatarUrl = user.avatar || user.avatarUrl;
-    if (avatarUrl) {
-        return getFullUrl(avatarUrl);
-    }
-    
-    return fallback;
-};

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
 import userService from '../services/userService';
-import { getUserAvatar } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import './NewConversationModal.css';
 
 const NewConversationModal = ({ onClose, onConversationCreated }) => {
@@ -156,7 +156,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                                 {selectedUsers.map(user => (
                                     <div key={user.id} className="selected-user-item">
                                         <img
-                                            src={getUserAvatar(user)}
+                                            src={user.avatar || DEFAULT_AVATAR}
                                             alt={user.displayName}
                                             className="user-avatar-small"
                                         />
@@ -198,7 +198,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                                         onClick={() => handleUserSelect(result)}
                                     >
                                         <img
-                                            src={getUserAvatar(result)}
+                                            src={result.avatar || DEFAULT_AVATAR}
                                             alt={result.displayName}
                                             className="user-avatar"
                                         />

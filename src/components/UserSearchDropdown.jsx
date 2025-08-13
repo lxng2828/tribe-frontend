@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import userService from '../services/userService';
-import { getUserAvatar } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import { useNavigate } from 'react-router-dom';
 
 const UserSearchDropdown = ({ searchQuery, onClose, className = '' }) => {
@@ -131,7 +131,7 @@ const UserSearchDropdown = ({ searchQuery, onClose, className = '' }) => {
                                     }}
                                 >
                                     <img
-                                        src={getUserAvatar(user)}
+                                        src={user.avatar || DEFAULT_AVATAR}
                                         alt={user.displayName}
                                         className="rounded-circle me-3"
                                         style={{

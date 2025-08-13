@@ -91,8 +91,9 @@ body {
     background-color: var(--fb-white);
     border-bottom: 1px solid var(--fb-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 0;
     transition: box-shadow 0.3s ease;
+    min-height: 56px;
 }
 
 .navbar-fb .navbar-brand {
@@ -100,6 +101,72 @@ body {
     font-weight: 700;
     color: var(--fb-blue);
     text-decoration: none;
+}
+
+/* Profile Picture */
+.profile-pic-fb {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.profile-pic-fb:hover {
+    transform: scale(1.05);
+}
+
+/* Notification Badge */
+.notification-badge-fb {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: var(--fb-red);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--fb-white);
+}
+
+/* Hover Effects */
+.navbar-fb .btn:hover {
+    background-color: var(--fb-hover) !important;
+}
+
+.navbar-fb .dropdown-toggle:hover {
+    background-color: var(--fb-hover) !important;
+}
+
+/* Search Bar Focus Effect */
+.navbar-fb input:focus {
+    background-color: var(--fb-white) !important;
+    box-shadow: 0 0 0 2px var(--fb-blue) !important;
+    outline: none;
+}
+
+/* Responsive Design */
+@media (max-width: 991.98px) {
+    .navbar-fb .container-fluid {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .navbar-fb {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar-fb .navbar-brand {
+        font-size: 1.5rem;
+    }
 }
 
 .navbar-fb .nav-link {

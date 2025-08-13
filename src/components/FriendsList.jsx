@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import friendshipService from '../services/friendshipService';
-import { getUserAvatar } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR } from '../utils/placeholderImages';
 import Loading from './Loading';
 
 const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
@@ -119,7 +119,7 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
                             <div className="card border-0 shadow-sm h-100">
                                 <div className="position-relative">
                                     <img
-                                        src={getUserAvatar(friend)}
+                                        src={friend.avatar || DEFAULT_AVATAR}
                                         alt={friend.displayName}
                                         className="card-img-top"
                                         style={{

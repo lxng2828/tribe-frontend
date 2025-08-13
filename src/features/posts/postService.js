@@ -20,7 +20,7 @@ class PostService {
                     // Lấy thông tin user theo cấu trúc API thực tế
                     const user = post.user || {};
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
-                    const userAvatar = user.avatarSender || user.avatar || user.avatarUrl || user.profilePicture || DEFAULT_AVATAR;
+                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
                     const userId = user.senderId || user.id || user.userId || post.userId;
 
                     // Xử lý đường dẫn ảnh - thêm base URL nếu cần
@@ -264,7 +264,7 @@ class PostService {
                     // Lấy thông tin user theo cấu trúc API thực tế
                     const user = post.user || {};
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
-                    const userAvatar = user.avatarSender || user.avatar || user.avatarUrl || user.profilePicture || DEFAULT_AVATAR;
+                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
                     const userPostId = user.senderId || user.id || user.userId || post.userId;
 
                     // Xử lý đường dẫn ảnh - thêm base URL nếu cần

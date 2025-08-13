@@ -104,7 +104,8 @@ class UserService {
             id: user.id,
             displayName: user.displayName || user.username || 'Người dùng',
             email: user.email,
-            avatar: user.avatar || '/default-avatar.png',
+            avatar: user.avatar || user.avatarUrl || '/default-avatar.png',
+            avatarUrl: user.avatarUrl || user.avatar || '/default-avatar.png',
             phoneNumber: user.phoneNumber,
             createdAt: user.createdAt,
             lastSeen: user.lastSeen

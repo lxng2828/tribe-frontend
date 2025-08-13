@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
+import { getUserAvatar } from '../utils/placeholderImages';
 import NotificationDropdown from './NotificationDropdown';
 import SearchBar from './SearchBar';
 
@@ -104,7 +104,7 @@ const Navbar = () => {
                             style={{ backgroundColor: 'transparent' }}
                         >
                             <img
-                                src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                src={getUserAvatar(user)}
                                 alt={user?.displayName || user?.fullName || user?.username || 'User'}
                                 className="profile-pic-fb"
                             />
@@ -121,7 +121,7 @@ const Navbar = () => {
                             <li className="px-3 py-2">
                                 <div className="d-flex align-items-center">
                                     <img
-                                        src={getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                        src={getUserAvatar(user)}
                                         alt={user?.displayName || user?.fullName || 'User'}
                                         className="profile-pic-fb me-3"
                                     />

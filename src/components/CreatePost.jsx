@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import postService from '../features/posts/postService';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { getUserAvatar } from '../utils/placeholderImages';
 
 const CreatePost = ({ onPostCreate }) => {
     const [postText, setPostText] = useState('');
@@ -89,7 +89,7 @@ const CreatePost = ({ onPostCreate }) => {
                 {/* Create Post Header */}
                 <div className="d-flex align-items-center mb-4">
                     <img
-                        src={user?.avatar || DEFAULT_AVATAR}
+                        src={getUserAvatar(user)}
                         alt="Your Avatar"
                         className="profile-pic-fb me-3"
                         style={{ width: '48px', height: '48px', borderRadius: '50%' }}
@@ -117,7 +117,7 @@ const CreatePost = ({ onPostCreate }) => {
                     <form onSubmit={handleSubmit} className="border-top pt-4">
                         <div className="d-flex align-items-start">
                             <img
-                                src={user?.avatar || DEFAULT_AVATAR}
+                                src={getUserAvatar(user)}
                                 alt="Your Avatar"
                                 className="profile-pic-fb me-3"
                                 style={{ width: '48px', height: '48px', borderRadius: '50%' }}

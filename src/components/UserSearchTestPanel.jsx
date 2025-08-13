@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { getUserAvatar } from '../utils/placeholderImages';
 
 const UserSearchTestPanel = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -123,16 +123,16 @@ const UserSearchTestPanel = () => {
                             {searchResults.map((user) => (
                                 <div key={user.id} className="list-group-item">
                                     <div className="d-flex align-items-center">
-                                        <img
-                                            src={user.avatar || DEFAULT_AVATAR}
-                                            alt={user.displayName}
-                                            className="rounded-circle me-3"
-                                            style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                objectFit: 'cover'
-                                            }}
-                                        />
+                                                                            <img
+                                        src={getUserAvatar(user)}
+                                        alt={user.displayName}
+                                        className="rounded-circle me-3"
+                                        style={{
+                                            width: '40px',
+                                            height: '40px',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
                                         <div className="flex-grow-1">
                                             <div className="fw-medium">
                                                 {user.displayName}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import ConversationItem from './ConversationItem';
 import NewConversationModal from './NewConversationModal';
 import './ConversationList.css';
@@ -58,13 +58,15 @@ const ConversationList = ({ selectedConversationId }) => {
     };
 
     const getConversationAvatar = (conversation) => {
+        if (!conversation) return getAvatarUrl(null);
+        
         if (conversation.type === 'GROUP') {
-            return conversation.avatar || DEFAULT_AVATAR;
+            return getAvatarUrl(conversation);
         }
 
         // For private conversations, show the other user's avatar
         const otherMember = conversation.members?.find(member => member.id !== user?.id);
-        return otherMember?.avatar || DEFAULT_AVATAR;
+        return getAvatarUrl(otherMember);
     };
 
     return (

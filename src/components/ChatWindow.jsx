@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import MessageItem from './MessageItem';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
@@ -69,14 +69,14 @@ const ChatWindow = ({ conversationId }) => {
     };
 
     const getConversationAvatar = () => {
-        if (!currentConversation) return DEFAULT_AVATAR;
+        if (!currentConversation) return getAvatarUrl(null);
 
         if (currentConversation.type === 'GROUP') {
-            return currentConversation.avatar || DEFAULT_AVATAR;
+            return getAvatarUrl(currentConversation);
         }
 
         const otherMember = currentConversation.members?.find(member => member.id !== user?.id);
-        return otherMember?.avatar || DEFAULT_AVATAR;
+        return getAvatarUrl(otherMember);
     };
 
     const getOnlineStatus = () => {

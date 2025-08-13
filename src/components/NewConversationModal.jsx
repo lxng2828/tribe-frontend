@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import './NewConversationModal.css';
 
 const NewConversationModal = ({ onClose, onConversationCreated }) => {
@@ -155,11 +155,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                             <div className="selected-users-list">
                                 {selectedUsers.map(user => (
                                     <div key={user.id} className="selected-user-item">
-                                        <img
-                                            src={user.avatar || DEFAULT_AVATAR}
-                                            alt={user.displayName}
-                                            className="user-avatar-small"
-                                        />
+                                                                            <img
+                                        src={getAvatarUrl(user)}
+                                        alt={user.displayName}
+                                        className="user-avatar-small"
+                                    />
                                         <span className="user-name">{user.displayName}</span>
                                         <button
                                             className="remove-user-btn"
@@ -197,11 +197,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                                             }`}
                                         onClick={() => handleUserSelect(result)}
                                     >
-                                        <img
-                                            src={result.avatar || DEFAULT_AVATAR}
-                                            alt={result.displayName}
-                                            className="user-avatar"
-                                        />
+                                                                        <img
+                                    src={getAvatarUrl(result)}
+                                    alt={result.displayName}
+                                    className="user-avatar"
+                                />
                                         <div className="user-info">
                                             <h4>{result.displayName}</h4>
                                             <p>{result.email}</p>

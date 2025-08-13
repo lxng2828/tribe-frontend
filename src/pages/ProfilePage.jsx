@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
+import { useAvatarSync } from '../hooks/useAvatarSync';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 import Loading from '../components/Loading';
@@ -12,6 +13,10 @@ import userService from '../services/userService';
 const ProfilePage = () => {
     const { userId: urlUserId } = useParams(); // Lấy userId từ URL
     const { user, refreshUserInfo } = useAuth();
+    const { forceRefreshAvatar } = useAvatarSync();
+    
+    // Ref để refresh PostList
+    const postListRef = useRef();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -91,12 +96,32 @@ const ProfilePage = () => {
         }
     }, [user, isOwnProfile, targetUserId]);
 
+    // Validate file upload
+    const validateFile = (file) => {
+        // Kiểm tra định dạng file
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('Chỉ chấp nhận file ảnh (JPEG, PNG, GIF)');
+        }
+
+        // Kiểm tra kích thước file (tối đa 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            throw new Error('Kích thước file không được vượt quá 5MB');
+        }
+
+        return true;
+    };
+
     // Handle update avatar
     const handleUpdateAvatar = async (file) => {
         try {
+            // Validate file trước khi upload
+            validateFile(file);
+            
             setUploadingAvatar(true);
             const formData = new FormData();
-            formData.append('avatar', file);
+            formData.append('file', file); // Sử dụng field name 'file' theo API docs
 
             const response = await profileService.updateAvatar(formData);
             if (response?.status === 'success') {
@@ -104,13 +129,32 @@ const ProfilePage = () => {
                     ...prev,
                     avatarUrl: response.data.avatarUrl
                 }));
-                refreshUserInfo();
+                // Đồng bộ avatar ngay lập tức
+                await forceRefreshAvatar();
+                // Refresh PostList để cập nhật avatar trong bài đăng
+                if (postListRef.current) {
+                    postListRef.current.refreshPosts();
+                }
+                // Thông báo thành công
+                alert('Cập nhật ảnh đại diện thành công!');
             } else {
                 alert(response?.message || 'Không thể cập nhật ảnh đại diện');
             }
         } catch (error) {
             console.error('Error updating avatar:', error);
-            alert('Lỗi khi cập nhật ảnh đại diện');
+            
+            // Hiển thị thông báo lỗi chi tiết hơn
+            let errorMessage = 'Lỗi khi cập nhật ảnh đại diện';
+            
+            if (error.response?.status === 401) {
+                errorMessage = 'Bạn cần đăng nhập lại để thực hiện thao tác này';
+            } else if (error.response?.status === 500) {
+                errorMessage = 'Lỗi server, vui lòng thử lại sau';
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            
+            alert(errorMessage);
         } finally {
             setUploadingAvatar(false);
         }
@@ -160,7 +204,7 @@ const ProfilePage = () => {
                             {/* Profile Picture */}
                             <div className="position-relative mb-3 mb-md-0">
                                 <img
-                                    src={getFullUrl(profileData?.avatarUrl) || getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                    src={getAvatarUrl(profileData) || getAvatarUrl(user)}
                                     alt={profileData?.displayName || profileData?.fullName || user?.displayName || 'User'}
                                     className="rounded-circle border border-4 border-white"
                                     style={{
@@ -179,6 +223,8 @@ const ProfilePage = () => {
                                             onChange={(e) => {
                                                 if (e.target.files[0]) {
                                                     handleUpdateAvatar(e.target.files[0]);
+                                                    // Reset input để có thể chọn lại file cùng tên
+                                                    e.target.value = '';
                                                 }
                                             }}
                                         />
@@ -187,10 +233,11 @@ const ProfilePage = () => {
                                             style={{ width: '40px', height: '40px' }}
                                             onClick={() => document.getElementById('avatarInput').click()}
                                             disabled={uploadingAvatar}
+                                            title="Thay đổi ảnh đại diện"
                                         >
                                             {uploadingAvatar ? (
                                                 <div className="spinner-border spinner-border-sm" role="status">
-                                                    <span className="visually-hidden">Loading...</span>
+                                                    <span className="visually-hidden">Đang tải...</span>
                                                 </div>
                                             ) : (
                                                 <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
@@ -261,7 +308,7 @@ const ProfilePage = () => {
                         )}
 
                         {/* Posts */}
-                        <PostList userId={targetUserId} />
+                        <PostList ref={postListRef} userId={targetUserId} isUserPosts={true} />
                     </div>
                 </div>
             </div>

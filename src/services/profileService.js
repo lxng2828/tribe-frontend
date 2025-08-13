@@ -38,19 +38,45 @@ class ProfileService {
         }
     }
 
-    // Cập nhật avatar - sửa endpoint và field name theo API docs
+    // Cập nhật avatar theo API specification
     async updateAvatar(formData) {
         try {
+            console.log('Uploading avatar with formData:', formData);
+            console.log('Token:', localStorage.getItem('token'));
+            
+            // Debug: kiểm tra file trong formData
+            for (let [key, value] of formData.entries()) {
+                console.log('FormData entry:', key, value);
+            }
+            
             const response = await api.post('/users/avatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            // Backend trả về trực tiếp avatarUrl string, thêm base URL
-            const avatarUrl = response.data.startsWith('http') ? response.data : BACKEND_BASE_URL + response.data;
-            return { avatarUrl };
+            
+            console.log('Avatar upload response:', response.data);
+            
+            // Backend trả về trực tiếp avatarUrl string
+            if (response.data && typeof response.data === 'string') {
+                // Thêm base URL nếu avatarUrl là đường dẫn tương đối
+                const avatarUrl = response.data.startsWith('http') 
+                    ? response.data 
+                    : `http://localhost:8080${response.data}`;
+                
+                return {
+                    status: 'success',
+                    data: {
+                        avatarUrl: avatarUrl
+                    }
+                };
+            } else {
+                throw new Error('Không thể cập nhật ảnh đại diện');
+            }
         } catch (error) {
             console.error('Error updating avatar:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
             throw error;
         }
     }

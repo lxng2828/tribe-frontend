@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
 import UserSearchTestPanel from '../components/UserSearchTestPanel';
 import FriendshipButton from '../components/FriendshipButton';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 
 const SearchResultsPage = () => {
     const [searchParams] = useSearchParams();
@@ -153,7 +153,7 @@ const SearchResultsPage = () => {
                                                             className="list-group-item d-flex align-items-center p-3 border-0"
                                                         >
                                                             <img
-                                                                src={user.avatar || DEFAULT_AVATAR}
+                                                                src={getAvatarUrl(user)}
                                                                 alt={user.displayName}
                                                                 className="rounded-circle me-3"
                                                                 style={{

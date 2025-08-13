@@ -1,9 +1,45 @@
 import Navbar from '../components/Navbar';
 import { generatePlaceholderAvatar } from '../utils/placeholderImages';
 import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import friendshipService from '../services/friendshipService';
 
 const MainLayout = ({ children }) => {
     const location = useLocation();
+    const { user } = useAuth();
+    const [friends, setFriends] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchFriends = async () => {
+        if (user?.id) {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await friendshipService.getFriends(user.id);
+                if (response.status.success) {
+                    setFriends(response.data || []);
+                } else {
+                    setError('Không thể tải danh sách bạn bè');
+                }
+            } catch (error) {
+                console.error('Error fetching friends:', error);
+                setError('Có lỗi xảy ra khi tải danh sách bạn bè');
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchFriends();
+    }, [user?.id]);
+
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
+    };
 
     return (
         <div className="min-vh-100" style={{ backgroundColor: 'var(--fb-background)' }}>
@@ -62,64 +98,75 @@ const MainLayout = ({ children }) => {
 
                                 {/* Contacts */}
                                 <div>
-                                    <div className="d-flex justify-content-between align-items-center mb-2">
-                                        <h6 className="mb-0" style={{ color: 'var(--fb-text-secondary)' }}>Người liên hệ</h6>
-                                        <button className="btn btn-sm" style={{ backgroundColor: 'transparent', border: 'none' }}>
-                                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 4a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5a1 1 0 0 1 1-1z" />
-                                            </svg>
-                                        </button>
+                                    <div className="mb-2">
+                                        <h6 className="mb-0" style={{ color: 'var(--fb-text-secondary)' }}>
+                                            Người liên hệ
+                                            {!loading && friends.length > 0 && (
+                                                <span className="ms-1 text-muted small">({friends.length})</span>
+                                            )}
+                                        </h6>
                                     </div>
-                                    <div className="d-flex align-items-center hover-fb p-2 rounded">
-                                        <div className="position-relative">
-                                            <img
-                                                src={generatePlaceholderAvatar(32, 'F1')}
-                                                alt="Friend"
-                                                className="profile-pic-sm-fb me-3"
-                                            />
-                                            <div className="position-absolute bottom-0 end-0" style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                backgroundColor: 'var(--fb-green)',
-                                                borderRadius: '50%',
-                                                border: '2px solid white'
-                                            }}></div>
+                                    
+                                    {loading ? (
+                                        <div className="text-center py-3">
+                                            <div className="spinner-border spinner-border-sm" role="status">
+                                                <span className="visually-hidden">Đang tải...</span>
+                                            </div>
                                         </div>
-                                        <div className="flex-grow-1">
-                                            <div className="small fw-medium">Nguyễn Văn A</div>
+                                    ) : error ? (
+                                        <div className="text-center py-3">
+                                            <div className="text-danger small">{error}</div>
+                                            <button 
+                                                className="btn btn-sm btn-outline-primary mt-2"
+                                                onClick={() => fetchFriends()}
+                                            >
+                                                Thử lại
+                                            </button>
                                         </div>
-                                    </div>
-                                    <div className="d-flex align-items-center hover-fb p-2 rounded">
-                                        <div className="position-relative">
-                                            <img
-                                                src={generatePlaceholderAvatar(32, 'F2')}
-                                                alt="Friend"
-                                                className="profile-pic-sm-fb me-3"
-                                            />
-                                            <div className="position-absolute bottom-0 end-0" style={{
-                                                width: '8px',
-                                                height: '8px',
-                                                backgroundColor: 'var(--fb-green)',
-                                                borderRadius: '50%',
-                                                border: '2px solid white'
-                                            }}></div>
+                                    ) : friends.length > 0 ? (
+                                        friends.slice(0, 5).map((friend, index) => (
+                                            <Link 
+                                                key={friend.id} 
+                                                to={`/profile/${friend.id}`}
+                                                className="d-flex align-items-center hover-fb p-2 rounded text-decoration-none"
+                                                style={{ color: 'inherit' }}
+                                            >
+                                                <div className="position-relative">
+                                                    <img
+                                                        src={friend.avatarUrl || generatePlaceholderAvatar(32, getInitials(friend.displayName))}
+                                                        alt={friend.displayName}
+                                                        className="profile-pic-sm-fb me-3"
+                                                        onError={(e) => {
+                                                            e.target.src = generatePlaceholderAvatar(32, getInitials(friend.displayName));
+                                                        }}
+                                                    />
+                                                    {/* Hiển thị trạng thái online nếu có */}
+                                                    {friend.isOnline && (
+                                                        <div className="position-absolute bottom-0 end-0" style={{
+                                                            width: '8px',
+                                                            height: '8px',
+                                                            backgroundColor: 'var(--fb-green)',
+                                                            borderRadius: '50%',
+                                                            border: '2px solid white'
+                                                        }}></div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-grow-1">
+                                                    <div className="small fw-medium">{friend.displayName}</div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-3">
+                                            <div className="text-muted small mb-2">Chưa có bạn bè nào</div>
+                                            <Link 
+                                                to="/friends" 
+                                                className="btn btn-sm btn-outline-primary"
+                                            >
+                                                Tìm bạn bè
+                                            </Link>
                                         </div>
-                                        <div className="flex-grow-1">
-                                            <div className="small fw-medium">Trần Thị B</div>
-                                        </div>
-                                    </div>
-                                    <div className="d-flex align-items-center hover-fb p-2 rounded">
-                                        <div className="position-relative">
-                                            <img
-                                                src={generatePlaceholderAvatar(32, 'F3')}
-                                                alt="Friend"
-                                                className="profile-pic-sm-fb me-3"
-                                            />
-                                        </div>
-                                        <div className="flex-grow-1">
-                                            <div className="small fw-medium">Lê Văn C</div>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

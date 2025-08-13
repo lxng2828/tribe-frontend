@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import friendshipService from '../services/friendshipService';
-import { getFullUrl, DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import Loading from './Loading';
 
 const FriendRequests = ({ userId }) => {
@@ -137,7 +137,7 @@ const FriendRequests = ({ userId }) => {
                         <div key={request.senderId} className="list-group-item border-0 px-0 py-3">
                             <div className="d-flex align-items-center">
                                 <img
-                                    src={getFullUrl(request.avatarUrl) || DEFAULT_AVATAR}
+                                    src={getAvatarUrl(request)}
                                     alt={request.senderDisplayName || 'Người dùng'}
                                     className="rounded-circle me-3"
                                     style={{

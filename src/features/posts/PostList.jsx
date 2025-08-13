@@ -2,6 +2,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import PostItem from './PostItem';
 import postService from './postService';
 import { useAuth } from '../../contexts/AuthContext';
+import { usePostAvatarSync } from '../../hooks/usePostAvatarSync';
 
 const PostList = forwardRef((props, ref) => {
     const { userId, isUserPosts = false } = props; // Thêm props để xác định loại bài viết
@@ -12,6 +13,9 @@ const PostList = forwardRef((props, ref) => {
     const [hasMore, setHasMore] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
     const { user } = useAuth();
+    
+    // Sử dụng hook để đồng bộ avatar bài đăng
+    const { posts: syncedPosts, refreshAllAvatars } = usePostAvatarSync(posts);
 
     useEffect(() => {
         if (!isInitialized) {
@@ -183,7 +187,7 @@ const PostList = forwardRef((props, ref) => {
     return (
         <div>
             <div className="d-flex flex-column">
-                {posts.map((post) => (
+                {syncedPosts.map((post) => (
                     <PostItem
                         key={post.id}
                         post={post}

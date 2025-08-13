@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 
 const UserSearchTestPanel = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -124,7 +124,7 @@ const UserSearchTestPanel = () => {
                                 <div key={user.id} className="list-group-item">
                                     <div className="d-flex align-items-center">
                                         <img
-                                            src={user.avatar || DEFAULT_AVATAR}
+                                            src={getAvatarUrl(user)}
                                             alt={user.displayName}
                                             className="rounded-circle me-3"
                                             style={{

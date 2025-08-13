@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import messageService from './messageService';
+import { getAvatarUrl } from '../../utils/placeholderImages';
 import Button from '../../components/Button';
 
 const ChatBox = ({ conversation, onConversationUpdate }) => {
@@ -149,7 +150,7 @@ const ChatBox = ({ conversation, onConversationUpdate }) => {
             {/* Chat Header */}
             <div className="bg-white border-b border-gray-200 p-4 flex items-center">
                 <img
-                    src={conversation.participant.avatar || '/src/assets/images/default-avatar.png'}
+                    src={getAvatarUrl(conversation.participant)}
                     alt={conversation.participant.name}
                     className="w-10 h-10 rounded-full object-cover"
                 />

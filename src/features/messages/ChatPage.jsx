@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ChatBox from './ChatBox';
 import messageService from './messageService';
+import { getAvatarUrl } from '../../utils/placeholderImages';
 
 const ChatPage = () => {
     const [conversations, setConversations] = useState([]);
@@ -109,7 +110,7 @@ const ChatPage = () => {
                                 {/* Avatar */}
                                 <div className="relative">
                                     <img
-                                        src={conversation.participant.avatar || '/src/assets/images/default-avatar.png'}
+                                        src={getAvatarUrl(conversation.participant)}
                                         alt={conversation.participant.name}
                                         className="w-12 h-12 rounded-full object-cover"
                                     />

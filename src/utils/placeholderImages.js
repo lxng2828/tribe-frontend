@@ -67,3 +67,82 @@ export const getFullUrl = (url) => {
     if (url.startsWith('http')) return url;
     return `http://localhost:8080${url}`;
 };
+
+// Utility function để xử lý avatar một cách nhất quán
+export const getAvatarUrl = (user, fallbackAvatar = DEFAULT_AVATAR) => {
+    // Ưu tiên avatarUrl từ user object
+    if (user?.avatarUrl) {
+        return getFullUrl(user.avatarUrl);
+    }
+    
+    // Fallback cho avatar field cũ
+    if (user?.avatar) {
+        return getFullUrl(user.avatar);
+    }
+    
+    // Fallback cho profilePicture field
+    if (user?.profilePicture) {
+        return getFullUrl(user.profilePicture);
+    }
+    
+    // Nếu không có avatar, tạo placeholder dựa trên tên
+    if (user?.displayName || user?.fullName || user?.username) {
+        const name = user.displayName || user.fullName || user.username;
+        return generatePlaceholderAvatar(40, name);
+    }
+    
+    // Fallback cuối cùng
+    return fallbackAvatar;
+};
+
+// Utility function để xử lý avatar cho posts
+export const getPostAuthorAvatar = (post, fallbackAvatar = DEFAULT_AVATAR) => {
+    // Ưu tiên avatar từ author object
+    if (post?.author?.avatarUrl) {
+        return getFullUrl(post.author.avatarUrl);
+    }
+    
+    if (post?.author?.avatar) {
+        return getFullUrl(post.author.avatar);
+    }
+    
+    if (post?.author?.profilePicture) {
+        return getFullUrl(post.author.profilePicture);
+    }
+    
+    // Fallback cho avatarSender field (từ API cũ)
+    if (post?.avatarSender) {
+        return getFullUrl(post.avatarSender);
+    }
+    
+    // Tạo placeholder dựa trên tên author
+    if (post?.author?.displayName || post?.author?.fullName || post?.author?.username || post?.author?.name) {
+        const name = post.author.displayName || post.author.fullName || post.author.username || post.author.name;
+        return generatePlaceholderAvatar(40, name);
+    }
+    
+    return fallbackAvatar;
+};
+
+// Utility function để xử lý avatar cho comments
+export const getCommentAuthorAvatar = (comment, fallbackAvatar = DEFAULT_AVATAR) => {
+    if (comment?.author?.avatarUrl) {
+        return getFullUrl(comment.author.avatarUrl);
+    }
+    
+    if (comment?.author?.avatar) {
+        return getFullUrl(comment.author.avatar);
+    }
+    
+    if (comment?.author?.profilePicture) {
+        return getFullUrl(comment.author.profilePicture);
+    }
+    
+    // Tạo placeholder dựa trên tên author
+    if (comment?.author?.displayName || comment?.author?.fullName || comment?.author?.username || comment?.author?.name) {
+        const name = comment.author.displayName || comment.author.fullName || comment.author.username || comment.author.name;
+        return generatePlaceholderAvatar(40, name);
+    }
+    
+    return fallbackAvatar;
+};

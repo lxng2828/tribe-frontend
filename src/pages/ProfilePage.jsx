@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR, getFullUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
+import { useAvatarSync } from '../hooks/useAvatarSync';
 import PostList from '../features/posts/PostList';
 import CreatePost from '../components/CreatePost';
 import Loading from '../components/Loading';
@@ -12,6 +13,10 @@ import userService from '../services/userService';
 const ProfilePage = () => {
     const { userId: urlUserId } = useParams(); // Lấy userId từ URL
     const { user, refreshUserInfo } = useAuth();
+    const { forceRefreshAvatar } = useAvatarSync();
+    
+    // Ref để refresh PostList
+    const postListRef = useRef();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -104,7 +109,12 @@ const ProfilePage = () => {
                     ...prev,
                     avatarUrl: response.data.avatarUrl
                 }));
-                refreshUserInfo();
+                // Đồng bộ avatar ngay lập tức
+                await forceRefreshAvatar();
+                // Refresh PostList để cập nhật avatar trong bài đăng
+                if (postListRef.current) {
+                    postListRef.current.refreshPosts();
+                }
             } else {
                 alert(response?.message || 'Không thể cập nhật ảnh đại diện');
             }
@@ -160,7 +170,7 @@ const ProfilePage = () => {
                             {/* Profile Picture */}
                             <div className="position-relative mb-3 mb-md-0">
                                 <img
-                                    src={getFullUrl(profileData?.avatarUrl) || getFullUrl(user?.avatarUrl) || DEFAULT_AVATAR}
+                                    src={getAvatarUrl(profileData) || getAvatarUrl(user)}
                                     alt={profileData?.displayName || profileData?.fullName || user?.displayName || 'User'}
                                     className="rounded-circle border border-4 border-white"
                                     style={{
@@ -261,7 +271,7 @@ const ProfilePage = () => {
                         )}
 
                         {/* Posts */}
-                        <PostList userId={targetUserId} />
+                        <PostList ref={postListRef} userId={targetUserId} />
                     </div>
                 </div>
             </div>

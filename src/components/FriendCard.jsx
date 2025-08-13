@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { getFullUrl, DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 
 const FriendCard = ({ friend }) => {
     const navigate = useNavigate();
@@ -29,7 +29,7 @@ const FriendCard = ({ friend }) => {
             }}
         >
             <img
-                src={getFullUrl(friend.avatarUrl) || DEFAULT_AVATAR}
+                src={getAvatarUrl(friend)}
                 alt={friend.displayName || 'Bạn bè'}
                 className="rounded-circle mb-2"
                 style={{

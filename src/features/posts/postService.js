@@ -1,5 +1,5 @@
 import api from '../../services/api';
-import { DEFAULT_AVATAR } from '../../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../../utils/placeholderImages';
 
 // Base URL cho API
 const API_BASE_URL = 'http://localhost:8080';
@@ -17,11 +17,45 @@ class PostService {
 
             if (status.success) {
                 const posts = data.map(post => {
-                    // Lấy thông tin user theo cấu trúc API thực tế
+                    // Cải thiện logic xử lý thông tin user
                     const user = post.user || {};
+                    
+                    // Ưu tiên lấy thông tin user từ nhiều nguồn khác nhau
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
-                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
                     const userId = user.senderId || user.id || user.userId || post.userId;
+                    
+                    // Xử lý avatar với logic cải thiện
+                    let userAvatar = null;
+                    
+                    // Ưu tiên 1: avatarUrl từ user object
+                    if (user.avatarUrl) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Ưu tiên 2: avatarSender từ post (API cũ)
+                    else if (post.avatarSender) {
+                        userAvatar = getAvatarUrl({ avatarUrl: post.avatarSender });
+                    }
+                    // Ưu tiên 3: avatar từ user object
+                    else if (user.avatar) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Ưu tiên 4: profilePicture từ user object
+                    else if (user.profilePicture) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Fallback: tạo placeholder từ tên
+                    else {
+                        userAvatar = getAvatarUrl({ displayName: userName });
+                    }
+
+                    console.log('Post avatar processing:', {
+                        postId: post.id,
+                        userName,
+                        userId,
+                        userAvatar,
+                        userData: user,
+                        avatarSender: post.avatarSender
+                    });
 
                     // Xử lý đường dẫn ảnh - thêm base URL nếu cần
                     const processImageUrls = (urls) => {
@@ -43,7 +77,12 @@ class PostService {
                         author: {
                             id: userId,
                             name: userName,
-                            avatar: userAvatar
+                            avatar: userAvatar,
+                            // Thêm thông tin user đầy đủ để component có thể sử dụng
+                            displayName: user.displayName,
+                            fullName: user.fullName,
+                            username: user.username,
+                            avatarUrl: user.avatarUrl
                         },
                         visibility: post.visibility || 'PUBLIC',
                         createdAt: post.createdAt,
@@ -261,11 +300,34 @@ class PostService {
                 const paginatedPosts = userPosts.slice(startIndex, endIndex);
 
                 const posts = paginatedPosts.map(post => {
-                    // Lấy thông tin user theo cấu trúc API thực tế
+                    // Cải thiện logic xử lý thông tin user
                     const user = post.user || {};
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
-                    const userAvatar = user.avatarSender || user.avatar || user.profilePicture || DEFAULT_AVATAR;
                     const userPostId = user.senderId || user.id || user.userId || post.userId;
+                    
+                    // Xử lý avatar với logic cải thiện
+                    let userAvatar = null;
+                    
+                    // Ưu tiên 1: avatarUrl từ user object
+                    if (user.avatarUrl) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Ưu tiên 2: avatarSender từ post (API cũ)
+                    else if (post.avatarSender) {
+                        userAvatar = getAvatarUrl({ avatarUrl: post.avatarSender });
+                    }
+                    // Ưu tiên 3: avatar từ user object
+                    else if (user.avatar) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Ưu tiên 4: profilePicture từ user object
+                    else if (user.profilePicture) {
+                        userAvatar = getAvatarUrl(user);
+                    }
+                    // Fallback: tạo placeholder từ tên
+                    else {
+                        userAvatar = getAvatarUrl({ displayName: userName });
+                    }
 
                     // Xử lý đường dẫn ảnh - thêm base URL nếu cần
                     const processImageUrls = (urls) => {
@@ -287,7 +349,12 @@ class PostService {
                         author: {
                             id: userPostId,
                             name: userName,
-                            avatar: userAvatar
+                            avatar: userAvatar,
+                            // Thêm thông tin user đầy đủ để component có thể sử dụng
+                            displayName: user.displayName,
+                            fullName: user.fullName,
+                            username: user.username,
+                            avatarUrl: user.avatarUrl
                         },
                         visibility: post.visibility || 'PUBLIC',
                         createdAt: post.createdAt,

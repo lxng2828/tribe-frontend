@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { DEFAULT_AVATAR } from '../../utils/placeholderImages';
+import { DEFAULT_AVATAR, getPostAuthorAvatar, getCommentAuthorAvatar, getAvatarUrl } from '../../utils/placeholderImages';
 
 const PostItem = ({ post, onLike, onDelete }) => {
     const [showComments, setShowComments] = useState(false);
@@ -63,13 +63,14 @@ const PostItem = ({ post, onLike, onDelete }) => {
                 <div className="d-flex align-items-center justify-content-between">
                     <div className="d-flex align-items-center">
                         <img
-                            src={post.author?.avatar || DEFAULT_AVATAR}
-                            alt={post.author?.name || 'User'}
+                            src={getPostAuthorAvatar(post)}
+                            alt={post.author?.displayName || post.author?.fullName || post.author?.name || 'User'}
                             className="profile-pic-fb me-3"
+                            title={post.author?.displayName || post.author?.fullName || post.author?.name || 'User'}
                         />
                         <div>
                             <h6 className="mb-0 fw-bold" style={{ color: 'var(--fb-text)' }}>
-                                {post.author?.name || 'Người dùng'}
+                                {post.author?.displayName || post.author?.fullName || post.author?.name || 'Người dùng'}
                             </h6>
                             <div className="d-flex align-items-center">
                                 <small style={{ color: 'var(--fb-text-secondary)' }}>
@@ -445,7 +446,7 @@ const PostItem = ({ post, onLike, onDelete }) => {
                     {/* Comment Input */}
                     <div className="d-flex align-items-center mb-3">
                         <img
-                            src={user?.avatar || DEFAULT_AVATAR}
+                            src={getAvatarUrl(user)}
                             alt="Your avatar"
                             className="profile-pic-sm-fb me-2"
                         />
@@ -475,8 +476,8 @@ const PostItem = ({ post, onLike, onDelete }) => {
                     {post.comments && post.comments.map((comment) => (
                         <div key={comment.id} className="d-flex mb-3">
                             <img
-                                src={comment.author?.avatar || DEFAULT_AVATAR}
-                                alt={comment.author?.name || 'User'}
+                                src={getCommentAuthorAvatar(comment)}
+                                alt={comment.author?.name || comment.author?.displayName || comment.author?.fullName || 'User'}
                                 className="profile-pic-sm-fb me-2"
                             />
                             <div className="flex-grow-1">

@@ -40,14 +40,6 @@ const FriendsPage = () => {
                         {/* Header */}
                         <div className="d-flex align-items-center justify-content-between mb-4">
                             <h2 className="mb-0 fw-bold">Bạn bè</h2>
-                            <div className="d-flex gap-2">
-                                <button
-                                    onClick={() => window.history.back()}
-                                    className="btn btn-outline-secondary"
-                                >
-                                    ← Quay lại
-                                </button>
-                            </div>
                         </div>
 
                         {/* Navigation Tabs */}
@@ -76,17 +68,6 @@ const FriendsPage = () => {
                                             Lời mời kết bạn
                                         </button>
                                     </li>
-                                    <li className="nav-item">
-                                        <button
-                                            className={`nav-link ${activeTab === 'suggestions' ? 'active' : ''}`}
-                                            onClick={() => setActiveTab('suggestions')}
-                                        >
-                                            <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-                                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
-                                            </svg>
-                                            Gợi ý kết bạn
-                                        </button>
-                                    </li>
                                 </ul>
                             </div>
 
@@ -102,61 +83,6 @@ const FriendsPage = () => {
                                 {activeTab === 'requests' && (
                                     <FriendRequests userId={user.id} />
                                 )}
-
-                                {activeTab === 'suggestions' && (
-                                    <div className="text-center py-5">
-                                        <div className="text-muted mb-3" style={{ fontSize: '3rem' }}>🔍</div>
-                                        <h5>Gợi ý kết bạn</h5>
-                                        <p className="text-muted mb-4">
-                                            Tính năng này sẽ được phát triển trong tương lai.<br />
-                                            Hiện tại bạn có thể tìm kiếm bạn bè bằng email.
-                                        </p>
-                                        <button
-                                            onClick={() => window.location.href = '/search'}
-                                            className="btn btn-primary"
-                                        >
-                                            Tìm kiếm bạn bè
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Quick Actions */}
-                        <div className="row mt-4">
-                            <div className="col-md-6">
-                                <div className="card border-0 shadow-sm h-100">
-                                    <div className="card-body text-center">
-                                        <div className="text-primary mb-3" style={{ fontSize: '2rem' }}>🔍</div>
-                                        <h6>Tìm kiếm bạn bè</h6>
-                                        <p className="text-muted small mb-3">
-                                            Tìm kiếm người dùng theo email để gửi lời mời kết bạn
-                                        </p>
-                                        <button
-                                            onClick={() => window.location.href = '/search'}
-                                            className="btn btn-outline-primary btn-sm"
-                                        >
-                                            Tìm kiếm ngay
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="col-md-6">
-                                <div className="card border-0 shadow-sm h-100">
-                                    <div className="card-body text-center">
-                                        <div className="text-success mb-3" style={{ fontSize: '2rem' }}>📱</div>
-                                        <h6>Mời bạn bè qua email</h6>
-                                        <p className="text-muted small mb-3">
-                                            Gửi lời mời tham gia Tribe cho bạn bè qua email
-                                        </p>
-                                        <button
-                                            className="btn btn-outline-success btn-sm"
-                                            disabled
-                                        >
-                                            Sắp ra mắt
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>

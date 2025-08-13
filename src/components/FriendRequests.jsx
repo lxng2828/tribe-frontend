@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import friendshipService from '../services/friendshipService';
-import { DEFAULT_AVATAR } from '../utils/placeholderImages';
+import { getFullUrl, DEFAULT_AVATAR } from '../utils/placeholderImages';
 import Loading from './Loading';
 
 const FriendRequests = ({ userId }) => {
     const [friendRequests, setFriendRequests] = useState([]);
-    const [sentRequests, setSentRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState('received'); // 'received' | 'sent'
@@ -22,24 +21,14 @@ const FriendRequests = ({ userId }) => {
             setLoading(true);
             setError(null);
 
-            // Load both received and sent requests
-            const [receivedResponse, sentResponse] = await Promise.all([
-                friendshipService.getFriendRequests(userId),
-                friendshipService.getSentRequests(userId)
-            ]);
+            // Chỉ load received requests theo API docs
+            const response = await friendshipService.getFriendRequests(userId);
 
-            if (receivedResponse.status.success) {
-                const formattedReceived = (receivedResponse.data || []).map(request =>
-                    friendshipService.formatFriendRequestInfo(request)
-                );
-                setFriendRequests(formattedReceived);
-            }
-
-            if (sentResponse.status.success) {
-                const formattedSent = (sentResponse.data || []).map(request =>
-                    friendshipService.formatFriendRequestInfo(request)
-                );
-                setSentRequests(formattedSent);
+            if (response.status.success) {
+                // Sử dụng dữ liệu theo API docs: senderId, senderDisplayName, avatarUrl, sentAt
+                setFriendRequests(response.data || []);
+            } else {
+                setError(response.status.displayMessage || 'Không thể tải lời mời kết bạn');
             }
         } catch (error) {
             console.error('Error loading friend requests:', error);
@@ -49,16 +38,16 @@ const FriendRequests = ({ userId }) => {
         }
     };
 
-    const handleAcceptRequest = async (requestId, senderId) => {
-        if (processingIds.has(requestId)) return;
+    const handleAcceptRequest = async (senderId) => {
+        if (processingIds.has(senderId)) return;
 
         try {
-            setProcessingIds(prev => new Set(prev).add(requestId));
+            setProcessingIds(prev => new Set(prev).add(senderId));
 
             const response = await friendshipService.acceptFriendRequest(senderId, userId);
             if (response.status.success) {
                 // Remove from friend requests list
-                setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+                setFriendRequests(prev => prev.filter(req => req.senderId !== senderId));
             } else {
                 alert(response.status.displayMessage || 'Không thể chấp nhận lời mời');
             }
@@ -68,22 +57,22 @@ const FriendRequests = ({ userId }) => {
         } finally {
             setProcessingIds(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(requestId);
+                newSet.delete(senderId);
                 return newSet;
             });
         }
     };
 
-    const handleRejectRequest = async (requestId, senderId) => {
-        if (processingIds.has(requestId)) return;
+    const handleRejectRequest = async (senderId) => {
+        if (processingIds.has(senderId)) return;
 
         try {
-            setProcessingIds(prev => new Set(prev).add(requestId));
+            setProcessingIds(prev => new Set(prev).add(senderId));
 
             const response = await friendshipService.rejectFriendRequest(senderId, userId);
             if (response.status.success) {
                 // Remove from friend requests list
-                setFriendRequests(prev => prev.filter(req => req.id !== requestId));
+                setFriendRequests(prev => prev.filter(req => req.senderId !== senderId));
             } else {
                 alert(response.status.displayMessage || 'Không thể từ chối lời mời');
             }
@@ -93,7 +82,7 @@ const FriendRequests = ({ userId }) => {
         } finally {
             setProcessingIds(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(requestId);
+                newSet.delete(senderId);
                 return newSet;
             });
         }
@@ -126,62 +115,30 @@ const FriendRequests = ({ userId }) => {
         );
     }
 
-    const currentRequests = activeTab === 'received' ? friendRequests : sentRequests;
-
     return (
         <div className="friend-requests">
-            {/* Header với tabs */}
+            {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="mb-0">Lời mời kết bạn</h5>
+                <h5 className="mb-0">Lời mời kết bạn ({friendRequests.length})</h5>
             </div>
 
-            {/* Tabs */}
-            <ul className="nav nav-tabs mb-3">
-                <li className="nav-item">
-                    <button
-                        className={`nav-link ${activeTab === 'received' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('received')}
-                    >
-                        Nhận được ({friendRequests.length})
-                    </button>
-                </li>
-                <li className="nav-item">
-                    <button
-                        className={`nav-link ${activeTab === 'sent' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('sent')}
-                    >
-                        Đã gửi ({sentRequests.length})
-                    </button>
-                </li>
-            </ul>
-
             {/* Content */}
-            {currentRequests.length === 0 ? (
+            {friendRequests.length === 0 ? (
                 <div className="text-center py-5">
-                    <div className="text-muted mb-2" style={{ fontSize: '2rem' }}>
-                        {activeTab === 'received' ? '📬' : '📤'}
-                    </div>
-                    <h6>
-                        {activeTab === 'received'
-                            ? 'Không có lời mời kết bạn mới'
-                            : 'Chưa gửi lời mời kết bạn nào'
-                        }
-                    </h6>
+                    <div className="text-muted mb-2" style={{ fontSize: '2rem' }}>📬</div>
+                    <h6>Không có lời mời kết bạn mới</h6>
                     <p className="text-muted small">
-                        {activeTab === 'received'
-                            ? 'Khi có người gửi lời mời kết bạn, chúng sẽ hiển thị ở đây'
-                            : 'Hãy tìm kiếm và gửi lời mời kết bạn với những người bạn quen biết'
-                        }
+                        Khi có người gửi lời mời kết bạn, chúng sẽ hiển thị ở đây
                     </p>
                 </div>
             ) : (
                 <div className="list-group list-group-flush">
-                    {currentRequests.map((request) => (
-                        <div key={request.id} className="list-group-item border-0 px-0 py-3">
+                    {friendRequests.map((request) => (
+                        <div key={request.senderId} className="list-group-item border-0 px-0 py-3">
                             <div className="d-flex align-items-center">
                                 <img
-                                    src={request.senderAvatar || DEFAULT_AVATAR}
-                                    alt={request.senderName}
+                                    src={getFullUrl(request.avatarUrl) || DEFAULT_AVATAR}
+                                    alt={request.senderDisplayName || 'Người dùng'}
                                     className="rounded-circle me-3"
                                     style={{
                                         width: '60px',
@@ -198,18 +155,13 @@ const FriendRequests = ({ userId }) => {
                                         style={{ cursor: 'pointer' }}
                                         onClick={() => handleViewProfile(request.senderId)}
                                     >
-                                        {request.senderName}
+                                        {request.senderDisplayName || 'Người dùng'}
                                     </h6>
-                                    <small className="text-muted">
-                                        {activeTab === 'received'
-                                            ? 'Muốn kết bạn với bạn'
-                                            : 'Đã gửi lời mời kết bạn'
-                                        }
-                                    </small>
-                                    {request.createdAt && (
+                                    <small className="text-muted">Muốn kết bạn với bạn</small>
+                                    {request.sentAt && (
                                         <div>
                                             <small className="text-muted">
-                                                {new Date(request.createdAt).toLocaleDateString('vi-VN', {
+                                                {new Date(request.sentAt).toLocaleDateString('vi-VN', {
                                                     day: '2-digit',
                                                     month: '2-digit',
                                                     year: 'numeric',
@@ -223,38 +175,30 @@ const FriendRequests = ({ userId }) => {
 
                                 {/* Action buttons */}
                                 <div className="d-flex gap-2 align-items-center">
-                                    {activeTab === 'received' ? (
-                                        <>
-                                            <button
-                                                onClick={() => handleAcceptRequest(request.id, request.senderId)}
-                                                disabled={processingIds.has(request.id)}
-                                                className="btn btn-primary btn-sm"
-                                            >
-                                                {processingIds.has(request.id) ? (
-                                                    <span className="spinner-border spinner-border-sm me-1" />
-                                                ) : (
-                                                    '✓'
-                                                )}
-                                                Chấp nhận
-                                            </button>
-                                            <button
-                                                onClick={() => handleRejectRequest(request.id, request.senderId)}
-                                                disabled={processingIds.has(request.id)}
-                                                className="btn btn-outline-secondary btn-sm"
-                                            >
-                                                {processingIds.has(request.id) ? (
-                                                    <span className="spinner-border spinner-border-sm me-1" />
-                                                ) : (
-                                                    '✗'
-                                                )}
-                                                Từ chối
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <small className="text-muted">
-                                            Đang chờ phản hồi
-                                        </small>
-                                    )}
+                                    <button
+                                        onClick={() => handleAcceptRequest(request.senderId)}
+                                        disabled={processingIds.has(request.senderId)}
+                                        className="btn btn-primary btn-sm"
+                                    >
+                                        {processingIds.has(request.senderId) ? (
+                                            <span className="spinner-border spinner-border-sm me-1" />
+                                        ) : (
+                                            '✓'
+                                        )}
+                                        Chấp nhận
+                                    </button>
+                                    <button
+                                        onClick={() => handleRejectRequest(request.senderId)}
+                                        disabled={processingIds.has(request.senderId)}
+                                        className="btn btn-outline-secondary btn-sm"
+                                    >
+                                        {processingIds.has(request.senderId) ? (
+                                            <span className="spinner-border spinner-border-sm me-1" />
+                                        ) : (
+                                            '✗'
+                                        )}
+                                        Từ chối
+                                    </button>
                                 </div>
                             </div>
                         </div>

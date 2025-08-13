@@ -8,8 +8,8 @@ class ProfileService {
     async getCurrentUserProfile() {
         try {
             const response = await api.get('/users/profile');
-            // API trả về {status, data}, cần lấy data
-            return response.data.data;
+            // API trả về {status: {success, code}, data}, trả về toàn bộ response
+            return response.data;
         } catch (error) {
             console.error('Error fetching current user profile:', error);
             throw error;
@@ -20,7 +20,7 @@ class ProfileService {
     async getUserProfile(userId) {
         try {
             const response = await api.get(`/users/${userId}/profile`);
-            return response.data.data;
+            return response.data;
         } catch (error) {
             console.error('Error fetching user profile:', error);
             throw error;
@@ -31,7 +31,7 @@ class ProfileService {
     async updateProfile(profileData) {
         try {
             const response = await api.put('/users/profile', profileData);
-            return response.data.data;
+            return response.data;
         } catch (error) {
             console.error('Error updating profile:', error);
             throw error;
@@ -100,17 +100,7 @@ class ProfileService {
         }
     }
 
-    // Lấy thống kê của user (số bạn bè, followers, etc.)
-    async getUserStats(userId = null) {
-        try {
-            const url = userId ? `/users/${userId}/stats` : '/users/stats';
-            const response = await api.get(url);
-            return response.data.data || response.data;
-        } catch (error) {
-            console.error('Error fetching user stats:', error);
-            throw error;
-        }
-    }
+    // Lấy thống kê của user đã bị xóa vì API không hỗ trợ
 
     // Gửi lời mời kết bạn
     async sendFriendRequest(userId) {

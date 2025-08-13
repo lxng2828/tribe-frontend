@@ -38,10 +38,13 @@ class UserService {
      */
     async getUserById(userId) {
         try {
+            console.log('Calling getUserById with userId:', userId); // Debug log
             const response = await api.get(`/users/${userId}`);
+            console.log('getUserById response:', response.data); // Debug log
             return response.data;
         } catch (error) {
             console.error('Error getting user by ID:', error);
+            console.error('Error response:', error.response?.data); // Debug log
             throw error;
         }
     }

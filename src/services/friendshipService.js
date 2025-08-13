@@ -10,8 +10,14 @@ class FriendshipService {
      */
     async sendFriendRequest(senderId, receiverId) {
         try {
-            const response = await api.post('/friendships/send', null, {
-                params: { senderId, receiverId }
+            const formData = new URLSearchParams();
+            formData.append('senderId', senderId);
+            formData.append('receiverId', receiverId);
+
+            const response = await api.post('/friendships/send', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             });
             return response.data;
         } catch (error) {
@@ -28,8 +34,14 @@ class FriendshipService {
      */
     async acceptFriendRequest(senderId, receiverId) {
         try {
-            const response = await api.post('/friendships/accept', null, {
-                params: { senderId, receiverId }
+            const formData = new URLSearchParams();
+            formData.append('senderId', senderId);
+            formData.append('receiverId', receiverId);
+
+            const response = await api.post('/friendships/accept', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             });
             return response.data;
         } catch (error) {
@@ -46,8 +58,14 @@ class FriendshipService {
      */
     async rejectFriendRequest(senderId, receiverId) {
         try {
-            const response = await api.post('/friendships/reject', null, {
-                params: { senderId, receiverId }
+            const formData = new URLSearchParams();
+            formData.append('senderId', senderId);
+            formData.append('receiverId', receiverId);
+
+            const response = await api.post('/friendships/reject', formData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             });
             return response.data;
         } catch (error) {
@@ -91,76 +109,6 @@ class FriendshipService {
     }
 
     /**
-     * Lấy lời mời đã gửi (sent)
-     * @param {string} senderId - ID của user
-     * @returns {Promise} Danh sách lời mời đã gửi
-     */
-    async getSentRequests(senderId) {
-        try {
-            const response = await api.get('/friendships/sent-requests', {
-                params: { senderId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching sent requests:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Lấy danh sách user bị chặn
-     * @param {string} userId - ID của user
-     * @returns {Promise} Danh sách user bị chặn
-     */
-    async getBlockedUsers(userId) {
-        try {
-            const response = await api.get('/friendships/blocked-users', {
-                params: { userId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching blocked users:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Bỏ chặn user
-     * @param {string} senderId - ID người thực hiện
-     * @param {string} receiverId - ID người bị chặn
-     * @returns {Promise} Response từ API
-     */
-    async unblockUser(senderId, receiverId) {
-        try {
-            const response = await api.delete('/friendships/unblock', {
-                params: { senderId, receiverId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error unblocking user:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Hủy kết bạn
-     * @param {string} senderId - ID người thực hiện
-     * @param {string} receiverId - ID người muốn hủy kết bạn
-     * @returns {Promise} Response từ API
-     */
-    async unfriend(senderId, receiverId) {
-        try {
-            const response = await api.delete('/friendships/unfriend', {
-                params: { senderId, receiverId }
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Error unfriending user:', error);
-            throw error;
-        }
-    }
-
-    /**
      * Kiểm tra trạng thái quan hệ giữa 2 user
      * @param {string} userId - ID user hiện tại
      * @param {string} targetUserId - ID user cần kiểm tra
@@ -170,66 +118,64 @@ class FriendshipService {
         try {
             // Kiểm tra xem có phải bạn bè không
             const friends = await this.getFriends(userId);
-            const isFriend = friends.data?.some(friend => friend.friendId === targetUserId);
-
-            if (isFriend) {
-                return { status: 'FRIENDS', isFriend: true };
-            }
-
-            // Kiểm tra xem có lời mời đã gửi không
-            const sentRequests = await this.getSentRequests(userId);
-            const hasSentRequest = sentRequests.data?.some(request => request.receiverId === targetUserId);
-
-            if (hasSentRequest) {
-                return { status: 'PENDING_SENT', hasSentRequest: true };
+            if (friends.status.success) {
+                const isFriend = friends.data?.some(friend => friend.id === targetUserId);
+                if (isFriend) {
+                    return { status: 'FRIENDS' };
+                }
             }
 
             // Kiểm tra xem có lời mời nhận được không
             const receivedRequests = await this.getFriendRequests(userId);
-            const hasReceivedRequest = receivedRequests.data?.some(request => request.senderId === targetUserId);
+            if (receivedRequests.status.success) {
+                const hasReceivedRequest = receivedRequests.data?.some(request => request.senderId === targetUserId);
+                if (hasReceivedRequest) {
+                    return { status: 'PENDING_RECEIVED' };
+                }
+            }
 
-            if (hasReceivedRequest) {
-                return { status: 'PENDING_RECEIVED', hasReceivedRequest: true };
+            // Kiểm tra xem có lời mời đã gửi không (gọi API ngược lại)
+            const targetRequests = await this.getFriendRequests(targetUserId);
+            if (targetRequests.status.success) {
+                const hasSentRequest = targetRequests.data?.some(request => request.senderId === userId);
+                if (hasSentRequest) {
+                    return { status: 'PENDING_SENT' };
+                }
             }
 
             return { status: 'NOT_FRIENDS' };
         } catch (error) {
             console.error('Error checking friendship status:', error);
-            throw error;
+            return { status: 'NOT_FRIENDS' };
         }
     }
 
     /**
-     * Format dữ liệu bạn bè để hiển thị
-     * @param {Object} friend - Dữ liệu bạn bè từ API
-     * @returns {Object} Dữ liệu đã format
+     * Lấy cả lời mời gửi đi và nhận về cho FriendsPage
+     * @param {string} userId - ID của user
+     * @returns {Promise} Object chứa cả received và sent requests
      */
-    formatFriendInfo(friend) {
-        return {
-            id: friend.friendId || friend.id,
-            displayName: friend.friendName || friend.displayName || friend.name || 'Người dùng',
-            avatar: friend.avatarUrl || friend.avatar || '/default-avatar.png',
-            acceptedAt: friend.acceptedAt,
-            email: friend.email,
-            phoneNumber: friend.phoneNumber
-        };
-    }
+    async getAllFriendRequests(userId) {
+        try {
+            // Lấy lời mời nhận được
+            const receivedResponse = await this.getFriendRequests(userId);
+            const receivedRequests = receivedResponse.status.success ? receivedResponse.data : [];
 
-    /**
-     * Format dữ liệu lời mời kết bạn để hiển thị
-     * @param {Object} request - Dữ liệu lời mời từ API
-     * @returns {Object} Dữ liệu đã format
-     */
-    formatFriendRequestInfo(request) {
-        return {
-            id: request.id,
-            senderId: request.senderId,
-            receiverId: request.receiverId,
-            senderName: request.senderName || request.displayName || 'Người dùng',
-            senderAvatar: request.senderAvatar || request.avatar || '/default-avatar.png',
-            createdAt: request.createdAt,
-            status: request.status
-        };
+            // Lấy lời mời đã gửi bằng cách kiểm tra tất cả users khác
+            // Vì API không có endpoint sent-requests, ta sẽ chỉ hiển thị received
+            const sentRequests = []; // Có thể implement sau nếu backend hỗ trợ
+
+            return {
+                status: { success: true },
+                data: {
+                    received: receivedRequests,
+                    sent: sentRequests
+                }
+            };
+        } catch (error) {
+            console.error('Error fetching all friend requests:', error);
+            throw error;
+        }
     }
 }
 

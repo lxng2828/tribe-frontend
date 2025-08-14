@@ -1,5 +1,5 @@
 import Navbar from '../components/Navbar';
-import { generatePlaceholderAvatar } from '../utils/placeholderImages';
+import { generatePlaceholderAvatar, getAvatarUrl } from '../utils/placeholderImages';
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -93,12 +93,12 @@ const MainLayout = ({ children }) => {
 
                     {/* Right Sidebar */}
                     <div className="col-xl-3 d-none d-xl-block">
-                        <div className="position-sticky" style={{ top: '70px' }}>
-                            <div className="p-3">
+                        <div className="position-sticky" style={{ top: '70px', height: 'calc(100vh - 70px)' }}>
+                            <div className="p-3 h-100 d-flex flex-column">
 
                                 {/* Contacts */}
-                                <div>
-                                    <div className="mb-2">
+                                <div className="flex-grow-1 d-flex flex-column">
+                                    <div className="mb-3">
                                         <h6 className="mb-0" style={{ color: 'var(--fb-text-secondary)' }}>
                                             Người liên hệ
                                             {!loading && friends.length > 0 && (
@@ -124,38 +124,40 @@ const MainLayout = ({ children }) => {
                                             </button>
                                         </div>
                                     ) : friends.length > 0 ? (
-                                        friends.slice(0, 5).map((friend, index) => (
-                                            <Link 
-                                                key={friend.id} 
-                                                to={`/profile/${friend.id}`}
-                                                className="d-flex align-items-center hover-fb p-2 rounded text-decoration-none"
-                                                style={{ color: 'inherit' }}
-                                            >
-                                                <div className="position-relative">
-                                                    <img
-                                                        src={friend.avatarUrl || generatePlaceholderAvatar(32, getInitials(friend.displayName))}
-                                                        alt={friend.displayName}
-                                                        className="profile-pic-sm-fb me-3"
-                                                        onError={(e) => {
-                                                            e.target.src = generatePlaceholderAvatar(32, getInitials(friend.displayName));
-                                                        }}
-                                                    />
-                                                    {/* Hiển thị trạng thái online nếu có */}
-                                                    {friend.isOnline && (
-                                                        <div className="position-absolute bottom-0 end-0" style={{
-                                                            width: '8px',
-                                                            height: '8px',
-                                                            backgroundColor: 'var(--fb-green)',
-                                                            borderRadius: '50%',
-                                                            border: '2px solid white'
-                                                        }}></div>
-                                                    )}
-                                                </div>
-                                                <div className="flex-grow-1">
-                                                    <div className="small fw-medium">{friend.displayName}</div>
-                                                </div>
-                                            </Link>
-                                        ))
+                                        <div className="flex-grow-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                                            {friends.map((friend, index) => (
+                                                <Link 
+                                                    key={friend.id} 
+                                                    to={`/profile/${friend.id}`}
+                                                    className="d-flex align-items-center hover-fb p-2 rounded text-decoration-none"
+                                                    style={{ color: 'inherit' }}
+                                                >
+                                                    <div className="position-relative">
+                                                        <img
+                                                            src={getAvatarUrl(friend)}
+                                                            alt={friend.displayName}
+                                                            className="profile-pic-sm-fb me-3"
+                                                            onError={(e) => {
+                                                                e.target.src = generatePlaceholderAvatar(32, getInitials(friend.displayName));
+                                                            }}
+                                                        />
+                                                        {/* Hiển thị trạng thái online nếu có */}
+                                                        {friend.isOnline && (
+                                                            <div className="position-absolute bottom-0 end-0" style={{
+                                                                width: '8px',
+                                                                height: '8px',
+                                                                backgroundColor: 'var(--fb-green)',
+                                                                borderRadius: '50%',
+                                                                border: '2px solid white'
+                                                            }}></div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-grow-1">
+                                                        <div className="small fw-medium">{friend.displayName}</div>
+                                                    </div>
+                                                </Link>
+                                            ))}
+                                        </div>
                                     ) : (
                                         <div className="text-center py-3">
                                             <div className="text-muted small mb-2">Chưa có bạn bè nào</div>
@@ -168,6 +170,18 @@ const MainLayout = ({ children }) => {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Link "Xem tất cả" ở cuối */}
+                                {!loading && !error && friends.length > 0 && (
+                                    <div className="mt-3 pt-2 border-top">
+                                        <Link 
+                                            to="/friends"
+                                            className="d-block text-primary text-decoration-none small"
+                                        >
+                                            Xem tất cả bạn bè
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

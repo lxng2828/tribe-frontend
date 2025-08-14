@@ -105,6 +105,30 @@ body {
     }
 }
 
+/* Contacts sidebar scrollbar styling */
+.overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Hover effect for contact items */
+.hover-fb:hover {
+    background-color: var(--fb-hover);
+    transition: background-color 0.2s ease;
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }

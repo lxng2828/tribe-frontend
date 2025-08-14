@@ -58,19 +58,26 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
         );
     }
 
-    const displayedFriends = maxItems ? friends.slice(0, maxItems) : friends;
+    // Hiển thị 9 bạn bè đầu tiên như trong hình
+    const displayedFriends = maxItems ? friends.slice(0, maxItems) : friends.slice(0, 9);
 
     return (
         <div className="friends-list">
             {showHeader && (
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="mb-0">Bạn bè ({friends.length})</h5>
-                    {maxItems && friends.length > maxItems && (
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 className="mb-1 fw-bold" style={{ color: '#1c1e21' }}>Bạn bè</h4>
+                        <p className="mb-0 text-muted" style={{ fontSize: '0.9rem' }}>
+                            {friends.length} người bạn
+                        </p>
+                    </div>
+                    {friends.length > 9 && (
                         <Link
                             to="/friends"
-                            className="text-primary text-decoration-none"
+                            className="text-primary text-decoration-none fw-medium"
+                            style={{ fontSize: '0.9rem' }}
                         >
-                            Xem tất cả
+                            Xem tất cả bạn bè
                         </Link>
                     )}
                 </div>
@@ -85,9 +92,9 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
                     </p>
                 </div>
             ) : (
-                <div className="row g-4">
+                <div className="row g-3">
                     {displayedFriends.map((friend) => (
-                        <div key={friend.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                        <div key={friend.id} className="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-6">
                             <FriendCard friend={friend} />
                         </div>
                     ))}

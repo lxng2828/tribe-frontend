@@ -10,18 +10,19 @@ const FriendCard = ({ friend }) => {
 
     return (
         <div
-            className="friend-card d-flex flex-column align-items-center p-3 rounded cursor-pointer"
+            className="friend-card d-flex flex-column align-items-center p-4 rounded cursor-pointer"
             onClick={handleClick}
             style={{
                 backgroundColor: 'var(--fb-card-bg)',
                 border: '1px solid var(--fb-border)',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.3s ease',
                 cursor: 'pointer',
-                minHeight: '120px'
+                minHeight: '180px',
+                borderRadius: '16px'
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
             }}
             onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
@@ -31,19 +32,21 @@ const FriendCard = ({ friend }) => {
             <img
                 src={getAvatarUrl(friend)}
                 alt={friend.displayName || 'Bạn bè'}
-                className="rounded-circle mb-2"
+                className="rounded-circle mb-3"
                 style={{
-                    width: '60px',
-                    height: '60px',
-                    objectFit: 'cover'
+                    width: '100px',
+                    height: '100px',
+                    objectFit: 'cover',
+                    border: '3px solid #e7f3ff'
                 }}
             />
             <div
-                className="text-center fw-medium small"
+                className="text-center fw-semibold"
                 style={{
                     color: 'var(--fb-text)',
                     wordBreak: 'break-word',
-                    lineHeight: '1.2'
+                    lineHeight: '1.3',
+                    fontSize: '1.1rem'
                 }}
             >
                 {friend.displayName || 'Người dùng'}

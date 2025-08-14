@@ -77,17 +77,17 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
             )}
 
             {friends.length === 0 ? (
-                <div className="text-center py-4">
-                    <div className="text-muted mb-2" style={{ fontSize: '2rem' }}>👥</div>
-                    <h6>Chưa có bạn bè</h6>
-                    <p className="text-muted small">
+                <div className="text-center py-5">
+                    <div className="text-muted mb-3" style={{ fontSize: '3rem' }}>👥</div>
+                    <h4>Chưa có bạn bè</h4>
+                    <p className="text-muted" style={{ fontSize: '1.1rem' }}>
                         Hãy tìm kiếm và kết bạn với những người bạn quen biết
                     </p>
                 </div>
             ) : (
-                <div className="row g-3">
+                <div className="row g-4">
                     {displayedFriends.map((friend) => (
-                        <div key={friend.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
+                        <div key={friend.id} className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
                             <FriendCard friend={friend} />
                         </div>
                     ))}

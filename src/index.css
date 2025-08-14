@@ -68,6 +68,43 @@ body {
     display: none;
 }
 
+/* Friend cards styling */
+.friend-card {
+    transition: all 0.2s ease;
+}
+
+.friend-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Friends list responsive */
+@media (max-width: 768px) {
+    .friends-list .row {
+        justify-content: center;
+    }
+    
+    .friend-card {
+        min-height: 120px;
+    }
+    
+    .friend-card img {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .friend-card {
+        min-height: 110px;
+    }
+    
+    .friend-card img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }

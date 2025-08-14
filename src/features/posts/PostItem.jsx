@@ -5,6 +5,8 @@ import { DEFAULT_AVATAR, getPostAuthorAvatar, getCommentAuthorAvatar, getAvatarU
 const PostItem = ({ post, onLike, onDelete }) => {
     const [showComments, setShowComments] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
+    const [replyingTo, setReplyingTo] = useState(null); // Track which comment we're replying to
+    const [commentText, setCommentText] = useState(''); // Store comment/reply text
     const { user } = useAuth();
 
     // Check if current user can edit/delete this post
@@ -54,10 +56,41 @@ const PostItem = ({ post, onLike, onDelete }) => {
         onLike(post.id);
     };
 
+    const handleReply = (commentId) => {
+        setReplyingTo(commentId);
+        setCommentText('');
+    };
+
+    const handleCancelReply = () => {
+        setReplyingTo(null);
+        setCommentText('');
+    };
+
+    const handleSubmitComment = () => {
+        if (commentText.trim()) {
+            if (replyingTo) {
+                // Submitting a reply
+                console.log('Submitting reply to comment', replyingTo, ':', commentText);
+                setReplyingTo(null);
+            } else {
+                // Submitting a new comment
+                console.log('Submitting new comment:', commentText);
+            }
+            setCommentText('');
+        }
+    };
 
 
-    return (
-        <div className="post-fb spacing-fb fade-in-fb">
+
+         return (
+         <div className="post-fb spacing-fb fade-in-fb" style={{
+             transform: showComments ? 'translateY(-4px)' : 'translateY(0)',
+             boxShadow: showComments ? '0 8px 24px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1)' : '0 2px 8px rgba(0, 0, 0, 0.08)',
+             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+             borderRadius: '12px',
+             position: 'relative',
+             zIndex: showComments ? 2 : 1
+         }}>
             {/* Post Header */}
             <div className="post-header-fb">
                 <div className="d-flex align-items-center justify-content-between">
@@ -379,149 +412,401 @@ const PostItem = ({ post, onLike, onDelete }) => {
                     </div>
                 )}
 
-                {/* Post Stats */}
-                {(post.likesCount > 0 || post.commentsCount > 0) && (
-                    <div className="d-flex align-items-center justify-content-between mb-2">
-                        <div className="d-flex align-items-center">
-                            {post.likesCount > 0 && (
-                                <div className="d-flex align-items-center">
-                                    <div className="d-flex me-2">
-                                        <div className="d-flex align-items-center justify-content-center me-1"
-                                            style={{
-                                                width: '18px',
-                                                height: '18px',
-                                                backgroundColor: 'var(--fb-blue)',
-                                                borderRadius: '50%'
-                                            }}>
-                                            <svg width="10" height="10" fill="white" viewBox="0 0 24 24">
-                                                <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.125c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75A2.25 2.25 0 0 1 16.25 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.611 1.05-1.05 1.426A3.625 3.625 0 0 0 14.25 12v2.25c0 .085.002.17.005.253a2.25 2.25 0 0 1-2.505 2.247H7.493Z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <small style={{ color: 'var(--fb-text-secondary)' }}>
-                                        {post.likesCount}
-                                    </small>
-                                </div>
-                            )}
-                        </div>
-                        <div className="d-flex align-items-center">
-                            {post.commentsCount > 0 && (
-                                <small style={{ color: 'var(--fb-text-secondary)' }}>
-                                    {post.commentsCount} bình luận
-                                </small>
-                            )}
-                        </div>
-                    </div>
-                )}
+                                                  {/* Reactions Display */}
+                 {post.reactions && post.reactions.length > 0 && (
+                     <div className="px-3 mb-3">
+                         <div className="d-flex align-items-center">
+                             {/* Emoji Icons */}
+                             <div className="d-flex me-3" style={{ position: 'relative' }}>
+                                 {post.reactions.slice(0, 3).map((reaction, index) => (
+                                     <div key={index} 
+                                         style={{
+                                             width: '20px',
+                                             height: '20px',
+                                             borderRadius: '50%',
+                                             background: reaction.type === 'LIKE' ? 'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)' :
+                                                        reaction.type === 'LOVE' ? 'linear-gradient(135deg, #e41e3f 0%, #ff6b9d 100%)' :
+                                                        reaction.type === 'WOW' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                        reaction.type === 'HAHA' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                        reaction.type === 'SAD' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                        reaction.type === 'ANGRY' ? 'linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%)' : 
+                                                        'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)',
+                                             display: 'flex',
+                                             alignItems: 'center',
+                                             justifyContent: 'center',
+                                             fontSize: '12px',
+                                             marginRight: index < 2 ? '-6px' : '0',
+                                             border: '2px solid white',
+                                             boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)',
+                                             zIndex: 3 - index,
+                                             position: 'relative',
+                                             transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+                                         }}
+                                         onMouseEnter={(e) => {
+                                             e.target.style.transform = 'scale(1.2)';
+                                             e.target.style.zIndex = '10';
+                                             e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.15)';
+                                         }}
+                                         onMouseLeave={(e) => {
+                                             e.target.style.transform = 'scale(1)';
+                                             e.target.style.zIndex = 3 - index;
+                                             e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)';
+                                         }}
+                                     >
+                                         {reaction.type === 'LIKE' ? '👍' : 
+                                          reaction.type === 'LOVE' ? '❤️' : 
+                                          reaction.type === 'WOW' ? '😮' : 
+                                          reaction.type === 'HAHA' ? '😂' : 
+                                          reaction.type === 'SAD' ? '😢' : 
+                                          reaction.type === 'ANGRY' ? '😠' : '👍'}
+                                     </div>
+                                 ))}
+                                 
+                                 {/* Glow effect behind emojis */}
+                                 <div style={{
+                                     position: 'absolute',
+                                     top: '50%',
+                                     left: '50%',
+                                     transform: 'translate(-50%, -50%)',
+                                     width: '32px',
+                                     height: '32px',
+                                     borderRadius: '50%',
+                                     background: 'radial-gradient(circle, rgba(24, 119, 242, 0.1) 0%, transparent 70%)',
+                                     zIndex: -1
+                                 }} />
+                             </div>
+                             
+                                                           {/* Names */}
+                              <div className="d-flex align-items-center">
+                                  <span style={{ 
+                                      color: '#65676b', 
+                                      fontSize: '13px',
+                                      fontWeight: '500',
+                                      cursor: 'pointer',
+                                      transition: 'color 0.2s ease'
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                  onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                  >
+                                      {post.reactions.length === 1 ? (
+                                          post.reactions[0].user.name
+                                      ) : post.reactions.length === 2 ? (
+                                          `${post.reactions[0].user.name} và ${post.reactions[1].user.name}`
+                                      ) : post.reactions.length === 3 ? (
+                                          `${post.reactions[0].user.name}, ${post.reactions[1].user.name} và ${post.reactions[2].user.name}`
+                                      ) : (
+                                          `${post.reactions[0].user.name}, ${post.reactions[1].user.name} và ${post.reactions.length - 2} người khác`
+                                      )}
+                                  </span>
+                                  
+                                  {/* Comments Count */}
+                                  {post.commentsCount > 0 && (
+                                      <>
+                                          <span style={{ 
+                                              color: '#65676b', 
+                                              fontSize: '13px',
+                                              margin: '0 12px'
+                                          }}>
+                                              •
+                                          </span>
+                                          <span style={{ 
+                                              color: '#65676b', 
+                                              fontSize: '13px',
+                                              fontWeight: '500',
+                                              cursor: 'pointer',
+                                              transition: 'color 0.2s ease'
+                                          }}
+                                          onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                          onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                          >
+                                              {post.commentsCount} bình luận
+                                          </span>
+                                      </>
+                                  )}
+                              </div>
+                         </div>
+                     </div>
+                 )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="post-actions-fb">
-                <button
-                    className={`post-action-btn flex-grow-1 ${post.liked ? 'text-primary' : ''}`}
-                    onClick={handleLike}
-                >
-                    <svg className="me-2" width="16" height="16" fill={post.liked ? 'var(--fb-blue)' : 'currentColor'} viewBox="0 0 24 24">
-                        <path d="M7.493 18.75c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.125c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V3a.75.75 0 0 1 .75-.75A2.25 2.25 0 0 1 16.25 4.5c0 1.152-.26 2.243-.723 3.218-.266.558-.611 1.05-1.05 1.426A3.625 3.625 0 0 0 14.25 12v2.25c0 .085.002.17.005.253a2.25 2.25 0 0 1-2.505 2.247H7.493Z" />
-                    </svg>
-                    <span style={{ color: post.liked ? 'var(--fb-blue)' : 'inherit' }}>
-                        {post.liked ? 'Thích' : 'Thích'}
-                    </span>
-                </button>
+                         {/* Action Buttons */}
+             <div className="post-actions-fb">
+                 <button
+                     className={`post-action-btn flex-grow-1 ${post.liked ? 'active' : ''}`}
+                     onClick={handleLike}
+                 >
+                     <span className="icon">❤️</span>
+                     <span>{post.liked ? 'Đã thích' : 'Yêu thích'}</span>
+                 </button>
 
-                <button
-                    className="post-action-btn flex-grow-1"
-                    onClick={() => setShowComments(!showComments)}
-                >
-                    <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                    </svg>
-                    Bình luận
-                </button>
-            </div>
+                 <button
+                     className="post-action-btn flex-grow-1"
+                     onClick={() => setShowComments(!showComments)}
+                 >
+                     <span className="icon">💬</span>
+                     <span>Bình luận</span>
+                 </button>
 
-            {/* Comments Section */}
-            {showComments && (
-                <div className="border-top px-4 py-3">
-                    {/* Comment Input */}
-                    <div className="d-flex align-items-center mb-3">
-                        <img
-                            src={getAvatarUrl(user)}
-                            alt="Your avatar"
-                            className="profile-pic-sm-fb me-2"
-                        />
-                        <div className="flex-grow-1 position-relative">
-                            <input
-                                type="text"
-                                className="form-control-fb w-100 pe-5"
-                                placeholder="Viết bình luận..."
-                                style={{
-                                    borderRadius: '20px',
-                                    backgroundColor: 'var(--fb-gray)',
-                                    border: 'none',
-                                    fontSize: '14px'
-                                }}
-                            />
-                            <button className="btn position-absolute end-0 top-50 translate-middle-y me-2"
-                                style={{ backgroundColor: 'transparent', border: 'none', padding: '4px' }}>
-                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"
-                                    style={{ color: 'var(--fb-text-secondary)' }}>
-                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+                 <button
+                     className="post-action-btn flex-grow-1"
+                 >
+                     <span className="icon">📤</span>
+                     <span>Chia sẻ</span>
+                 </button>
+             </div>
 
-                    {/* Sample Comments */}
-                    {post.comments && post.comments.map((comment) => (
-                        <div key={comment.id} className="d-flex mb-3">
-                            <img
-                                src={getCommentAuthorAvatar(comment)}
-                                alt={comment.author?.name || comment.author?.displayName || comment.author?.fullName || 'User'}
-                                className="profile-pic-sm-fb me-2"
-                            />
-                            <div className="flex-grow-1">
-                                <div className="p-2 rounded"
-                                    style={{
-                                        backgroundColor: 'var(--fb-gray)',
-                                        borderRadius: '16px'
-                                    }}>
-                                    <div className="fw-bold small"
-                                        style={{ color: 'var(--fb-text)', fontSize: '13px' }}>
-                                        {comment.author?.name || 'Người dùng'}
-                                    </div>
-                                    <div style={{ color: 'var(--fb-text)', fontSize: '14px' }}>
-                                        {comment.content}
-                                    </div>
-                                </div>
-                                <div className="d-flex align-items-center mt-1 ms-2">
-                                    <small style={{ color: 'var(--fb-text-secondary)', fontSize: '12px' }}>
-                                        {formatDate(comment.createdAt)}
-                                    </small>
-                                    <button className="btn btn-sm ms-3 p-0"
-                                        style={{
-                                            backgroundColor: 'transparent',
-                                            border: 'none',
-                                            color: 'var(--fb-text-secondary)',
-                                            fontSize: '12px',
-                                            fontWeight: 'bold'
-                                        }}>
-                                        Thích
-                                    </button>
-                                    <button className="btn btn-sm ms-2 p-0"
-                                        style={{
-                                            backgroundColor: 'transparent',
-                                            border: 'none',
-                                            color: 'var(--fb-text-secondary)',
-                                            fontSize: '12px',
-                                            fontWeight: 'bold'
-                                        }}>
-                                        Phản hồi
-                                    </button>
-                                </div>
+                         {/* Comments Section */}
+             {showComments && (
+                 <div className="border-top px-4 py-3" style={{ 
+                     backgroundColor: '#f8f9fa'
+                 }}>
+                                         {/* Comment Input */}
+                     <div className="comment-input-container d-flex align-items-center">
+                         <img
+                             src={getAvatarUrl(user)}
+                             alt="Your avatar"
+                             className="profile-pic-sm-fb me-3"
+                             style={{ width: '32px', height: '32px', borderRadius: '50%' }}
+                         />
+                         <div className="flex-grow-1 position-relative">
+                             <input
+                                 type="text"
+                                 className="form-control-fb w-100 pe-5 comment-input-field"
+                                 placeholder={replyingTo ? "Viết phản hồi..." : "Bình luận dưới tên Bùi Văn Long"}
+                                 value={commentText}
+                                 onChange={(e) => setCommentText(e.target.value)}
+                                 style={{
+                                     borderRadius: '20px',
+                                     backgroundColor: '#f0f2f5',
+                                     border: '1px solid #e4e6ea',
+                                     fontSize: '14px',
+                                     padding: '8px 50px 8px 12px',
+                                     outline: 'none'
+                                 }}
+                                 onKeyPress={(e) => {
+                                     if (e.key === 'Enter') {
+                                         handleSubmitComment();
+                                     }
+                                 }}
+                             />
+                                                           <div className="position-absolute end-0 top-50 translate-middle-y me-2 d-flex align-items-center">
+                                                                     <button 
+                                       className="send-btn"
+                                       onClick={handleSubmitComment}
+                                       style={{ 
+                                           backgroundColor: 'transparent', 
+                                           border: 'none', 
+                                           color: '#1877f2',
+                                           fontWeight: 'bold',
+                                           fontSize: '16px'
+                                       }}
+                                   >
+                                       ➤
+                                   </button>
+                              </div>
+                         </div>
+                     </div>
+
+                                         {/* Comments Filter */}
+                     <div className="comments-filter mb-3" style={{ 
+                         fontSize: '13px', 
+                         color: '#65676b',
+                         cursor: 'pointer'
+                     }}>
+                         <span>Phù hợp nhất</span>
+                         <span className="dropdown-arrow ms-1">▼</span>
+                     </div>
+                     
+                     {/* Comments List */}
+                     <div className="comments-container">
+                         {post.comments && post.comments.map((comment) => (
+                             <div key={comment.id} className="comment-item mb-3">
+                                 <div className="d-flex">
+                                     <img
+                                         src={getCommentAuthorAvatar(comment)}
+                                         alt={comment.author?.name || comment.author?.displayName || comment.author?.fullName || 'User'}
+                                         className="profile-pic-sm-fb me-3"
+                                         style={{ 
+                                             width: '32px', 
+                                             height: '32px', 
+                                             borderRadius: '50%',
+                                             flexShrink: 0
+                                         }}
+                                     />
+                                     <div className="flex-grow-1">
+                                                                                   {/* Main Comment */}
+                                          <div className="comment-bubble"
+                                              style={{
+                                                  backgroundColor: '#f0f2f5',
+                                                  borderRadius: '16px',
+                                                  padding: '8px 12px',
+                                                  position: 'relative'
+                                              }}>
+                                              <div className="fw-bold mb-1"
+                                                  style={{ 
+                                                      color: '#1c1e21', 
+                                                      fontSize: '13px',
+                                                      fontWeight: '600'
+                                                  }}>
+                                                  {comment.author?.name || 'Người dùng'}
+                                              </div>
+                                              <div style={{ 
+                                                  color: '#1c1e21', 
+                                                  fontSize: '14px',
+                                                  lineHeight: '1.33'
+                                              }}>
+                                                  {comment.content}
+                                              </div>
+                                          </div>
+                                         
+                                                                                   {/* Comment Actions */}
+                                          <div className="d-flex align-items-center mt-1 ms-2">
+                                              <small style={{ 
+                                                  color: '#65676b', 
+                                                  fontSize: '12px',
+                                                  fontWeight: '500',
+                                                  marginRight: '12px'
+                                              }}>
+                                                  {formatDate(comment.createdAt)}
+                                              </small>
+                                              <button className="comment-action-btn"
+                                                  style={{
+                                                      backgroundColor: 'transparent',
+                                                      border: 'none',
+                                                      color: '#65676b',
+                                                      fontSize: '12px',
+                                                      fontWeight: '600',
+                                                      cursor: 'pointer',
+                                                      marginRight: '12px'
+                                                  }}
+                                                  onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                  onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                              >
+                                                  Thích
+                                              </button>
+                                              <button 
+                                                  className="comment-action-btn"
+                                                  style={{
+                                                      backgroundColor: 'transparent',
+                                                      border: 'none',
+                                                      color: '#65676b',
+                                                      fontSize: '12px',
+                                                      fontWeight: '600',
+                                                      cursor: 'pointer'
+                                                  }}
+                                                  onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                  onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                  onClick={() => handleReply(comment.id)}
+                                              >
+                                                  Trả lời
+                                              </button>
+                                          </div>
+
+                                         
+
+                                         {/* Replies */}
+                                         {comment.replies && comment.replies.length > 0 && (
+                                             <div className="replies-container mt-3">
+                                                 {comment.replies.map((reply) => (
+                                                     <div key={reply.id} className="reply-item d-flex mb-2">
+                                                         <img
+                                                             src={getCommentAuthorAvatar(reply)}
+                                                             alt={reply.author?.name || 'User'}
+                                                             className="profile-pic-sm-fb me-2"
+                                                             style={{ 
+                                                                 width: '28px', 
+                                                                 height: '28px', 
+                                                                 borderRadius: '50%',
+                                                                 flexShrink: 0
+                                                             }}
+                                                         />
+                                                         <div className="flex-grow-1">
+                                                             <div className="reply-bubble"
+                                                                 style={{
+                                                                     backgroundColor: '#f0f2f5',
+                                                                     borderRadius: '16px',
+                                                                     padding: '10px 14px',
+                                                                     border: '1px solid #e4e6ea',
+                                                                     position: 'relative'
+                                                                 }}>
+                                                                 <div className="fw-bold mb-1"
+                                                                     style={{ 
+                                                                         color: '#1c1e21', 
+                                                                         fontSize: '12px',
+                                                                         fontWeight: '600'
+                                                                     }}>
+                                                                     {reply.author?.name || 'Người dùng'}
+                                                                 </div>
+                                                                 <div style={{ 
+                                                                     color: '#1c1e21', 
+                                                                     fontSize: '13px',
+                                                                     lineHeight: '1.4'
+                                                                 }}>
+                                                                     {reply.content}
+                                                                 </div>
+                                                             </div>
+                                                             
+                                                             {/* Reply Actions */}
+                                                             <div className="d-flex align-items-center mt-1 ms-2">
+                                                                 <small style={{ 
+                                                                     color: '#65676b', 
+                                                                     fontSize: '11px',
+                                                                     fontWeight: '500'
+                                                                 }}>
+                                                                     {formatDate(reply.createdAt)}
+                                                                 </small>
+                                                                 <button className="btn btn-sm ms-2 p-0 comment-action-btn"
+                                                                     style={{
+                                                                         backgroundColor: 'transparent',
+                                                                         border: 'none',
+                                                                         color: '#65676b',
+                                                                         fontSize: '11px',
+                                                                         fontWeight: '600',
+                                                                         transition: 'color 0.2s'
+                                                                     }}
+                                                                     onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                                                     onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                                                 >
+                                                                     Thích
+                                                                 </button>
+                                                                 <button 
+                                                                     className="btn btn-sm ms-1 p-0 comment-action-btn"
+                                                                     style={{
+                                                                         backgroundColor: 'transparent',
+                                                                         border: 'none',
+                                                                         color: '#65676b',
+                                                                         fontSize: '11px',
+                                                                         fontWeight: '600',
+                                                                         transition: 'color 0.2s'
+                                                                     }}
+                                                                     onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                                                     onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                                                     onClick={() => handleReply(reply.id)}
+                                                                 >
+                                                                     Phản hồi
+                                                                 </button>
+                                                             </div>
+
+                                                             
+                                                         </div>
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         )}
+                                     </div>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+
+                    {/* No Comments Message */}
+                    {(!post.comments || post.comments.length === 0) && (
+                        <div className="text-center py-4">
+                            <div style={{ color: '#65676b', fontSize: '14px' }}>
+                                Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
                             </div>
                         </div>
-                    ))}
+                    )}
                 </div>
             )}
         </div>

@@ -134,7 +134,7 @@ const RegisterPage = () => {
                                         }
                                     } catch (error) {
                                         console.error('Registration error:', error);
-                                        // Error đã được xử lý trong authService qua toast
+                                
                                     } finally {
                                         setSubmitting(false);
                                     }

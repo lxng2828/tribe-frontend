@@ -3,7 +3,7 @@ import { Formik, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useState, useEffect } from 'react';
 import authService from './authService';
-import { authToasts } from '../../utils/toast';
+
 import OTPInput from '../../components/OTPInput';
 import SuccessMessage from '../../components/SuccessMessage';
 
@@ -66,7 +66,7 @@ const VerifyOTPPage = () => {
         try {
             await authService.forgotPassword(email);
             setCountdown(60); // 60 giây countdown
-            // Toast đã được hiển thị trong authService
+    
         } catch (error) {
             // Error đã được xử lý trong authService
         } finally {

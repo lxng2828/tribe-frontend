@@ -53,7 +53,7 @@ const ChatWindow = ({ conversationId }) => {
             }, files);
         } catch (error) {
             console.error('Error sending message:', error);
-            // You could show an error toast here
+    
         }
     };
 

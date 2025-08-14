@@ -3,8 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
 import { useAvatarSync } from '../hooks/useAvatarSync';
-import PostList from '../features/posts/PostList';
-import CreatePost from '../components/CreatePost';
+import PostsApp from '../features/posts/PostsApp';
 import Loading from '../components/Loading';
 import FriendshipButton from '../components/FriendshipButton';
 import profileService from '../services/profileService';
@@ -300,15 +299,12 @@ const ProfilePage = () => {
 
                     {/* Right Content - chỉ hiển thị posts */}
                     <div className="col-12 col-lg-7">
-                        {/* Create Post nếu là profile của mình */}
-                        {isOwnProfile && (
-                            <div className="mb-4">
-                                <CreatePost />
-                            </div>
-                        )}
-
                         {/* Posts */}
-                        <PostList ref={postListRef} userId={targetUserId} isUserPosts={true} />
+                        <PostsApp 
+                            userId={targetUserId} 
+                            isUserPosts={true} 
+                            showCreatePost={isOwnProfile}
+                        />
                     </div>
                 </div>
             </div>

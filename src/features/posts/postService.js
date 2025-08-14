@@ -1,6 +1,20 @@
 import api from '../../services/api';
 import { DEFAULT_AVATAR, getAvatarUrl } from '../../utils/placeholderImages';
 
+// Helper function to get current user ID
+const getCurrentUserId = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            return user.id || user.userId || '1';
+        } catch (e) {
+            console.error('Error parsing user from localStorage:', e);
+        }
+    }
+    return '1'; // fallback
+};
+
 // Base URL cho API
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -17,23 +31,23 @@ class PostService {
 
             if (status.success) {
                 const posts = data.map(post => {
-                    // Cải thiện logic xử lý thông tin user
+                    // Xử lý thông tin user từ cấu trúc mới
                     const user = post.user || {};
                     
-                    // Ưu tiên lấy thông tin user từ nhiều nguồn khác nhau
+                    // Lấy thông tin user từ cấu trúc mới
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
                     const userId = user.senderId || user.id || user.userId || post.userId;
                     
                     // Xử lý avatar với logic cải thiện
                     let userAvatar = null;
                     
-                    // Ưu tiên 1: avatarUrl từ user object
-                    if (user.avatarUrl) {
-                        userAvatar = getAvatarUrl(user);
+                    // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
+                    if (user.avatarSender) {
+                        userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
                     }
-                    // Ưu tiên 2: avatarSender từ post (API cũ)
-                    else if (post.avatarSender) {
-                        userAvatar = getAvatarUrl({ avatarUrl: post.avatarSender });
+                    // Ưu tiên 2: avatarUrl từ user object
+                    else if (user.avatarUrl) {
+                        userAvatar = getAvatarUrl(user);
                     }
                     // Ưu tiên 3: avatar từ user object
                     else if (user.avatar) {
@@ -53,8 +67,7 @@ class PostService {
                         userName,
                         userId,
                         userAvatar,
-                        userData: user,
-                        avatarSender: post.avatarSender
+                        userData: user
                     });
 
                     // Xử lý đường dẫn ảnh - thêm base URL nếu cần
@@ -71,6 +84,42 @@ class PostService {
                         });
                     };
 
+                    // Xử lý reactions từ cấu trúc mới
+                    const processReactions = (reactions) => {
+                        if (!reactions || !Array.isArray(reactions)) return [];
+                        return reactions.map(reaction => ({
+                            id: reaction.id,
+                            type: reaction.reactionType,
+                            user: {
+                                id: reaction.user?.senderId || reaction.user?.id,
+                                name: reaction.user?.nameSender || reaction.user?.name,
+                                avatar: reaction.user?.avatarSender ? 
+                                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
+                                    getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
+                            },
+                            createdAt: reaction.createdAt
+                        }));
+                    };
+
+                    // Xử lý comments từ cấu trúc mới
+                    const processComments = (comments) => {
+                        if (!comments || !Array.isArray(comments)) return [];
+                        return comments.map(comment => ({
+                            id: comment.id,
+                            content: comment.content,
+                            user: {
+                                id: comment.user?.senderId || comment.user?.id,
+                                name: comment.user?.nameSender || comment.user?.name,
+                                avatar: comment.user?.avatarSender ? 
+                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
+                                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
+                            },
+                            parentCommentId: comment.parentCommentId,
+                            createdAt: comment.createdAt,
+                            replies: comment.replies ? processComments(comment.replies) : []
+                        }));
+                    };
+
                     return {
                         id: post.id,
                         content: post.content,
@@ -82,25 +131,28 @@ class PostService {
                             displayName: user.displayName,
                             fullName: user.fullName,
                             username: user.username,
-                            avatarUrl: user.avatarUrl
+                            avatarUrl: user.avatarUrl,
+                            senderId: user.senderId
                         },
                         visibility: post.visibility || 'PUBLIC',
                         createdAt: post.createdAt,
                         updatedAt: post.updatedAt,
                         likesCount: post.reactionCount || post.likesCount || 0,
                         commentsCount: post.commentCount || post.commentsCount || 0,
-                        liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
+                        liked: post.reactions ? post.reactions.some(r => r.user?.senderId === getCurrentUserId() || r.user?.id === getCurrentUserId()) : false,
                         mediaUrls: processImageUrls(post.mediaUrls),
                         images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
                         isOwner: post.isOwner || false,
-                        comments: []
+                        reactions: processReactions(post.reactions),
+                        comments: processComments(post.comments)
                     };
                 });
 
                 return {
                     posts,
                     hasMore: data.length === size,
-                    total: null // Nếu API có total thì lấy ra
+                    total: null, // Nếu API có total thì lấy ra
+                    status: status // Trả về thông tin status để component có thể sử dụng
                 };
             } else {
                 throw new Error(status.displayMessage || 'Lỗi khi tải bài viết');
@@ -131,7 +183,7 @@ class PostService {
 
                 // Tạo metadata object
                 const metadata = {
-                    userId: postData.userId || '1', // Lấy từ user context
+                    userId: postData.userId || getCurrentUserId(),
                     content: postData.content,
                     visibility: postData.visibility || 'PUBLIC'
                 };
@@ -156,7 +208,7 @@ class PostService {
             } else {
                 // Không có file, sử dụng create-simple endpoint
                 const requestData = {
-                    userId: postData.userId || '1', // Lấy từ user context
+                    userId: postData.userId || getCurrentUserId(),
                     content: postData.content,
                     visibility: postData.visibility || 'PUBLIC'
                 };
@@ -179,17 +231,68 @@ class PostService {
     // Cập nhật bài viết
     async updatePost(postId, postData) {
         try {
-            const response = await api.put(`/posts/${postId}`, postData);
-            return response.data;
+            const userId = getCurrentUserId();
+            
+            // Nếu có file, sử dụng multipart/form-data
+            if (postData.images?.length > 0) {
+                const formData = new FormData();
+                
+                // Tạo metadata object và append như một field riêng
+                const metadata = {
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC'
+                };
+                
+                // Append metadata như một field riêng biệt
+                formData.append('metadata', JSON.stringify(metadata));
+                
+                // Append files
+                postData.images.forEach(image => {
+                    formData.append('files', image);
+                });
+
+                const response = await api.put(`/posts/${postId}`, formData, {
+                    params: { userId }
+                    // Không set Content-Type header, để browser tự động set với boundary
+                });
+                
+                const { status, data } = response.data;
+                if (status.success) {
+                    return data;
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+                }
+            } else {
+                // Không có file, sử dụng simple endpoint
+                const requestData = {
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC'
+                };
+                
+                const response = await api.put(`/posts/${postId}/simple`, requestData, {
+                    params: { userId }
+                });
+                
+                const { status, data } = response.data;
+                if (status.success) {
+                    return data;
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+                }
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi cập nhật bài viết');
+            console.error('Update post error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi cập nhật bài viết');
         }
     }
 
     // Xóa bài viết
     async deletePost(postId) {
         try {
-            const response = await api.delete(`/posts/${postId}`);
+            const userId = getCurrentUserId();
+            const response = await api.delete(`/posts/${postId}`, {
+                params: { userId }
+            });
             const { status } = response.data;
             if (status.success) {
                 return true;
@@ -202,61 +305,136 @@ class PostService {
         }
     }
 
-    // Like/Unlike bài viết
-    async toggleLike(postId) {
+    // Toggle reaction (Like/Unlike hoặc thay đổi reaction)
+    async toggleReaction(postId, reactionType = 'LIKE') {
         try {
-            const response = await api.post(`/posts/${postId}/like`);
-            const { status, data } = response.data;
-            if (status.success) {
-                return data;
+            const userId = getCurrentUserId();
+            
+            // Kiểm tra xem user đã reaction chưa
+            const checkResponse = await api.get('/post-reactions/check', {
+                params: { postId, userId }
+            });
+            
+            const hasReacted = checkResponse.data.data;
+            
+            if (hasReacted) {
+                // Nếu đã reaction thì xóa
+                const response = await api.delete('/post-reactions/delete', {
+                    params: { postId, userId }
+                });
+                const { status } = response.data;
+                if (status.success) {
+                    return { reacted: false, reactionType: null };
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi bỏ reaction');
+                }
             } else {
-                throw new Error(status.displayMessage || 'Lỗi khi thích bài viết');
+                // Nếu chưa reaction thì tạo mới
+                const requestData = {
+                    reactionType: reactionType
+                };
+                
+                const response = await api.post('/post-reactions/create', requestData, {
+                    params: { postId, userId }
+                });
+                
+                const { status, data } = response.data;
+                if (status.success) {
+                    return { reacted: true, reactionType: reactionType, reaction: data };
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi tạo reaction');
+                }
             }
         } catch (error) {
-            console.error('Toggle like error:', error);
-            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi thích bài viết');
+            console.error('Toggle reaction error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tạo reaction');
         }
+    }
+
+    // Like/Unlike bài viết (backward compatibility)
+    async toggleLike(postId) {
+        return this.toggleReaction(postId, 'LIKE');
     }
 
     // Lấy danh sách người đã like
     async getLikes(postId) {
         try {
-            const response = await api.get(`/posts/${postId}/likes`);
-            return response.data;
+            const response = await api.get(`/post-reactions/post/${postId}`);
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi tải danh sách like');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi tải danh sách like');
+            console.error('Get likes error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tải danh sách like');
         }
     }
 
     // Lấy bình luận của bài viết
     async getComments(postId, page = 1, limit = 10) {
         try {
-            const response = await api.get(`/posts/${postId}/comments`, {
-                params: { page, limit }
+            const response = await api.get(`/post-comments/post/${postId}`, {
+                params: { page, size: limit }
             });
-            return response.data;
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi tải bình luận');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi tải bình luận');
+            console.error('Get comments error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi tải bình luận');
         }
     }
 
     // Thêm bình luận
-    async addComment(postId, content) {
+    async addComment(postId, content, parentCommentId = null) {
         try {
-            const response = await api.post(`/posts/${postId}/comments`, { content });
-            return response.data;
+            const requestData = {
+                content: content,
+                parentCommentId: parentCommentId
+            };
+            
+            const response = await api.post(`/post-comments/create`, requestData, {
+                params: { 
+                    postId: postId,
+                    userId: getCurrentUserId()
+                }
+            });
+            
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi thêm bình luận');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi thêm bình luận');
+            console.error('Add comment error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi thêm bình luận');
         }
     }
 
     // Xóa bình luận
     async deleteComment(postId, commentId) {
         try {
-            await api.delete(`/posts/${postId}/comments/${commentId}`);
-            return true;
+            const response = await api.delete(`/post-comments/${commentId}`, {
+                params: { 
+                    userId: getCurrentUserId()
+                }
+            });
+            
+            const { status } = response.data;
+            if (status.success) {
+                return true;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi xóa bình luận');
+            }
         } catch (error) {
-            throw new Error(error.response?.data?.message || 'Lỗi khi xóa bình luận');
+            console.error('Delete comment error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi xóa bình luận');
         }
     }
 
@@ -302,7 +480,7 @@ class PostService {
                 const paginatedPosts = userPosts.slice(startIndex, endIndex);
 
                 const posts = paginatedPosts.map(post => {
-                    // Cải thiện logic xử lý thông tin user
+                    // Xử lý thông tin user từ cấu trúc mới
                     const user = post.user || {};
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
                     const userPostId = user.senderId || user.id || user.userId || post.userId;
@@ -310,13 +488,13 @@ class PostService {
                     // Xử lý avatar với logic cải thiện
                     let userAvatar = null;
                     
-                    // Ưu tiên 1: avatarUrl từ user object
-                    if (user.avatarUrl) {
-                        userAvatar = getAvatarUrl(user);
+                    // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
+                    if (user.avatarSender) {
+                        userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
                     }
-                    // Ưu tiên 2: avatarSender từ post (API cũ)
-                    else if (post.avatarSender) {
-                        userAvatar = getAvatarUrl({ avatarUrl: post.avatarSender });
+                    // Ưu tiên 2: avatarUrl từ user object
+                    else if (user.avatarUrl) {
+                        userAvatar = getAvatarUrl(user);
                     }
                     // Ưu tiên 3: avatar từ user object
                     else if (user.avatar) {
@@ -345,6 +523,42 @@ class PostService {
                         });
                     };
 
+                    // Xử lý reactions từ cấu trúc mới
+                    const processReactions = (reactions) => {
+                        if (!reactions || !Array.isArray(reactions)) return [];
+                        return reactions.map(reaction => ({
+                            id: reaction.id,
+                            type: reaction.reactionType,
+                            user: {
+                                id: reaction.user?.senderId || reaction.user?.id,
+                                name: reaction.user?.nameSender || reaction.user?.name,
+                                avatar: reaction.user?.avatarSender ? 
+                                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
+                                    getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
+                            },
+                            createdAt: reaction.createdAt
+                        }));
+                    };
+
+                    // Xử lý comments từ cấu trúc mới
+                    const processComments = (comments) => {
+                        if (!comments || !Array.isArray(comments)) return [];
+                        return comments.map(comment => ({
+                            id: comment.id,
+                            content: comment.content,
+                            user: {
+                                id: comment.user?.senderId || comment.user?.id,
+                                name: comment.user?.nameSender || comment.user?.name,
+                                avatar: comment.user?.avatarSender ? 
+                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
+                                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
+                            },
+                            parentCommentId: comment.parentCommentId,
+                            createdAt: comment.createdAt,
+                            replies: comment.replies ? processComments(comment.replies) : []
+                        }));
+                    };
+
                     return {
                         id: post.id,
                         content: post.content,
@@ -356,18 +570,20 @@ class PostService {
                             displayName: user.displayName,
                             fullName: user.fullName,
                             username: user.username,
-                            avatarUrl: user.avatarUrl
+                            avatarUrl: user.avatarUrl,
+                            senderId: user.senderId
                         },
                         visibility: post.visibility || 'PUBLIC',
                         createdAt: post.createdAt,
                         updatedAt: post.updatedAt,
                         likesCount: post.reactionCount || post.likesCount || 0,
                         commentsCount: post.commentCount || post.commentsCount || 0,
-                        liked: post.reactions ? post.reactions.some(r => r.liked === true) : false,
+                        liked: post.reactions ? post.reactions.some(r => r.user?.senderId === getCurrentUserId() || r.user?.id === getCurrentUserId()) : false,
                         mediaUrls: processImageUrls(post.mediaUrls),
                         images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
                         isOwner: post.isOwner || false,
-                        comments: []
+                        reactions: processReactions(post.reactions),
+                        comments: processComments(post.comments)
                     };
                 });
 
@@ -389,6 +605,31 @@ class PostService {
                 hasMore: false,
                 total: 0
             };
+        }
+    }
+
+    // Kiểm tra user đã like post chưa (backward compatibility)
+    async checkUserLikeStatus(postId) {
+        const reaction = await this.getUserReaction(postId);
+        return reaction ? true : false;
+    }
+
+    // Lấy reaction hiện tại của user trên post
+    async getUserReaction(postId) {
+        try {
+            const userId = getCurrentUserId();
+            const response = await api.get('/post-reactions/user', {
+                params: { postId, userId }
+            });
+            const { status, data } = response.data;
+            if (status.success && data) {
+                return data.reactionType; // Trả về loại reaction (LIKE, LOVE, etc.)
+            } else {
+                return null; // Chưa có reaction
+            }
+        } catch (error) {
+            console.error('Error getting user reaction:', error);
+            return null;
         }
     }
 

@@ -1,62 +1,106 @@
+/* Define custom properties for a consistent and maintainable color scheme */
+:root {
+    --fb-primary: #1877f2; /* Facebook blue */
+    --fb-secondary: #65676b; /* Secondary text */
+    --fb-background: #f0f2f5; /* Light background */
+    --fb-card: #ffffff; /* Card background */
+    --fb-border: #e4e6ea; /* Border color */
+    --fb-gray: #f0f2f5; /* Input background */
+    --fb-text: #1c1e21; /* Primary text */
+    --fb-accent: #f59e0b; /* Accent color for likes */
+    --fb-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --fb-transition: all 0.2s ease-in-out;
+}
+
+/* General post container with subtle shadow and rounded corners */
 .post-fb {
-    /* Assuming spacing-fb and fade-in-fb are defined elsewhere */
+    background: var(--fb-card);
+    border-radius: 12px;
+    box-shadow: var(--fb-shadow);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    transition: var(--fb-transition);
 }
 
+/* Post header with flex for alignment */
 .post-header-fb {
-    /* Add any specific header styling if needed */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
+/* Author name with slightly larger font for emphasis */
 .post-author-name {
     color: var(--fb-text);
+    font-size: 1rem;
+    font-weight: 600;
 }
 
+/* Secondary text elements with consistent styling */
 .post-timestamp,
 .post-visibility,
 .post-stats-text,
 .comment-timestamp,
 .comment-action-btn {
-    color: var(--fb-text-secondary);
+    color: var(--fb-secondary);
+    font-size: 0.875rem;
 }
 
-.post-dot {
-    color: var(--fb-text-secondary);
-}
-
+/* Post visibility with smaller font */
 .post-visibility-text {
     font-size: 0.75rem;
 }
 
+/* Post options button with hover effect */
 .post-options-btn {
-    background-color: transparent;
+    background: transparent;
     border: none;
     border-radius: 50%;
     width: 36px;
     height: 36px;
-    color: var(--fb-text-secondary);
+    color: var(--fb-secondary);
+    cursor: pointer;
+    transition: var(--fb-transition);
 }
 
+.post-options-btn:hover {
+    background: var(--fb-background);
+}
+
+/* Dropdown menu with modern shadow and border */
 .post-dropdown-menu {
     border: 1px solid var(--fb-border);
     border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--fb-shadow);
     min-width: 200px;
+    background: var(--fb-card);
     z-index: 1000;
 }
 
+/* Dropdown items with hover effect */
 .post-dropdown-item {
     border-radius: 6px;
     margin: 4px 8px;
+    padding: 0.5rem;
+    transition: var(--fb-transition);
 }
 
+.post-dropdown-item:hover {
+    background: var(--fb-background);
+}
+
+/* Post content with improved readability */
 .post-content-text {
     color: var(--fb-text);
-    font-size: 15px;
-    line-height: 1.33;
+    font-size: 1rem;
+    line-height: 1.5;
     white-space: pre-wrap;
     margin-bottom: 1rem;
 }
 
-.single-image-container .post-image-single,
+/* Unified image styling with lazy loading and aspect ratio */
+.post-image-single,
 .post-image-multiple,
 .three-image-main,
 .three-image-sub,
@@ -67,96 +111,95 @@
     object-fit: cover;
     border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.2s ease-in-out;
+    transition: var(--fb-transition);
+    aspect-ratio: 16 / 9; /* Maintain consistent aspect ratio */
+    loading: lazy; /* Improve performance */
 }
 
-.post-image-hover {
+.post-image-single:hover,
+.post-image-multiple:hover,
+.three-image-main:hover,
+.three-image-sub:hover,
+.four-image:hover,
+.multiple-image:hover {
     transform: scale(1.02);
 }
 
+/* Two-image layout with grid for better spacing */
 .two-images-container {
-    display: flex;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
 }
 
-.two-image-item {
-    flex: 1;
+/* Three-image layout with grid for consistency */
+.three-images-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
 }
 
-.three-images-container .three-images-row {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
+.three-image-main {
+    height: 300px; /* Increased height for better visibility */
 }
 
-.three-images-container .three-image-main {
-    width: 50%;
-    height: 200px;
-}
-
-.three-images-container .three-images-column {
-    width: 50%;
+.three-images-column {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
 }
 
 .three-image-sub {
-    width: 100%;
-    height: 98px;
+    height: 146px; /* Adjusted for better proportion */
 }
 
-.four-images-container .four-images-row {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
+/* Four-image layout with grid */
+.four-images-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
 }
 
 .four-image {
-    width: 50%;
-    height: 150px;
+    height: 200px;
 }
 
-.multiple-images-container .multiple-images-row {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 4px;
+/* Multiple images with grid for scalability */
+.multiple-images-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
 }
 
 .multiple-image {
-    width: 33.33%;
     height: 150px;
 }
 
-.multiple-image-wrapper {
-    position: relative;
-    width: 33.33%;
-}
-
+/* Overlay for additional images */
 .image-overlay {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: bold;
 }
 
+/* Post stats with subtle border */
 .post-stats {
-    margin-bottom: 0.5rem;
+    border-top: 1px solid var(--fb-border);
+    padding: 0.5rem 0;
 }
 
+/* Like icon with consistent styling */
 .like-icon-wrapper {
-    width: 18px;
-    height: 18px;
-    background-color: var(--fb-blue);
+    width: 20px;
+    height: 20px;
+    background: var(--fb-primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -164,85 +207,281 @@
     margin-right: 0.5rem;
 }
 
+/* Action buttons with consistent design */
 .post-action-btn {
-    /* Assuming flex-grow-1 and text-primary are defined in Bootstrap */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--fb-secondary);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--fb-transition);
 }
 
-.liked-text {
-    color: var(--fb-blue);
+.post-action-btn:hover {
+    background: var(--fb-background);
 }
 
+.post-action-btn.active {
+    color: var(--fb-accent);
+}
+
+.post-action-btn .icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+/* Input action buttons */
+.input-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1rem;
+    color: var(--fb-secondary);
+    transition: var(--fb-transition);
+}
+
+.input-action-btn:hover {
+    opacity: 0.8;
+}
+
+/* Send button with accent color */
+.send-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1rem;
+    color: var(--fb-accent);
+    font-weight: bold;
+    transition: var(--fb-transition);
+}
+
+.send-btn:hover {
+    opacity: 0.8;
+}
+
+/* Comment input with modern styling */
+.comment-input-field {
+    width: 100%;
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border-radius: 20px;
+    background: var(--fb-gray);
+    border: none;
+    font-size: 0.875rem;
+    transition: var(--fb-transition);
+}
+
+.comment-input-field:focus {
+    background: var(--fb-card);
+    border-color: var(--fb-primary);
+    box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.2);
+    outline: none;
+}
+
+/* Comment action buttons */
+.comment-action-btn {
+    background: none;
+    border: none;
+    color: var(--fb-secondary);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: var(--fb-transition);
+}
+
+.comment-action-btn:hover {
+    text-decoration: underline;
+}
+
+.comment-action-btn.liked {
+    color: var(--fb-accent);
+}
+
+/* Reactions container with subtle animation */
+.reactions-container {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.reaction-emoji {
+    transition: var(--fb-transition);
+}
+
+.reaction-emoji:hover {
+    transform: scale(1.2);
+}
+
+/* Simplified bounce animation */
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* Reaction names with hover effect */
+.reaction-names {
+    cursor: pointer;
+    transition: var(--fb-transition);
+}
+
+.reaction-names:hover {
+    text-decoration: underline;
+}
+
+/* Post actions with cleaner border */
+.post-actions-fb {
+    display: flex;
+    border-top: 1px solid var(--fb-border);
+    padding: 0.5rem 0;
+}
+
+/* Comments section */
 .post-comments-section {
     border-top: 1px solid var(--fb-border);
-    padding: 0.75rem 1rem;
+    padding: 1rem;
 }
 
+/* Comment input container */
 .comment-input-container {
-    margin-bottom: 0.75rem;
-}
-
-.comment-input-wrapper {
     position: relative;
-    flex-grow: 1;
+    margin-bottom: 1rem;
 }
 
-.comment-input {
-    width: 100%;
-    padding-right: 2.5rem;
-    border-radius: 20px;
-    background-color: var(--fb-gray);
-    border: none;
-    font-size: 14px;
-}
-
-.comment-send-btn {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: transparent;
-    border: none;
-    padding: 4px;
-    color: var(--fb-text-secondary);
-}
-
+/* Comment item with subtle animation */
 .comment-item {
-    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    animation: slideInFromLeft 0.3s ease-out;
 }
 
-.comment-content-wrapper {
-    flex-grow: 1;
-}
-
+/* Comment content with modern bubble design */
 .comment-content {
-    background-color: var(--fb-gray);
+    background: var(--fb-gray);
     border-radius: 16px;
-    padding: 0.5rem;
+    padding: 0.75rem;
+    transition: var(--fb-transition);
 }
 
+.comment-content:hover {
+    box-shadow: var(--fb-shadow);
+}
+
+/* Comment author and text */
 .comment-author {
-    font-weight: bold;
-    font-size: 13px;
+    font-weight: 600;
+    font-size: 0.8125rem;
     color: var(--fb-text);
 }
 
 .comment-text {
-    font-size: 14px;
+    font-size: 0.875rem;
     color: var(--fb-text);
 }
 
-.comment-actions {
-    display: flex;
-    align-items: center;
-    margin-top: 0.25rem;
-    margin-left: 0.5rem;
+/* Comments container with scroll */
+.comments-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
 }
 
-.comment-action-btn {
-    background-color: transparent;
-    border: none;
-    padding: 0;
-    font-size: 12px;
-    font-weight: bold;
-    margin-left: 0.75rem;
+/* Replies container */
+.replies-container {
+    margin-left: 2rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--fb-border);
+}
+
+/* Reply bubble */
+.reply-bubble {
+    background: var(--fb-gray);
+    border-radius: 16px;
+    padding: 0.75rem;
+    transition: var(--fb-transition);
+}
+
+.reply-bubble:hover {
+    box-shadow: var(--fb-shadow);
+}
+
+/* Loading state */
+.comments-loading {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.comments-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--fb-gray);
+    border-top: 3px solid var(--fb-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Reaction badges */
+.reaction-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    transition: var(--fb-transition);
+}
+
+.reaction-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--fb-shadow);
+}
+
+/* Post stats container with gradient removed for simplicity */
+.post-stats-container {
+    border-top: 1px solid var(--fb-border);
+    border-bottom: 1px solid var(--fb-border);
+    padding: 0.5rem 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .post-fb {
+        padding: 0.75rem;
+    }
+
+    .three-images-container,
+    .four-images-container,
+    .multiple-images-container {
+        grid-template-columns: 1fr;
+    }
+
+    .three-image-main,
+    .three-image-sub,
+    .four-image,
+    .multiple-image {
+        height: 200px;
+    }
+
+    .replies-container {
+        margin-left: 1rem;
+        padding-left: 0.75rem;
+    }
+}
+
+/* Accessibility enhancements */
+.post-action-btn:focus,
+.comment-action-btn:focus,
+.comment-input-field:focus {
+    outline: 2px solid var(--fb-primary);
+    outline-offset: 2px;
+}
+
+/* Remove redundant pseudo-elements for better performance */
+.comment-bubble::before,
+.reply-bubble::before {
+    display: none;
 }

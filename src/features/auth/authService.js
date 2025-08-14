@@ -1,6 +1,6 @@
 import { jwtDecode } from 'jwt-decode';
 import api from '../../services/api';
-import { authToasts } from '../../utils/toast';
+
 
 class AuthService {
     // Đăng nhập
@@ -17,13 +17,11 @@ class AuthService {
                 const userInfo = await this.getCurrentUserInfo();
                 if (userInfo) {
                     this.storeUserInfo(userInfo);
-                    authToasts.loginSuccess();
                     return { token, user: userInfo };
                 } else {
                     // Fallback nếu không lấy được thông tin đầy đủ
                     const fallbackUserInfo = await this.extractUserInfo(token, data.user);
                     this.storeUserInfo(fallbackUserInfo);
-                    authToasts.loginSuccess();
                     return { token, user: fallbackUserInfo };
                 }
             } else {
@@ -34,7 +32,7 @@ class AuthService {
                            error.response?.data?.status?.message || 
                            error.message || 
                            'Đăng nhập thất bại';
-            authToasts.loginError(message);
+
             throw new Error(message);
         }
     }
@@ -61,7 +59,7 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00' && status.success) {
-                authToasts.registerSuccess();
+
                 return { 
                     success: true, 
                     message: status.displayMessage || 'Đăng ký thành công',
@@ -75,7 +73,7 @@ class AuthService {
                            error.response?.data?.status?.message || 
                            error.message || 
                            'Đăng ký thất bại';
-            authToasts.registerError(message);
+
             throw new Error(message);
         }
     }
@@ -84,9 +82,9 @@ class AuthService {
     async logout() {
         try {
             await api.post('/auth/logout');
-            authToasts.logoutSuccess();
+
         } catch (error) {
-            authToasts.logoutError(error.message);
+            console.error('Logout error:', error.message);
         } finally {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -135,14 +133,14 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00') {
-                authToasts.forgotPasswordSuccess(data);
+
                 return data || 'Nếu email tồn tại, mã OTP đã được gửi.';
             } else {
                 throw new Error(status.message || 'Gửi OTP thất bại');
             }
         } catch (error) {
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Gửi OTP thất bại';
-            authToasts.forgotPasswordError(message);
+
             throw new Error(message);
         }
     }
@@ -154,14 +152,14 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00') {
-                authToasts.verifyOTPSuccess(data);
+
                 return data || 'Mã OTP hợp lệ';
             } else {
                 throw new Error(status.message || 'Mã OTP không hợp lệ');
             }
         } catch (error) {
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Xác thực OTP thất bại';
-            authToasts.verifyOTPError(message);
+
             throw new Error(message);
         }
     }
@@ -177,14 +175,14 @@ class AuthService {
             const { status, data } = response.data;
 
             if (status.code === '00') {
-                authToasts.resetPasswordSuccess(data);
+
                 return data || 'Mật khẩu đã được đặt lại thành công';
             } else {
                 throw new Error(status.message || 'Đặt lại mật khẩu thất bại');
             }
         } catch (error) {
             const message = error.response?.data?.status?.message || error.response?.data?.status?.displayMessage || error.message || 'Đặt lại mật khẩu thất bại';
-            authToasts.resetPasswordError(message);
+
             throw new Error(message);
         }
     }

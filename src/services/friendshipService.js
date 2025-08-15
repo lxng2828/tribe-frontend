@@ -177,6 +177,24 @@ class FriendshipService {
             throw error;
         }
     }
+
+    /**
+     * Hủy kết bạn
+     * @param {string} senderId - ID người gửi yêu cầu hủy kết bạn
+     * @param {string} receiverId - ID người bị hủy kết bạn
+     * @returns {Promise} Response từ API
+     */
+    async unfriend(senderId, receiverId) {
+        try {
+            const response = await api.delete('/friendships/unfriend', {
+                params: { senderId, receiverId }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Error unfriending:', error);
+            throw error;
+        }
+    }
 }
 
 // Export singleton instance

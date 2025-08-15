@@ -451,26 +451,186 @@ class PostService {
     // Lấy bài viết theo người dùng
     async getPostsByUser(userId, page = 0, size = 20) {
         try {
+            // Thử sử dụng API endpoint cụ thể cho user posts trước
+            try {
+                const response = await api.get(`/posts/user/${userId}`, {
+                    params: { page, size }
+                });
 
+                const { status, data } = response.data;
+                if (status.success) {
+                    const posts = (data || []).map(post => {
+                        // Xử lý thông tin user từ cấu trúc mới
+                        const user = post.user || {};
+                        const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
+                        const userPostId = user.senderId || user.id || user.userId || post.userId;
+                        
+                        // Xử lý avatar với logic cải thiện
+                        let userAvatar = null;
+                        
+                        // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
+                        if (user.avatarSender) {
+                            userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
+                        }
+                        // Ưu tiên 2: avatarUrl từ user object
+                        else if (user.avatarUrl) {
+                            userAvatar = getAvatarUrl(user);
+                        }
+                        // Ưu tiên 3: avatar từ user object
+                        else if (user.avatar) {
+                            userAvatar = getAvatarUrl(user);
+                        }
+                        // Ưu tiên 4: profilePicture từ user object
+                        else if (user.profilePicture) {
+                            userAvatar = getAvatarUrl(user);
+                        }
+                        // Fallback: tạo placeholder từ tên
+                        else {
+                            userAvatar = getAvatarUrl({ displayName: userName });
+                        }
+
+                        // Xử lý đường dẫn ảnh - thêm base URL nếu cần
+                        const processImageUrls = (urls) => {
+                            if (!urls || !Array.isArray(urls)) return [];
+                            return urls.map(url => {
+                                if (url.startsWith('http')) {
+                                    return url; // Đã là URL đầy đủ
+                                } else if (url.startsWith('/')) {
+                                    return `${API_BASE_URL}${url}`; // Thêm base URL
+                                } else {
+                                    return `${API_BASE_URL}/${url}`; // Thêm base URL và dấu /
+                                }
+                            });
+                        };
+
+                        // Xử lý reactions từ cấu trúc mới
+                        const processReactions = (reactions) => {
+                            if (!reactions || !Array.isArray(reactions)) return [];
+                            return reactions.map(reaction => ({
+                                id: reaction.id,
+                                type: reaction.reactionType,
+                                user: {
+                                    id: reaction.user?.senderId || reaction.user?.id,
+                                    name: reaction.user?.nameSender || reaction.user?.name,
+                                    avatar: reaction.user?.avatarSender ? 
+                                        getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
+                                        getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
+                                },
+                                createdAt: reaction.createdAt
+                            }));
+                        };
+
+                        // Xử lý comments từ cấu trúc mới
+                        const processComments = (comments) => {
+                            if (!comments || !Array.isArray(comments)) return [];
+                            return comments.map(comment => ({
+                                id: comment.id,
+                                content: comment.content,
+                                user: {
+                                    id: comment.user?.senderId || comment.user?.id,
+                                    name: comment.user?.nameSender || comment.user?.name,
+                                    avatar: comment.user?.avatarSender ? 
+                                        getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
+                                        getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
+                                },
+                                parentCommentId: comment.parentCommentId,
+                                createdAt: comment.createdAt,
+                                replies: comment.replies ? processComments(comment.replies) : []
+                            }));
+                        };
+
+                        return {
+                            id: post.id,
+                            content: post.content,
+                            author: {
+                                id: userPostId,
+                                name: userName,
+                                avatar: userAvatar,
+                                // Thêm thông tin user đầy đủ để component có thể sử dụng
+                                displayName: user.displayName,
+                                fullName: user.fullName,
+                                username: user.username,
+                                avatarUrl: user.avatarUrl,
+                                senderId: user.senderId
+                            },
+                            visibility: post.visibility || 'PUBLIC',
+                            createdAt: post.createdAt,
+                            updatedAt: post.updatedAt,
+                            likesCount: post.reactionCount || post.likesCount || 0,
+                            commentsCount: post.commentCount || post.commentsCount || 0,
+                            liked: post.reactions ? post.reactions.some(r => r.user?.senderId === getCurrentUserId() || r.user?.id === getCurrentUserId()) : false,
+                            mediaUrls: processImageUrls(post.mediaUrls),
+                            images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
+                            isOwner: post.isOwner || false,
+                            reactions: processReactions(post.reactions),
+                            comments: processComments(post.comments)
+                        };
+                    });
+
+                    return {
+                        posts,
+                        hasMore: data.length === size,
+                        total: data.length
+                    };
+                }
+            } catch (apiError) {
+                console.warn('User-specific API endpoint not available, falling back to filter method:', apiError);
+            }
 
             // Fallback: Lấy tất cả bài viết và filter theo userId
+            console.log('Using fallback method - fetching all posts and filtering');
             const response = await api.get(`/posts/all`, {
-                params: { page: 0, size: 100 } // Lấy nhiều hơn để filter
+                params: { page: 0, size: 1000 } // Lấy nhiều hơn để filter
             });
 
             const { status, data } = response.data;
 
-
             if (status.success) {
                 // Filter posts by userId - chỉ lấy bài đăng của user cụ thể
                 const allPosts = data || [];
+                console.log('Total posts from API:', allPosts.length);
+                console.log('Target userId:', userId);
+                
                 const userPosts = allPosts.filter(post => {
+                    // Lấy userId từ nhiều nguồn khác nhau
                     const postUserId = post.user?.senderId || post.user?.id || post.user?.userId || post.userId;
-                    const targetUserIdStr = String(userId);
-                    const postUserIdStr = String(postUserId);
                     
-                    return postUserIdStr === targetUserIdStr;
+                    // So sánh chính xác hơn - thử nhiều cách so sánh
+                    const targetUserIdStr = String(userId).trim();
+                    const postUserIdStr = String(postUserId).trim();
+                    
+                    // So sánh chính xác
+                    const exactMatch = postUserIdStr === targetUserIdStr;
+                    
+                    // So sánh số nếu có thể
+                    const numericMatch = !isNaN(targetUserIdStr) && !isNaN(postUserIdStr) && 
+                                       Number(targetUserIdStr) === Number(postUserIdStr);
+                    
+                    const matches = exactMatch || numericMatch;
+                    
+                    console.log('Filtering post:', {
+                        postId: post.id,
+                        postUserId: postUserIdStr,
+                        targetUserId: targetUserIdStr,
+                        exactMatch,
+                        numericMatch,
+                        matches,
+                        userData: post.user
+                    });
+                    
+                    return matches;
                 });
+                
+                console.log('Filtered user posts count:', userPosts.length);
+                
+                // Log một số posts đầu tiên để debug
+                if (userPosts.length > 0) {
+                    console.log('First few filtered posts:', userPosts.slice(0, 3).map(post => ({
+                        id: post.id,
+                        authorId: post.user?.senderId || post.user?.id,
+                        content: post.content?.substring(0, 50) + '...'
+                    })));
+                }
 
 
 
@@ -478,6 +638,15 @@ class PostService {
                 const startIndex = page * size;
                 const endIndex = startIndex + size;
                 const paginatedPosts = userPosts.slice(startIndex, endIndex);
+                
+                console.log('Pagination info:', {
+                    totalUserPosts: userPosts.length,
+                    page,
+                    size,
+                    startIndex,
+                    endIndex,
+                    paginatedPostsCount: paginatedPosts.length
+                });
 
                 const posts = paginatedPosts.map(post => {
                     // Xử lý thông tin user từ cấu trúc mới
@@ -587,8 +756,25 @@ class PostService {
                     };
                 });
 
+                // Validation cuối cùng - đảm bảo chỉ posts của user cụ thể
+                const validatedPosts = posts.filter(post => {
+                    const postAuthorId = String(post.author.id).trim();
+                    const targetUserIdStr = String(userId).trim();
+                    return postAuthorId === targetUserIdStr || 
+                           (!isNaN(targetUserIdStr) && !isNaN(postAuthorId) && 
+                            Number(targetUserIdStr) === Number(postAuthorId));
+                });
+                
+                console.log('Final result:', {
+                    originalPostsCount: posts.length,
+                    validatedPostsCount: validatedPosts.length,
+                    hasMore: endIndex < userPosts.length,
+                    total: userPosts.length,
+                    postsAuthors: validatedPosts.map(post => post.author.id)
+                });
+                
                 return {
-                    posts,
+                    posts: validatedPosts,
                     hasMore: endIndex < userPosts.length, // Check if there are more posts
                     total: userPosts.length
                 };

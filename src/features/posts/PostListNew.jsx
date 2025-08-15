@@ -3,6 +3,11 @@ import { usePostManager } from './PostManager';
 import PostItemNew from './PostItemNew';
 
 const PostListNew = ({ userId = null, isUserPosts = false }) => {
+    console.log('PostListNew props:', {
+        userId,
+        isUserPosts
+    });
+    
     const {
         posts,
         loading,
@@ -21,9 +26,17 @@ const PostListNew = ({ userId = null, isUserPosts = false }) => {
 
     // Load posts when component mounts or props change
     useEffect(() => {
+        console.log('PostListNew useEffect triggered:', {
+            isUserPosts,
+            userId,
+            willLoadUserPosts: isUserPosts && userId
+        });
+        
         if (isUserPosts && userId) {
+            console.log('Loading user posts for userId:', userId);
             loadPosts(0, true, userId);
         } else {
+            console.log('Loading all posts (not user-specific)');
             loadPosts(0, true);
         }
     }, [userId, isUserPosts, loadPosts]);

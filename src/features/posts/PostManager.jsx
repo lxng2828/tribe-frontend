@@ -21,6 +21,12 @@ const PostManager = ({ children }) => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
+    
+    console.log('PostManager mounted/updated:', {
+        userId: user?.id,
+        postsCount: posts.length,
+        isInitialized
+    });
     const [selectedPost, setSelectedPost] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -31,14 +37,31 @@ const PostManager = ({ children }) => {
     // Load posts
     const loadPosts = useCallback(async (pageNumber = 0, reset = false, userId = null) => {
         try {
+            console.log('PostManager loadPosts called:', {
+                pageNumber,
+                reset,
+                userId,
+                willLoadUserPosts: !!userId
+            });
+            
             setLoading(true);
             setError(null);
             
             let response;
             if (userId) {
+                console.log('Calling getPostsByUser for userId:', userId);
                 response = await postService.getPostsByUser(userId, pageNumber);
+                console.log('getPostsByUser response:', {
+                    postsCount: response.posts?.length || 0,
+                    hasMore: response.hasMore
+                });
             } else {
+                console.log('Calling getPosts (all posts)');
                 response = await postService.getPosts(pageNumber);
+                console.log('getPosts response:', {
+                    postsCount: response.posts?.length || 0,
+                    hasMore: response.hasMore
+                });
             }
 
             // Cập nhật trạng thái reaction cho từng post
@@ -78,13 +101,12 @@ const PostManager = ({ children }) => {
         }
     }, []);
 
-    // Initialize
+    // Initialize - không tự động load posts, để PostListNew quyết định
     useEffect(() => {
         if (!isInitialized) {
-            loadPosts(0, true);
             setIsInitialized(true);
         }
-    }, [isInitialized, loadPosts]);
+    }, [isInitialized]);
 
     // Create post
     const createPost = async (postData) => {

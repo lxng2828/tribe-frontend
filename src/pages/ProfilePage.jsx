@@ -26,6 +26,13 @@ const ProfilePage = () => {
     // Kiểm tra xem có phải profile của mình không
     const isOwnProfile = !urlUserId || urlUserId === user?.id;
     const targetUserId = urlUserId || user?.id;
+    
+    console.log('ProfilePage state:', {
+        urlUserId,
+        user: user?.id,
+        isOwnProfile,
+        targetUserId
+    });
 
     // Load dữ liệu profile khi component mount
     useEffect(() => {

@@ -11,9 +11,19 @@ import LoadingOverlay from './LoadingOverlay';
 import ErrorBoundary from './ErrorBoundary';
 
 const PostsApp = ({ userId = null, isUserPosts = false, showCreatePost = true, showDemo = false }) => {
+    console.log('PostsApp props:', {
+        userId,
+        isUserPosts,
+        showCreatePost,
+        showDemo
+    });
+    
+    // Tạo key duy nhất cho PostManager để tránh conflict
+    const managerKey = `posts-${userId || 'all'}-${isUserPosts ? 'user' : 'feed'}`;
+    
     return (
         <ErrorBoundary>
-            <PostManager>
+            <PostManager key={managerKey}>
                 {/* Loading Overlay */}
                 <LoadingOverlay />
                 

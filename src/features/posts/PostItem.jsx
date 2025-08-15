@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_AVATAR, getPostAuthorAvatar, getCommentAuthorAvatar, getAvatarUrl } from '../../utils/placeholderImages';
+import postService from './postService';
 
 const PostItem = ({ post, onLike, onDelete }) => {
-    const [showComments, setShowComments] = useState(false);
+    const [showComments, setShowComments] = useState(true);
     const [showOptions, setShowOptions] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null); // Track which comment we're replying to
     const [commentText, setCommentText] = useState(''); // Store comment/reply text
+    const [isLiking, setIsLiking] = useState(false); // Loading state for like action
     const { user } = useAuth();
 
     // Check if current user can edit/delete this post
@@ -52,8 +54,25 @@ const PostItem = ({ post, onLike, onDelete }) => {
         }
     };
 
-    const handleLike = () => {
-        onLike(post.id);
+    const handleLike = async () => {
+        if (isLiking) return; // Prevent multiple clicks
+        
+        try {
+            setIsLiking(true);
+            const result = await postService.toggleReaction(post.id, 'LIKE');
+            
+            // Call the onLike callback to update parent component
+            if (onLike) {
+                onLike(post.id);
+            }
+            
+            console.log('Reaction result:', result);
+        } catch (error) {
+            console.error('Error toggling reaction:', error);
+            // You can show a toast notification here
+        } finally {
+            setIsLiking(false);
+        }
     };
 
     const handleReply = (commentId) => {
@@ -534,9 +553,16 @@ const PostItem = ({ post, onLike, onDelete }) => {
                  <button
                      className={`post-action-btn flex-grow-1 ${post.liked ? 'active' : ''}`}
                      onClick={handleLike}
+                     disabled={isLiking}
                  >
-                     <span className="icon">❤️</span>
-                     <span>{post.liked ? 'Đã thích' : 'Yêu thích'}</span>
+                     <span className="icon">
+                         {isLiking ? (
+                             <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+                         ) : (
+                             '❤️'
+                         )}
+                     </span>
+                     <span>{isLiking ? 'Đang xử lý...' : (post.liked ? 'Đã thích' : 'Yêu thích')}</span>
                  </button>
 
                  <button

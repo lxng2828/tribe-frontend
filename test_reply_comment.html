@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Reply Comment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .comment-item {
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .reply-item {
+            border-left: 3px solid #007bff;
+            margin-left: 20px;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Reply Comment</h1>
+    
+    <div class="test-section">
+        <h3>1. Tạo Comment Gốc</h3>
+        <label>Post ID:</label>
+        <input type="number" id="postId" value="20">
+        <label>User ID:</label>
+        <input type="text" id="userId" value="a033d64c-4286-4826-8827-f5b69af13f96">
+        <label>Comment Content:</label>
+        <textarea id="commentContent" rows="3" placeholder="Nhập nội dung comment gốc...">Đây là comment gốc để test reply</textarea>
+        <br><br>
+        <button onclick="createMainComment()">Tạo Comment Gốc</button>
+        <div id="mainCommentResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Tạo Reply Comment</h3>
+        <label>Parent Comment ID:</label>
+        <input type="number" id="parentCommentId" placeholder="Nhập ID comment gốc từ bước 1">
+        <label>Reply Content:</label>
+        <textarea id="replyContent" rows="3" placeholder="Nhập nội dung reply...">Đây là reply cho comment gốc</textarea>
+        <br><br>
+        <button onclick="createReplyComment()">Tạo Reply</button>
+        <div id="replyResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Xem Tất Cả Comments (bao gồm replies)</h3>
+        <button onclick="getAllComments()">Lấy Comments</button>
+        <div id="allCommentsResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Xem Replies của Comment Cụ Thể</h3>
+        <label>Comment ID:</label>
+        <input type="number" id="getRepliesCommentId" placeholder="Nhập ID comment để xem replies">
+        <br><br>
+        <button onclick="getReplies()">Lấy Replies</button>
+        <div id="repliesResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let mainCommentId = null;
+
+        async function createMainComment() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const content = document.getElementById('commentContent').value;
+            const resultDiv = document.getElementById('mainCommentResult');
+
+            try {
+                const requestBody = {
+                    content: content
+                };
+
+                const response = await fetch(`${API_BASE}/post-comments/create?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Comment gốc tạo thành công!\nID: ${data.data.id}\nNội dung: ${data.data.content}`;
+                    mainCommentId = data.data.id;
+                    document.getElementById('parentCommentId').value = mainCommentId;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function createReplyComment() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const parentCommentId = document.getElementById('parentCommentId').value;
+            const content = document.getElementById('replyContent').value;
+            const resultDiv = document.getElementById('replyResult');
+
+            if (!parentCommentId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Vui lòng nhập Parent Comment ID trước!';
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    content: content,
+                    parentCommentId: parseInt(parentCommentId)
+                };
+
+                const response = await fetch(`${API_BASE}/post-comments/create?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Reply tạo thành công!\nID: ${data.data.id}\nParent ID: ${data.data.parentCommentId}\nNội dung: ${data.data.content}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function getAllComments() {
+            const postId = document.getElementById('postId').value;
+            const resultDiv = document.getElementById('allCommentsResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/post-comments/post/${postId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    let html = '<h4>Danh sách Comments:</h4>';
+                    
+                    data.data.forEach(comment => {
+                        html += `<div class="comment-item">
+                            <strong>Comment ID: ${comment.id}</strong><br>
+                            <strong>User: ${comment.user?.name || 'Unknown'}</strong><br>
+                            <strong>Content: ${comment.content}</strong><br>
+                            <small>Created: ${comment.createdAt}</small><br>
+                            <small>Parent: ${comment.parentCommentId || 'None (Main comment)'}</small>
+                        </div>`;
+                    });
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function getReplies() {
+            const commentId = document.getElementById('getRepliesCommentId').value;
+            const resultDiv = document.getElementById('repliesResult');
+
+            if (!commentId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Vui lòng nhập Comment ID!';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/post-comments/${commentId}/replies`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    let html = `<h4>Replies cho Comment ID: ${commentId}</h4>`;
+                    
+                    if (data.data && data.data.length > 0) {
+                        data.data.forEach(reply => {
+                            html += `<div class="reply-item">
+                                <strong>Reply ID: ${reply.id}</strong><br>
+                                <strong>User: ${reply.user?.name || 'Unknown'}</strong><br>
+                                <strong>Content: ${reply.content}</strong><br>
+                                <small>Created: ${reply.createdAt}</small>
+                            </div>`;
+                        });
+                    } else {
+                        html += '<p>Không có replies nào.</p>';
+                    }
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

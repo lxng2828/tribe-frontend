@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Comment & Reply Reactions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .comment-container {
+            border: 1px solid #e4e6ea;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            background: #f8f9fa;
+        }
+        .reply-container {
+            border-left: 3px solid #1877f2;
+            margin: 10px 0 10px 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 0 8px 8px 0;
+        }
+        .reaction-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .reaction-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 18px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .reaction-btn:hover {
+            background: #f0f2f5;
+            transform: translateY(-1px);
+        }
+        .reaction-btn.active {
+            background: #e3f2fd;
+            border-color: #1877f2;
+            color: #1877f2;
+        }
+        .reaction-count {
+            background: #e4e6ea;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #65676b;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .user-info {
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .timestamp {
+            color: #65676b;
+            font-size: 12px;
+        }
+        .content {
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Comment & Reply Reactions</h1>
+    
+    <div class="test-section">
+        <h3>1. Tạo Comment và Reply để Test</h3>
+        <label>Post ID:</label>
+        <input type="number" id="postId" value="20">
+        <label>User ID:</label>
+        <input type="text" id="userId" value="a033d64c-4286-4826-8827-f5b69af13f96">
+        <br><br>
+        
+        <h4>Tạo Comment Chính:</h4>
+        <textarea id="mainCommentContent" rows="2" placeholder="Nội dung comment chính...">Comment chính để test reaction</textarea>
+        <button onclick="createMainComment()">Tạo Comment Chính</button>
+        <div id="mainCommentResult" class="result"></div>
+        
+        <h4>Tạo Reply:</h4>
+        <label>Parent Comment ID:</label>
+        <input type="number" id="parentCommentId" placeholder="Nhập ID comment chính">
+        <textarea id="replyContent" rows="2" placeholder="Nội dung reply...">Reply để test reaction</textarea>
+        <button onclick="createReply()">Tạo Reply</button>
+        <div id="replyResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Test Reactions cho Comment & Reply</h3>
+        <label>Comment ID:</label>
+        <input type="number" id="commentId" placeholder="Nhập ID comment chính">
+        <label>Reply ID:</label>
+        <input type="number" id="replyId" placeholder="Nhập ID reply">
+        <br><br>
+        
+        <div class="comment-container">
+            <h4>📝 Comment Chính</h4>
+            <div class="user-info">User: Test User</div>
+            <div class="timestamp">2 giờ trước</div>
+            <div class="content" id="commentContent">Nội dung comment sẽ hiển thị ở đây...</div>
+            
+            <div class="reaction-buttons" id="commentReactions">
+                <div class="reaction-btn" onclick="testReaction('comment', 'LIKE')">
+                    <span>👍</span>
+                    <span>Thích</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('comment', 'LOVE')">
+                    <span>❤️</span>
+                    <span>Yêu thích</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('comment', 'HAHA')">
+                    <span>😂</span>
+                    <span>Haha</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('comment', 'WOW')">
+                    <span>😮</span>
+                    <span>Wow</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('comment', 'SAD')">
+                    <span>😢</span>
+                    <span>Buồn</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('comment', 'ANGRY')">
+                    <span>😠</span>
+                    <span>Giận</span>
+                </div>
+            </div>
+            <div id="commentReactionStats" class="reaction-count">Reactions: 0</div>
+        </div>
+        
+        <div class="reply-container">
+            <h4>💬 Reply</h4>
+            <div class="user-info">User: Reply User</div>
+            <div class="timestamp">1 giờ trước</div>
+            <div class="content" id="replyContentDisplay">Nội dung reply sẽ hiển thị ở đây...</div>
+            
+            <div class="reaction-buttons" id="replyReactions">
+                <div class="reaction-btn" onclick="testReaction('reply', 'LIKE')">
+                    <span>👍</span>
+                    <span>Thích</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('reply', 'LOVE')">
+                    <span>❤️</span>
+                    <span>Yêu thích</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('reply', 'HAHA')">
+                    <span>😂</span>
+                    <span>Haha</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('reply', 'WOW')">
+                    <span>😮</span>
+                    <span>Wow</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('reply', 'SAD')">
+                    <span>😢</span>
+                    <span>Buồn</span>
+                </div>
+                <div class="reaction-btn" onclick="testReaction('reply', 'ANGRY')">
+                    <span>😠</span>
+                    <span>Giận</span>
+                </div>
+            </div>
+            <div id="replyReactionStats" class="reaction-count">Reactions: 0</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Thống Kê Tổng Hợp</h3>
+        <button onclick="getAllStats()">Lấy Thống Kê Tất Cả</button>
+        <div id="allStatsResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let currentCommentReaction = null;
+        let currentReplyReaction = null;
+        let commentReactionCount = 0;
+        let replyReactionCount = 0;
+
+        async function createMainComment() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const content = document.getElementById('mainCommentContent').value;
+            const resultDiv = document.getElementById('mainCommentResult');
+
+            try {
+                const requestBody = { content: content };
+                const response = await fetch(`${API_BASE}/post-comments/create?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Comment tạo thành công!\nID: ${data.data.id}\nNội dung: ${data.data.content}`;
+                    document.getElementById('commentId').value = data.data.id;
+                    document.getElementById('commentContent').textContent = data.data.content;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function createReply() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const parentCommentId = document.getElementById('parentCommentId').value;
+            const content = document.getElementById('replyContent').value;
+            const resultDiv = document.getElementById('replyResult');
+
+            if (!parentCommentId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Vui lòng nhập Parent Comment ID!';
+                return;
+            }
+
+            try {
+                const requestBody = { 
+                    content: content,
+                    parentCommentId: parseInt(parentCommentId)
+                };
+                const response = await fetch(`${API_BASE}/post-comments/create?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Reply tạo thành công!\nID: ${data.data.id}\nParent: ${data.data.parentCommentId}\nNội dung: ${data.data.content}`;
+                    document.getElementById('replyId').value = data.data.id;
+                    document.getElementById('replyContentDisplay').textContent = data.data.content;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function testReaction(type, reactionType) {
+            const commentId = type === 'comment' ? document.getElementById('commentId').value : document.getElementById('replyId').value;
+            const userId = document.getElementById('userId').value;
+            
+            if (!commentId) {
+                alert(`❌ Vui lòng nhập ${type === 'comment' ? 'Comment' : 'Reply'} ID trước!`);
+                return;
+            }
+
+            try {
+                const requestBody = { reactionType: reactionType };
+                const response = await fetch(`${API_BASE}/comment-reactions/toggle?commentId=${commentId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    if (data.data) {
+                        // Reaction created/updated
+                        if (type === 'comment') {
+                            currentCommentReaction = data.data;
+                            commentReactionCount++;
+                        } else {
+                            currentReplyReaction = data.data;
+                            replyReactionCount++;
+                        }
+                        updateReactionDisplay(type, reactionType, true);
+                    } else {
+                        // Reaction removed
+                        if (type === 'comment') {
+                            currentCommentReaction = null;
+                            commentReactionCount = Math.max(0, commentReactionCount - 1);
+                        } else {
+                            currentReplyReaction = null;
+                            replyReactionCount = Math.max(0, replyReactionCount - 1);
+                        }
+                        updateReactionDisplay(type, null, false);
+                    }
+                    
+                    updateReactionStats(type);
+                } else {
+                    alert(`❌ Error: ${data.status?.displayMessage || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`❌ Network Error: ${error.message}`);
+            }
+        }
+
+        function updateReactionDisplay(type, reactionType, isActive) {
+            const container = type === 'comment' ? 'commentReactions' : 'replyReactions';
+            const buttons = document.getElementById(container).children;
+            
+            // Clear all active states
+            for (let btn of buttons) {
+                btn.classList.remove('active');
+            }
+            
+            // Set active state for current reaction
+            if (isActive && reactionType) {
+                for (let btn of buttons) {
+                    if (btn.textContent.includes(getReactionEmoji(reactionType))) {
+                        btn.classList.add('active');
+                        break;
+                    }
+                }
+            }
+        }
+
+        function getReactionEmoji(reactionType) {
+            const emojis = {
+                'LIKE': '👍',
+                'LOVE': '❤️',
+                'HAHA': '😂',
+                'WOW': '😮',
+                'SAD': '😢',
+                'ANGRY': '😠'
+            };
+            return emojis[reactionType] || '👍';
+        }
+
+        function updateReactionStats(type) {
+            const count = type === 'comment' ? commentReactionCount : replyReactionCount;
+            const element = type === 'comment' ? 'commentReactionStats' : 'replyReactionStats';
+            document.getElementById(element).textContent = `Reactions: ${count}`;
+        }
+
+        async function getAllStats() {
+            const commentId = document.getElementById('commentId').value;
+            const replyId = document.getElementById('replyId').value;
+            const resultDiv = document.getElementById('allStatsResult');
+
+            if (!commentId && !replyId) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = '❌ Vui lòng nhập ít nhất một ID!';
+                return;
+            }
+
+            let html = '<h4>📊 Thống Kê Reactions:</h4>';
+            
+            if (commentId) {
+                try {
+                    const response = await fetch(`${API_BASE}/comment-reactions/stats/${commentId}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        html += `<div><strong>Comment ${commentId}:</strong></div>`;
+                        Object.entries(data.data).forEach(([type, count]) => {
+                            html += `<div>${getReactionEmoji(type)} ${type}: ${count}</div>`;
+                        });
+                        if (Object.keys(data.data).length === 0) {
+                            html += '<div>Chưa có reaction</div>';
+                        }
+                    }
+                } catch (error) {
+                    html += `<div>❌ Error loading comment stats: ${error.message}</div>`;
+                }
+            }
+            
+            if (replyId) {
+                try {
+                    const response = await fetch(`${API_BASE}/comment-reactions/stats/${replyId}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        html += `<div><strong>Reply ${replyId}:</strong></div>`;
+                        Object.entries(data.data).forEach(([type, count]) => {
+                            html += `<div>${getReactionEmoji(type)} ${type}: ${count}</div>`;
+                        });
+                        if (Object.keys(data.data).length === 0) {
+                            html += '<div>Chưa có reaction</div>';
+                        }
+                    }
+                } catch (error) {
+                    html += `<div>❌ Error loading reply stats: ${error.message}</div>`;
+                }
+            }
+            
+            resultDiv.className = 'result success';
+            resultDiv.innerHTML = html;
+        }
+
+        // Auto-refresh stats every 10 seconds
+        setInterval(() => {
+            const commentId = document.getElementById('commentId').value;
+            const replyId = document.getElementById('replyId').value;
+            if (commentId || replyId) {
+                getAllStats();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

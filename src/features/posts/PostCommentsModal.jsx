@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { usePostManager } from './PostManager';
 import { getAvatarUrl } from '../../utils/placeholderImages';
+import commentReactionService from './commentReactionService';
+import CommentReactionPicker from './CommentReactionPicker';
 
 const PostCommentsModal = () => {
     const { 
@@ -15,13 +17,54 @@ const PostCommentsModal = () => {
     const [comments, setComments] = useState([]);
     const [commentText, setCommentText] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
+    const [commentReactions, setCommentReactions] = useState({});
+    const [reactionLoading, setReactionLoading] = useState({});
 
     // Load comments when modal opens
     useEffect(() => {
         if (showCommentsModal && selectedPost) {
             setComments(selectedPost.comments || []);
+            // Load reaction status for each comment
+            loadCommentReactions(selectedPost.comments || []);
         }
     }, [showCommentsModal, selectedPost]);
+
+    // Load reaction status for comments and replies
+    const loadCommentReactions = async (commentsList) => {
+        const reactions = {};
+        
+        // Helper function to load reaction for a single comment/reply
+        const loadReactionForComment = async (comment) => {
+            try {
+                const userReaction = await commentReactionService.getUserReaction(comment.id);
+                const reactionCount = await commentReactionService.getReactionCount(comment.id);
+                reactions[comment.id] = {
+                    userReaction: userReaction,
+                    count: reactionCount
+                };
+            } catch (error) {
+                console.error(`Error loading reaction for comment ${comment.id}:`, error);
+                reactions[comment.id] = {
+                    userReaction: null,
+                    count: 0
+                };
+            }
+        };
+
+        // Load reactions for main comments
+        for (const comment of commentsList) {
+            await loadReactionForComment(comment);
+            
+            // Load reactions for replies if they exist
+            if (comment.replies && comment.replies.length > 0) {
+                for (const reply of comment.replies) {
+                    await loadReactionForComment(reply);
+                }
+            }
+        }
+        
+        setCommentReactions(reactions);
+    };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -73,6 +116,37 @@ const PostCommentsModal = () => {
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
+    };
+
+    // Handle comment reaction change
+    const handleCommentReactionChange = (commentId, result) => {
+        // Update reaction state
+        setCommentReactions(prev => {
+            const currentReaction = prev[commentId];
+            const wasReacted = currentReaction?.userReaction;
+            const isReacted = result !== null;
+            
+            // Calculate new count
+            let newCount = currentReaction?.count || 0;
+            if (wasReacted && !isReacted) {
+                // Removed reaction
+                newCount = Math.max(0, newCount - 1);
+            } else if (!wasReacted && isReacted) {
+                // Added reaction
+                newCount = newCount + 1;
+            } else if (wasReacted && isReacted && wasReacted.reactionType !== result.reactionType) {
+                // Changed reaction type - count stays the same
+                newCount = newCount;
+            }
+            
+            return {
+                ...prev,
+                [commentId]: {
+                    userReaction: result,
+                    count: newCount
+                }
+            };
+        });
     };
 
     const canDeleteComment = (comment) => {
@@ -147,6 +221,38 @@ const PostCommentsModal = () => {
                                                         <p className="mb-2">{comment.content}</p>
                                                         
                                                         <div className="comment-actions">
+                                                            {commentReactions[comment.id]?.userReaction ? (
+                                                                <CommentReactionPicker
+                                                                    commentId={comment.id}
+                                                                    currentReaction={commentReactions[comment.id]?.userReaction}
+                                                                    onReactionChange={(result) => handleCommentReactionChange(comment.id, result)}
+                                                                />
+                                                            ) : (
+                                                                <button
+                                                                    type="button"
+                                                                    className="btn btn-link btn-sm p-0 me-3"
+                                                                    onClick={() => handleCommentReactionChange(comment.id, { reactionType: 'LIKE' })}
+                                                                    style={{
+                                                                        backgroundColor: 'transparent',
+                                                                        border: 'none',
+                                                                        color: '#65676b',
+                                                                        fontSize: '12px',
+                                                                        fontWeight: '600',
+                                                                        cursor: 'pointer'
+                                                                    }}
+                                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                                >
+                                                                    Thích
+                                                                </button>
+                                                            )}
+                                                            
+                                                            {commentReactions[comment.id]?.count > 0 && (
+                                                                <span className="badge bg-light text-dark me-3">
+                                                                    {commentReactions[comment.id].count}
+                                                                </span>
+                                                            )}
+                                                            
                                                             <button
                                                                 type="button"
                                                                 className="btn btn-link btn-sm p-0 me-3"
@@ -167,6 +273,89 @@ const PostCommentsModal = () => {
                                                         </div>
                                                     </div>
                                                     
+                                                    {/* Replies */}
+                                                    {comment.replies && comment.replies.length > 0 && (
+                                                        <div className="replies-container mt-3 ms-4">
+                                                            {comment.replies.map((reply) => (
+                                                                <div key={reply.id} className="reply-item mb-2">
+                                                                    <div className="d-flex">
+                                                                        <img
+                                                                            src={getAvatarUrl(reply.user)}
+                                                                            alt={reply.user?.name || 'User'}
+                                                                            className="rounded-circle me-2"
+                                                                            style={{ width: '32px', height: '32px' }}
+                                                                        />
+                                                                        <div className="flex-grow-1">
+                                                                            <div className="reply-content">
+                                                                                <div className="d-flex align-items-center mb-1">
+                                                                                    <strong className="me-2" style={{ fontSize: '14px' }}>
+                                                                                        {reply.user?.name || 'Người dùng'}
+                                                                                    </strong>
+                                                                                    <small className="text-muted">
+                                                                                        {formatDate(reply.createdAt)}
+                                                                                    </small>
+                                                                                </div>
+                                                                                <p className="mb-2" style={{ fontSize: '14px' }}>{reply.content}</p>
+                                                                                
+                                                                                <div className="reply-actions">
+                                                                                    {commentReactions[reply.id]?.userReaction ? (
+                                                                                        <CommentReactionPicker
+                                                                                            commentId={reply.id}
+                                                                                            currentReaction={commentReactions[reply.id]?.userReaction}
+                                                                                            onReactionChange={(result) => handleCommentReactionChange(reply.id, result)}
+                                                                                        />
+                                                                                    ) : (
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            className="btn btn-link btn-sm p-0 me-3"
+                                                                                            onClick={() => handleCommentReactionChange(reply.id, { reactionType: 'LIKE' })}
+                                                                                            style={{
+                                                                                                backgroundColor: 'transparent',
+                                                                                                border: 'none',
+                                                                                                color: '#65676b',
+                                                                                                fontSize: '12px',
+                                                                                                fontWeight: '600',
+                                                                                                cursor: 'pointer'
+                                                                                            }}
+                                                                                            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                                                            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                                                        >
+                                                                                            Thích
+                                                                                        </button>
+                                                                                    )}
+                                                                                    
+                                                                                    {commentReactions[reply.id]?.count > 0 && (
+                                                                                        <span className="badge bg-light text-dark me-3">
+                                                                                            {commentReactions[reply.id].count}
+                                                                                        </span>
+                                                                                    )}
+                                                                                    
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        className="btn btn-link btn-sm p-0 me-3"
+                                                                                        onClick={() => handleReply(reply.id)}
+                                                                                    >
+                                                                                        Trả lời
+                                                                                    </button>
+                                                                                    
+                                                                                    {canDeleteComment(reply) && (
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            className="btn btn-link btn-sm p-0 text-danger"
+                                                                                            onClick={() => handleDeleteComment(reply.id)}
+                                                                                        >
+                                                                                            Xóa
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+
                                                     {/* Reply form */}
                                                     {replyingTo === comment.id && (
                                                         <div className="reply-form mt-3">

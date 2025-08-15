@@ -2,7 +2,7 @@ import api from '../../services/api';
 import { DEFAULT_AVATAR, getAvatarUrl } from '../../utils/placeholderImages';
 
 // Helper function to get current user ID
-const getCurrentUserId = () => {
+export const getCurrentUserId = () => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
         try {
@@ -310,40 +310,24 @@ class PostService {
         try {
             const userId = getCurrentUserId();
             
-            // Kiểm tra xem user đã reaction chưa
-            const checkResponse = await api.get('/post-reactions/check', {
+            const requestData = {
+                reactionType: reactionType
+            };
+            
+            const response = await api.post('/post-reactions/toggle', requestData, {
                 params: { postId, userId }
             });
             
-            const hasReacted = checkResponse.data.data;
-            
-            if (hasReacted) {
-                // Nếu đã reaction thì xóa
-                const response = await api.delete('/post-reactions/delete', {
-                    params: { postId, userId }
-                });
-                const { status } = response.data;
-                if (status.success) {
-                    return { reacted: false, reactionType: null };
-                } else {
-                    throw new Error(status.displayMessage || 'Lỗi khi bỏ reaction');
-                }
-            } else {
-                // Nếu chưa reaction thì tạo mới
-                const requestData = {
-                    reactionType: reactionType
-                };
-                
-                const response = await api.post('/post-reactions/create', requestData, {
-                    params: { postId, userId }
-                });
-                
-                const { status, data } = response.data;
-                if (status.success) {
+            const { status, data } = response.data;
+            if (status.success) {
+                // Kiểm tra xem có data trả về không để xác định đã tạo hay xóa reaction
+                if (data) {
                     return { reacted: true, reactionType: reactionType, reaction: data };
                 } else {
-                    throw new Error(status.displayMessage || 'Lỗi khi tạo reaction');
+                    return { reacted: false, reactionType: null };
                 }
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi toggle reaction');
             }
         } catch (error) {
             console.error('Toggle reaction error:', error);

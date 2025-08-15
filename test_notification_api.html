@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Notification API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Notification API</h1>
+    
+    <div class="test-section">
+        <h3>Test Toggle Reaction (sẽ tạo notification)</h3>
+        <label>Post ID:</label>
+        <input type="number" id="postId" value="1">
+        <label>User ID:</label>
+        <input type="text" id="userId" value="user123">
+        <label>Reaction Type:</label>
+        <select id="reactionType">
+            <option value="LIKE">LIKE</option>
+            <option value="LOVE">LOVE</option>
+            <option value="HAHA">HAHA</option>
+            <option value="WOW">WOW</option>
+            <option value="SAD">SAD</option>
+            <option value="ANGRY">ANGRY</option>
+        </select>
+        <br><br>
+        <button onclick="testToggleReaction()">Test Toggle Reaction</button>
+        <div id="toggleResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Get User Notifications</h3>
+        <label>User ID:</label>
+        <input type="text" id="notifUserId" value="user123">
+        <br><br>
+        <button onclick="testGetNotifications()">Get Notifications</button>
+        <div id="notifResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        async function testToggleReaction() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const reactionType = document.getElementById('reactionType').value;
+            const resultDiv = document.getElementById('toggleResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/post-reactions/toggle?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        reactionType: reactionType
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function testGetNotifications() {
+            const userId = document.getElementById('notifUserId').value;
+            const resultDiv = document.getElementById('notifResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/notifications/user/${userId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Comment API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Comment API</h1>
+    
+    <div class="test-section">
+        <h3>Test Create Comment</h3>
+        <label>Post ID:</label>
+        <input type="number" id="postId" value="20">
+        <label>User ID:</label>
+        <input type="text" id="userId" value="a033d64c-4286-4826-8827-f5b69af13f96">
+        <label>Comment Content:</label>
+        <textarea id="commentContent" rows="3" placeholder="Nhập nội dung comment...">Test comment từ API</textarea>
+        <label>Parent Comment ID (optional):</label>
+        <input type="number" id="parentCommentId" placeholder="Để trống nếu là comment gốc">
+        <br><br>
+        <button onclick="testCreateComment()">Test Create Comment</button>
+        <div id="createResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Get Comments by Post</h3>
+        <label>Post ID:</label>
+        <input type="number" id="getPostId" value="20">
+        <br><br>
+        <button onclick="testGetComments()">Get Comments</button>
+        <div id="getResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Delete Comment</h3>
+        <label>Comment ID:</label>
+        <input type="number" id="deleteCommentId" placeholder="Nhập ID comment cần xóa">
+        <label>User ID:</label>
+        <input type="text" id="deleteUserId" value="a033d64c-4286-4826-8827-f5b69af13f96">
+        <br><br>
+        <button onclick="testDeleteComment()">Delete Comment</button>
+        <div id="deleteResult" class="result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+
+        async function testCreateComment() {
+            const postId = document.getElementById('postId').value;
+            const userId = document.getElementById('userId').value;
+            const content = document.getElementById('commentContent').value;
+            const parentCommentId = document.getElementById('parentCommentId').value;
+            const resultDiv = document.getElementById('createResult');
+
+            try {
+                const requestBody = {
+                    content: content
+                };
+
+                if (parentCommentId) {
+                    requestBody.parentCommentId = parseInt(parentCommentId);
+                }
+
+                const response = await fetch(`${API_BASE}/post-comments/create?postId=${postId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function testGetComments() {
+            const postId = document.getElementById('getPostId').value;
+            const resultDiv = document.getElementById('getResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/post-comments/post/${postId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+
+        async function testDeleteComment() {
+            const commentId = document.getElementById('deleteCommentId').value;
+            const userId = document.getElementById('deleteUserId').value;
+            const resultDiv = document.getElementById('deleteResult');
+
+            try {
+                const response = await fetch(`${API_BASE}/post-comments/${commentId}?userId=${userId}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ Success: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ Error: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Network Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

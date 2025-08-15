@@ -191,7 +191,7 @@ const PostManager = ({ children }) => {
     // Add comment
     const addComment = async (postId, content, parentCommentId = null) => {
         try {
-            const newComment = await postService.addComment(postId, content);
+            const newComment = await postService.addComment(postId, content, parentCommentId);
             
             setPosts(prev => prev.map(post => 
                 post.id === postId 

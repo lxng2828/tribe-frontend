@@ -1,17 +1,50 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import friendshipService from '../services/friendshipService';
 import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 
-const FriendCard = ({ friend }) => {
+const FriendCard = ({ friend, onUnfriend }) => {
     const navigate = useNavigate();
+    const { user } = useAuth();
+    const [showUnfriendButton, setShowUnfriendButton] = useState(false);
+    const [processing, setProcessing] = useState(false);
 
     const handleClick = () => {
         navigate(`/profile/${friend.id}`);
     };
 
+    const handleUnfriend = async (e) => {
+        e.stopPropagation(); // Ngăn không cho trigger handleClick
+        
+        const confirmed = window.confirm(`Bạn có chắc muốn hủy kết bạn với ${friend.displayName}?`);
+        if (!confirmed) return;
+
+        try {
+            setProcessing(true);
+            const response = await friendshipService.unfriend(user.id, friend.id);
+
+            if (response.status.success) {
+                // Gọi callback để cập nhật danh sách bạn bè
+                onUnfriend?.(friend.id);
+                alert('Đã hủy kết bạn thành công');
+            } else {
+                alert(response.status.displayMessage || 'Không thể hủy kết bạn');
+            }
+        } catch (error) {
+            console.error('Error unfriending:', error);
+            alert('Lỗi khi hủy kết bạn');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     return (
         <div
-            className="friend-card d-flex flex-column align-items-center p-3 rounded cursor-pointer h-100"
+            className="friend-card d-flex flex-column align-items-center p-3 rounded cursor-pointer h-100 position-relative"
             onClick={handleClick}
+            onMouseEnter={() => setShowUnfriendButton(true)}
+            onMouseLeave={() => setShowUnfriendButton(false)}
             style={{
                 backgroundColor: 'white',
                 border: '1px solid #e4e6ea',
@@ -20,15 +53,29 @@ const FriendCard = ({ friend }) => {
                 borderRadius: '12px',
                 minHeight: '140px'
             }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-            }}
         >
+            {/* Nút hủy kết bạn - hiển thị khi hover */}
+            {showUnfriendButton && user?.id !== friend.id && (
+                <button
+                    className="btn btn-sm btn-outline-danger position-absolute"
+                    onClick={handleUnfriend}
+                    disabled={processing}
+                    style={{
+                        top: '8px',
+                        right: '8px',
+                        zIndex: 10,
+                        fontSize: '0.75rem',
+                        padding: '2px 6px'
+                    }}
+                >
+                    {processing ? (
+                        <span className="spinner-border spinner-border-sm" style={{ width: '12px', height: '12px' }} />
+                    ) : (
+                        '❌'
+                    )}
+                </button>
+            )}
+
             <img
                 src={getAvatarUrl(friend)}
                 alt={friend.displayName || 'Bạn bè'}

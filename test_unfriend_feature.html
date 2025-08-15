@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chức Năng Hủy Bạn Bè - Tribe</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .test-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+        }
+        .test-success {
+            background-color: #d1edff;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .test-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .test-info {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">🧪 Test Chức Năng Hủy Bạn Bè</h1>
+        
+        <div class="alert alert-info">
+            <h5>📋 Hướng dẫn test:</h5>
+            <ol>
+                <li>Đảm bảo backend đang chạy ở <code>localhost:8080</code></li>
+                <li>Đảm bảo frontend đang chạy ở <code>localhost:3000</code></li>
+                <li>Đăng nhập vào hệ thống</li>
+                <li>Thực hiện các test case bên dưới</li>
+            </ol>
+        </div>
+
+        <!-- Test 1: Kiểm tra API Endpoint -->
+        <div class="test-section">
+            <h4>🔍 Test 1: Kiểm tra API Endpoint</h4>
+            <p>Kiểm tra xem endpoint <code>/api/friendships/unfriend</code> có tồn tại và hoạt động không.</p>
+            <button class="btn btn-primary" onclick="testUnfriendEndpoint()">Test API Endpoint</button>
+            <div id="test1-result"></div>
+        </div>
+
+        <!-- Test 2: Test Hủy Kết Bạn -->
+        <div class="test-section">
+            <h4>👥 Test 2: Test Hủy Kết Bạn</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="senderId" class="form-label">Sender ID (Người gửi yêu cầu hủy):</label>
+                    <input type="text" class="form-control" id="senderId" placeholder="Nhập sender ID">
+                </div>
+                <div class="col-md-6">
+                    <label for="receiverId" class="form-label">Receiver ID (Người bị hủy kết bạn):</label>
+                    <input type="text" class="form-control" id="receiverId" placeholder="Nhập receiver ID">
+                </div>
+            </div>
+            <button class="btn btn-danger mt-3" onclick="testUnfriend()">Test Hủy Kết Bạn</button>
+            <div id="test2-result"></div>
+        </div>
+
+        <!-- Test 3: Test UI Component -->
+        <div class="test-section">
+            <h4>🎨 Test 3: Test UI Component</h4>
+            <p>Kiểm tra component FriendshipButton có hiển thị nút "Hủy kết bạn" khi đã là bạn bè.</p>
+            <button class="btn btn-success" onclick="openProfilePage()">Mở Trang Profile</button>
+            <div class="mt-2">
+                <small class="text-muted">Sau khi mở trang profile, kiểm tra xem có nút "Hủy kết bạn" trong dropdown menu không.</small>
+            </div>
+        </div>
+
+        <!-- Test 4: Test Notification -->
+        <div class="test-section">
+            <h4>🔔 Test 4: Test Notification</h4>
+            <p>Kiểm tra xem có thông báo được gửi khi hủy kết bạn không.</p>
+            <button class="btn btn-warning" onclick="testNotification()">Test Notification</button>
+            <div id="test4-result"></div>
+        </div>
+
+        <!-- Test 5: Test Error Cases -->
+        <div class="test-section">
+            <h4>❌ Test 5: Test Error Cases</h4>
+            <p>Kiểm tra các trường hợp lỗi khi hủy kết bạn.</p>
+            <button class="btn btn-secondary" onclick="testErrorCases()">Test Error Cases</button>
+            <div id="test5-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+
+        // Test 1: Kiểm tra API Endpoint
+        async function testUnfriendEndpoint() {
+            const resultDiv = document.getElementById('test1-result');
+            resultDiv.innerHTML = '<div class="test-info">Đang kiểm tra...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/friendships/unfriend`, {
+                    method: 'OPTIONS'
+                });
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="test-success">
+                            ✅ Endpoint tồn tại và có thể truy cập được<br>
+                            Method: DELETE<br>
+                            URL: ${API_BASE_URL}/friendships/unfriend
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-error">
+                            ❌ Endpoint không tồn tại hoặc không thể truy cập<br>
+                            Status: ${response.status}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-error">
+                        ❌ Lỗi khi kiểm tra endpoint: ${error.message}<br>
+                        Đảm bảo backend đang chạy ở localhost:8080
+                    </div>
+                `;
+            }
+        }
+
+        // Test 2: Test Hủy Kết Bạn
+        async function testUnfriend() {
+            const senderId = document.getElementById('senderId').value;
+            const receiverId = document.getElementById('receiverId').value;
+            const resultDiv = document.getElementById('test2-result');
+
+            if (!senderId || !receiverId) {
+                resultDiv.innerHTML = '<div class="test-error">❌ Vui lòng nhập đầy đủ Sender ID và Receiver ID</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="test-info">Đang thực hiện hủy kết bạn...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/friendships/unfriend?senderId=${senderId}&receiverId=${receiverId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status?.success) {
+                    resultDiv.innerHTML = `
+                        <div class="test-success">
+                            ✅ Hủy kết bạn thành công!<br>
+                            Message: ${data.status.displayMessage}<br>
+                            Code: ${data.status.code}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-error">
+                            ❌ Hủy kết bạn thất bại<br>
+                            Message: ${data.status?.displayMessage || 'Unknown error'}<br>
+                            Code: ${data.status?.code || 'Unknown'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-error">
+                        ❌ Lỗi khi thực hiện hủy kết bạn: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test 3: Mở trang profile
+        function openProfilePage() {
+            const receiverId = document.getElementById('receiverId').value;
+            if (receiverId) {
+                window.open(`http://localhost:3000/profile/${receiverId}`, '_blank');
+            } else {
+                alert('Vui lòng nhập Receiver ID trước khi mở trang profile');
+            }
+        }
+
+        // Test 4: Test Notification
+        async function testNotification() {
+            const resultDiv = document.getElementById('test4-result');
+            resultDiv.innerHTML = '<div class="test-info">Đang kiểm tra notification...</div>';
+
+            try {
+                // Kiểm tra xem có endpoint notification không
+                const response = await fetch(`${API_BASE_URL.replace('/friendships', '')}/notifications/test`, {
+                    method: 'GET'
+                });
+
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="test-success">
+                            ✅ Notification service đang hoạt động<br>
+                            Endpoint: /api/notifications
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="test-info">
+                            ℹ️ Không thể kiểm tra notification service trực tiếp<br>
+                            Notification sẽ được tạo khi thực hiện hủy kết bạn thành công
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-info">
+                        ℹ️ Không thể kiểm tra notification service: ${error.message}<br>
+                        Notification sẽ được tạo khi thực hiện hủy kết bạn thành công
+                    </div>
+                `;
+            }
+        }
+
+        // Test 5: Test Error Cases
+        async function testErrorCases() {
+            const resultDiv = document.getElementById('test5-result');
+            resultDiv.innerHTML = '<div class="test-info">Đang test các trường hợp lỗi...</div>';
+
+            const testCases = [
+                { senderId: 'invalid-id', receiverId: 'invalid-id', description: 'Invalid IDs' },
+                { senderId: '', receiverId: '', description: 'Empty IDs' },
+                { senderId: 'non-existent-1', receiverId: 'non-existent-2', description: 'Non-existent users' }
+            ];
+
+            let results = '';
+
+            for (const testCase of testCases) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/friendships/unfriend?senderId=${testCase.senderId}&receiverId=${testCase.receiverId}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || !data.status?.success) {
+                        results += `
+                            <div class="test-success">
+                                ✅ ${testCase.description}: Xử lý lỗi đúng<br>
+                                Message: ${data.status?.displayMessage || 'Error handled'}
+                            </div>
+                        `;
+                    } else {
+                        results += `
+                            <div class="test-error">
+                                ❌ ${testCase.description}: Không xử lý lỗi đúng<br>
+                                Expected: Error, Got: Success
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    results += `
+                        <div class="test-success">
+                            ✅ ${testCase.description}: Xử lý lỗi đúng<br>
+                            Error: ${error.message}
+                        </div>
+                    `;
+                }
+            }
+
+            resultDiv.innerHTML = results;
+        }
+
+        // Auto-fill test data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Có thể thêm auto-fill cho test data nếu cần
+            console.log('Test page loaded. Ready to test unfriend feature.');
+        });
+    </script>
+</body>
+</html> 

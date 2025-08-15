@@ -95,7 +95,13 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
                 <div className="row g-3">
                     {displayedFriends.map((friend) => (
                         <div key={friend.id} className="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-6">
-                            <FriendCard friend={friend} />
+                            <FriendCard 
+                                friend={friend} 
+                                onUnfriend={(friendId) => {
+                                    // Cập nhật danh sách bạn bè sau khi hủy kết bạn
+                                    setFriends(prev => prev.filter(f => f.id !== friendId));
+                                }}
+                            />
                         </div>
                     ))}
                 </div>

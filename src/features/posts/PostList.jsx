@@ -98,6 +98,34 @@ const PostList = forwardRef((props, ref) => {
         }
     };
 
+    const handleAddComment = async (postId, content, parentCommentId = null) => {
+        try {
+            console.log('Adding comment:', { postId, content, parentCommentId });
+            const newComment = await postService.addComment(postId, content, parentCommentId);
+            console.log('New comment received:', newComment);
+            
+            setPosts(prev => {
+                console.log('Previous posts:', prev);
+                const updatedPosts = prev.map(post => 
+                    post.id === postId 
+                        ? { 
+                            ...post, 
+                            commentsCount: (post.commentsCount || 0) + 1,
+                            comments: [...(post.comments || []), newComment]
+                        } 
+                        : post
+                );
+                console.log('Updated posts:', updatedPosts);
+                return updatedPosts;
+            });
+            
+            return newComment;
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            throw error;
+        }
+    };
+
     const handleDelete = async (postId) => {
         const post = posts.find(p => p.id === postId);
         if (!post) return;
@@ -213,6 +241,7 @@ const PostList = forwardRef((props, ref) => {
                             post={post}
                             onLike={handleLike}
                             onDelete={handleDelete}
+                            onAddComment={handleAddComment}
                         />
                     ))}
                 </div>

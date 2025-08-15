@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import commentReactionService from './commentReactionService';
+import postService from './postService';
 import './CommentReactionPicker.css';
 
-const CommentReactionPicker = ({ commentId, currentReaction, onReactionChange }) => {
+const PostReactionPicker = ({ postId, currentReaction, onReactionChange }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -18,20 +18,25 @@ const CommentReactionPicker = ({ commentId, currentReaction, onReactionChange })
     const handleReaction = async (reactionType) => {
         if (loading) return;
         
+        console.log('PostReactionPicker handleReaction called with:', reactionType);
+        console.log('Current reaction:', currentReaction);
+        
         setLoading(true);
         try {
             // If clicking on the current reaction, remove it (pass null)
             if (currentReaction && currentReaction.reactionType === reactionType) {
-                const result = await commentReactionService.toggleReaction(commentId, reactionType);
+                console.log('Removing current post reaction');
+                const result = await postService.toggleReaction(postId, reactionType);
                 onReactionChange(null); // Remove reaction
             } else {
                 // If clicking on a different reaction, change to it
-                const result = await commentReactionService.toggleReaction(commentId, reactionType);
+                console.log('Changing to new post reaction');
+                const result = await postService.toggleReaction(postId, reactionType);
                 onReactionChange({ reactionType });
             }
             setShowPicker(false);
         } catch (error) {
-            console.error('Error toggling reaction:', error);
+            console.error('Error toggling post reaction:', error);
         } finally {
             setLoading(false);
         }
@@ -106,10 +111,8 @@ const CommentReactionPicker = ({ commentId, currentReaction, onReactionChange })
                     </div>
                 </div>
             )}
-
-
         </div>
     );
 };
 
-export default CommentReactionPicker;
+export default PostReactionPicker;

@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_AVATAR, getPostAuthorAvatar, getCommentAuthorAvatar, getAvatarUrl } from '../../utils/placeholderImages';
 import postService from './postService';
+import PostReactionPicker from './PostReactionPicker';
 
-const PostItem = ({ post, onLike, onDelete }) => {
+const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
     const [showComments, setShowComments] = useState(true);
     const [showOptions, setShowOptions] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null); // Track which comment we're replying to
     const [commentText, setCommentText] = useState(''); // Store comment/reply text
     const [isLiking, setIsLiking] = useState(false); // Loading state for like action
+    const [postReaction, setPostReaction] = useState(post.liked ? { reactionType: 'LIKE' } : null); // Track post reaction
+    
+    console.log('PostItem render - post.liked:', post.liked, 'postReaction:', postReaction);
     const { user } = useAuth();
 
     // Check if current user can edit/delete this post
@@ -75,6 +79,53 @@ const PostItem = ({ post, onLike, onDelete }) => {
         }
     };
 
+    const handlePostReactionChange = async (result) => {
+        if (isLiking) return; // Prevent multiple clicks
+        
+        console.log('handlePostReactionChange called with:', result);
+        console.log('Current postReaction:', postReaction);
+        
+        try {
+            setIsLiking(true);
+            
+            if (result) {
+                // If clicking on the current reaction, remove it
+                if (postReaction && postReaction.reactionType === result.reactionType) {
+                    console.log('Removing current reaction');
+                    const apiResult = await postService.toggleReaction(post.id, result.reactionType);
+                    setPostReaction(null);
+                } else {
+                    // If clicking on a different reaction, change to it
+                    console.log('Changing to new reaction');
+                    const apiResult = await postService.toggleReaction(post.id, result.reactionType);
+                    setPostReaction(result);
+                }
+            } else {
+                // Removing reaction
+                console.log('Removing reaction (result is null)');
+                const apiResult = await postService.toggleReaction(post.id, 'LIKE');
+                setPostReaction(null);
+            }
+            
+            // Call the onLike callback to update parent component
+            if (onLike) {
+                onLike(post.id);
+            }
+            
+            console.log('Post reaction result:', result);
+        } catch (error) {
+            console.error('Error toggling post reaction:', error);
+        } finally {
+            setIsLiking(false);
+        }
+    };
+
+    // Update postReaction when post.liked changes
+    useEffect(() => {
+        console.log('useEffect triggered - post.liked:', post.liked);
+        setPostReaction(post.liked ? { reactionType: 'LIKE' } : null);
+    }, [post.liked]);
+
     const handleReply = (commentId) => {
         setReplyingTo(commentId);
         setCommentText('');
@@ -85,17 +136,27 @@ const PostItem = ({ post, onLike, onDelete }) => {
         setCommentText('');
     };
 
-    const handleSubmitComment = () => {
+    const handleSubmitComment = async () => {
         if (commentText.trim()) {
-            if (replyingTo) {
-                // Submitting a reply
-                console.log('Submitting reply to comment', replyingTo, ':', commentText);
-                setReplyingTo(null);
-            } else {
-                // Submitting a new comment
-                console.log('Submitting new comment:', commentText);
+            try {
+                if (replyingTo) {
+                    // Submitting a reply
+                    console.log('Submitting reply to comment', replyingTo, ':', commentText);
+                    if (onAddComment) {
+                        await onAddComment(post.id, commentText, replyingTo);
+                    }
+                    setReplyingTo(null);
+                } else {
+                    // Submitting a new comment
+                    console.log('Submitting new comment:', commentText);
+                    if (onAddComment) {
+                        await onAddComment(post.id, commentText);
+                    }
+                }
+                setCommentText('');
+            } catch (error) {
+                console.error('Error submitting comment:', error);
             }
-            setCommentText('');
         }
     };
 
@@ -550,20 +611,33 @@ const PostItem = ({ post, onLike, onDelete }) => {
 
                          {/* Action Buttons */}
              <div className="post-actions-fb">
-                 <button
-                     className={`post-action-btn flex-grow-1 ${post.liked ? 'active' : ''}`}
-                     onClick={handleLike}
-                     disabled={isLiking}
-                 >
-                     <span className="icon">
-                         {isLiking ? (
-                             <div className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
-                         ) : (
-                             '❤️'
-                         )}
-                     </span>
-                     <span>{isLiking ? 'Đang xử lý...' : (post.liked ? 'Đã thích' : 'Yêu thích')}</span>
-                 </button>
+                                   {postReaction ? (
+                      <div className="post-action-btn flex-grow-1 d-flex justify-content-center">
+                          <PostReactionPicker
+                              postId={post.id}
+                              currentReaction={postReaction}
+                              onReactionChange={handlePostReactionChange}
+                          />
+                      </div>
+                  ) : (
+                     <button
+                         className="post-action-btn flex-grow-1"
+                         onClick={() => handlePostReactionChange({ reactionType: 'LIKE' })}
+                         disabled={isLiking}
+                         style={{
+                             backgroundColor: 'transparent',
+                             border: 'none',
+                             color: '#65676b',
+                             fontSize: '14px',
+                             fontWeight: '600',
+                             cursor: 'pointer'
+                         }}
+                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                     >
+                         <span>{isLiking ? 'Đang xử lý...' : 'Thích'}</span>
+                     </button>
+                 )}
 
                  <button
                      className="post-action-btn flex-grow-1"

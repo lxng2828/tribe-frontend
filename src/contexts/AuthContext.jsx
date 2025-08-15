@@ -80,7 +80,9 @@ export const AuthProvider = ({ children }) => {
 
     // Đăng xuất
     const logout = () => {
+        // Gọi authService.logout() sẽ tự động xử lý delay và chuyển hướng
         authService.logout();
+        // Cập nhật state ngay lập tức để UI phản hồi
         setUser(null);
         setIsAuthenticated(false);
     };

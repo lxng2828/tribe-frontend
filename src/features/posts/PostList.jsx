@@ -98,8 +98,24 @@ const PostList = forwardRef((props, ref) => {
         }
     };
 
-    const handleAddComment = async (postId, content, parentCommentId = null) => {
+    const handleAddComment = async (postId, content, parentCommentId = null, refresh = false) => {
         try {
+            if (refresh) {
+                // Refresh comments by reloading the post
+                const response = await postService.getPosts(page);
+                const updatedPost = response.posts.find(p => p.id === postId);
+                if (updatedPost) {
+                    setPosts(prev => 
+                        prev.map(post => 
+                            post.id === postId 
+                                ? { ...post, comments: updatedPost.comments, commentsCount: updatedPost.commentsCount }
+                                : post
+                        )
+                    );
+                }
+                return;
+            }
+
             console.log('Adding comment:', { postId, content, parentCommentId });
             const newComment = await postService.addComment(postId, content, parentCommentId);
             console.log('New comment received:', newComment);

@@ -7,12 +7,18 @@ export const getCurrentUserId = () => {
     if (userStr) {
         try {
             const user = JSON.parse(userStr);
-            return user.id || user.userId || '1';
+            const userId = user.id || user.userId || user.senderId;
+            if (userId) {
+                return userId;
+            }
         } catch (e) {
             console.error('Error parsing user from localStorage:', e);
         }
     }
-    return '1'; // fallback
+    
+    // Nếu không có user, trả về null thay vì '1'
+    console.warn('No user found in localStorage, returning null for userId');
+    return null;
 };
 
 // Base URL cho API
@@ -228,63 +234,61 @@ class PostService {
         }
     }
 
-    // Cập nhật bài viết
-    async updatePost(postId, postData) {
-        try {
-            const userId = getCurrentUserId();
-            
-            // Nếu có file, sử dụng multipart/form-data
-            if (postData.images?.length > 0) {
-                const formData = new FormData();
-                
-                // Tạo metadata object và append như một field riêng
-                const metadata = {
-                    content: postData.content,
-                    visibility: postData.visibility || 'PUBLIC'
-                };
-                
-                // Append metadata như một field riêng biệt
-                formData.append('metadata', JSON.stringify(metadata));
-                
-                // Append files
-                postData.images.forEach(image => {
-                    formData.append('files', image);
-                });
+// Cập nhật bài viết
+async updatePost(postId, postData) {
+    try {
+        // Nếu có file, sử dụng multipart/form-data
+        if (postData.images?.length > 0) {
+            const formData = new FormData();
 
-                const response = await api.put(`/posts/${postId}`, formData, {
-                    params: { userId }
-                    // Không set Content-Type header, để browser tự động set với boundary
-                });
-                
-                const { status, data } = response.data;
-                if (status.success) {
-                    return data;
-                } else {
-                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
-                }
+            // Tạo metadata object (thêm existingImages nếu có)
+            const metadata = {
+                userId: postData.userId || getCurrentUserId(),
+                content: postData.content,
+                visibility: postData.visibility || 'PUBLIC',
+                existingImages: postData.existingImages || []
+            };
+
+            formData.append('metadata', JSON.stringify(metadata));
+
+            // Thêm files mới
+            postData.images.forEach(image => {
+                formData.append('files', image);
+            });
+
+            const response = await api.put(`/posts/${postId}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
             } else {
-                // Không có file, sử dụng simple endpoint
-                const requestData = {
-                    content: postData.content,
-                    visibility: postData.visibility || 'PUBLIC'
-                };
-                
-                const response = await api.put(`/posts/${postId}/simple`, requestData, {
-                    params: { userId }
-                });
-                
-                const { status, data } = response.data;
-                if (status.success) {
-                    return data;
-                } else {
-                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
-                }
+                throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
             }
-        } catch (error) {
-            console.error('Update post error:', error);
-            throw new Error(error.response?.data?.status?.displayMessage || 'Lỗi khi cập nhật bài viết');
+        } else {
+            // Không có file, sử dụng simple endpoint
+            const requestData = {
+                userId: postData.userId || getCurrentUserId(),
+                content: postData.content,
+                visibility: postData.visibility || 'PUBLIC',
+                existingImages: postData.existingImages || []
+            };
+
+            const response = await api.put(`/posts/${postId}/simple`, requestData);
+
+            const { status, data } = response.data;
+            if (status.success) {
+                return data;
+            } else {
+                throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+            }
         }
+    } catch (error) {
+        console.error('Update post error:', error);
+        throw new Error(error.response?.data?.status?.displayMessage || 'Đã xảy ra lỗi khi cập nhật bài viết');
     }
+}
 
     // Xóa bài viết
     async deletePost(postId) {
@@ -404,9 +408,14 @@ class PostService {
     // Xóa bình luận
     async deleteComment(postId, commentId) {
         try {
+            const userId = getCurrentUserId();
+            if (!userId) {
+                throw new Error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+            }
+
             const response = await api.delete(`/post-comments/${commentId}`, {
                 params: { 
-                    userId: getCurrentUserId()
+                    userId: userId
                 }
             });
             

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Comment Delete Permissions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .success { border-left-color: #28a745; }
+        .error { border-left-color: #dc3545; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .delete-btn {
+            background: #dc3545;
+        }
+        .delete-btn:hover { background: #c82333; }
+        .comment {
+            background: #f0f2f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .comment-author {
+            font-weight: bold;
+            color: #1877f2;
+        }
+        .comment-content {
+            margin: 5px 0;
+        }
+        .comment-actions {
+            margin-top: 10px;
+        }
+        .post-author {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Comment Delete Permissions</h1>
+    
+    <div class="test-section">
+        <h2>Mô phỏng phân quyền xóa comment</h2>
+        <p>Logic phân quyền:</p>
+        <ul>
+            <li><strong>Chủ bài viết:</strong> Có thể xóa tất cả comment trong bài viết</li>
+            <li><strong>Người khác:</strong> Chỉ có thể xóa comment của chính mình</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Bài viết mẫu</h3>
+        <div class="post-author">
+            <strong>Chủ bài viết:</strong> Nguyễn Văn A (ID: 1)
+        </div>
+        
+        <div class="comment">
+            <div class="comment-author">Nguyễn Văn A (ID: 1) - Chủ bài viết</div>
+            <div class="comment-content">Comment của chủ bài viết</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(1, 1, 'Chủ bài viết xóa comment của chính mình')">Xóa (Có quyền)</button>
+            </div>
+        </div>
+
+        <div class="comment">
+            <div class="comment-author">Trần Thị B (ID: 2) - Người khác</div>
+            <div class="comment-content">Comment của người khác</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(1, 2, 'Chủ bài viết xóa comment của người khác')">Xóa (Có quyền)</button>
+            </div>
+        </div>
+
+        <div class="comment">
+            <div class="comment-author">Lê Văn C (ID: 3) - Người khác</div>
+            <div class="comment-content">Comment của người khác</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(1, 3, 'Chủ bài viết xóa comment của người khác')">Xóa (Có quyền)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test với người dùng khác (ID: 2)</h3>
+        <div class="post-author">
+            <strong>Chủ bài viết:</strong> Nguyễn Văn A (ID: 1)
+        </div>
+        
+        <div class="comment">
+            <div class="comment-author">Nguyễn Văn A (ID: 1) - Chủ bài viết</div>
+            <div class="comment-content">Comment của chủ bài viết</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(2, 1, 'Người khác xóa comment của chủ bài viết')">Xóa (Không có quyền)</button>
+            </div>
+        </div>
+
+        <div class="comment">
+            <div class="comment-author">Trần Thị B (ID: 2) - Người khác</div>
+            <div class="comment-content">Comment của người khác</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(2, 2, 'Người khác xóa comment của chính mình')">Xóa (Có quyền)</button>
+            </div>
+        </div>
+
+        <div class="comment">
+            <div class="comment-author">Lê Văn C (ID: 3) - Người khác</div>
+            <div class="comment-content">Comment của người khác</div>
+            <div class="comment-actions">
+                <button onclick="testDeleteComment(2, 3, 'Người khác xóa comment của người khác')">Xóa (Không có quyền)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Kết quả test</h3>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        function testDeleteComment(currentUserId, commentAuthorId, testCase) {
+            const postAuthorId = 1; // Chủ bài viết luôn là ID 1
+            
+            // Logic phân quyền
+            let canDelete = false;
+            let reason = '';
+            
+            if (currentUserId === commentAuthorId) {
+                // Người xóa là chủ comment
+                canDelete = true;
+                reason = 'Người xóa là chủ comment';
+            } else if (currentUserId === postAuthorId) {
+                // Người xóa là chủ bài viết
+                canDelete = true;
+                reason = 'Người xóa là chủ bài viết';
+            } else {
+                canDelete = false;
+                reason = 'Không có quyền xóa comment của người khác';
+            }
+            
+            // Hiển thị kết quả
+            const resultDiv = document.getElementById('test-results');
+            const resultClass = canDelete ? 'success' : 'error';
+            const resultText = canDelete ? '✅ THÀNH CÔNG' : '❌ THẤT BẠI';
+            
+            const resultHtml = `
+                <div class="test-case ${resultClass}">
+                    <strong>${testCase}</strong><br>
+                    <strong>Kết quả:</strong> ${resultText}<br>
+                    <strong>Lý do:</strong> ${reason}<br>
+                    <strong>Chi tiết:</strong> 
+                    - Người xóa: ID ${currentUserId}
+                    - Chủ comment: ID ${commentAuthorId}
+                    - Chủ bài viết: ID ${postAuthorId}
+                </div>
+            `;
+            
+            resultDiv.innerHTML = resultHtml + resultDiv.innerHTML;
+        }
+
+        // Test API thực tế
+        async function testRealAPI() {
+            const apiUrl = 'http://localhost:8080/api/post-comments';
+            
+            try {
+                // Test 1: Xóa comment của chính mình
+                console.log('Testing delete own comment...');
+                const response1 = await fetch(`${apiUrl}/1?userId=1`, {
+                    method: 'DELETE'
+                });
+                console.log('Delete own comment result:', response1.status);
+                
+                // Test 2: Xóa comment của người khác (không phải chủ bài viết)
+                console.log('Testing delete other comment...');
+                const response2 = await fetch(`${apiUrl}/2?userId=2`, {
+                    method: 'DELETE'
+                });
+                console.log('Delete other comment result:', response2.status);
+                
+            } catch (error) {
+                console.error('API test error:', error);
+            }
+        }
+
+        // Chạy test API khi trang load
+        // testRealAPI();
+    </script>
+</body>
+</html>

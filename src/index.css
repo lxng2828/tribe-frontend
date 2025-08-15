@@ -810,7 +810,7 @@ body {
 .btn-register {
     background: transparent;
     border: 2px solid #667eea;
-    color: #667eea;
+    color: #000000;
 }
 
 .btn-register:hover {

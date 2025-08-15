@@ -2,6 +2,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
+import { authToasts } from '../../utils/toast';
 
 
 // Validation schema với Yup
@@ -192,7 +193,7 @@ const LoginPage = () => {
                                         <div className="text-center">
                                             <Link
                                                 to="/register"
-                                                className="btn-register"
+                                                className="btn-register text-black"
                                             >
                                                 Tạo tài khoản mới
                                             </Link>

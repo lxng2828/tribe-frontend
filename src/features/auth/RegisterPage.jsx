@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
+import { authToasts } from '../../utils/toast';
 
 // Validation schema với Yup - phù hợp với API backend
 const validationSchema = Yup.object({
@@ -304,11 +305,11 @@ const RegisterPage = () => {
 
                                         {/* Login Link */}
                                         <div className="text-center">
-                                            <span className="text-white opacity-75">
+                                            <span className="text-black">
                                                 Đã có tài khoản?{' '}
                                                 <Link
                                                     to="/login"
-                                                    className="btn-register"
+                                                    className="btn-register text-black"
                                                 >
                                                     Đăng nhập ngay
                                                 </Link>

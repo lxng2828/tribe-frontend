@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
 import UserSearchTestPanel from '../components/UserSearchTestPanel';
 import FriendshipButton from '../components/FriendshipButton';
-import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl, generatePlaceholderAvatar } from '../utils/placeholderImages';
 
 const SearchResultsPage = () => {
     const [searchParams] = useSearchParams();
@@ -163,6 +163,11 @@ const SearchResultsPage = () => {
                                                                     cursor: 'pointer'
                                                                 }}
                                                                 onClick={() => handleUserClick(user)}
+                                                                onError={(e) => {
+                                                                    // Fallback khi image load lỗi
+                                                                    console.log('Image load error for user:', user.displayName);
+                                                                    e.target.src = generatePlaceholderAvatar(60, user.displayName);
+                                                                }}
                                                             />
                                                             <div className="flex-grow-1 text-start">
                                                                 <div

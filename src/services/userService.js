@@ -107,7 +107,8 @@ class UserService {
             id: user.id,
             displayName: user.displayName || user.username || 'Người dùng',
             email: user.email,
-            avatar: user.avatar || '/default-avatar.png',
+            avatarUrl: user.avatarUrl || user.avatar || null, // Thêm avatarUrl
+            avatar: user.avatar || user.avatarUrl || null,    // Giữ lại avatar
             phoneNumber: user.phoneNumber,
             createdAt: user.createdAt,
             lastSeen: user.lastSeen

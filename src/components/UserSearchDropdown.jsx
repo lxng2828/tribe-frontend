@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl, generatePlaceholderAvatar } from '../utils/placeholderImages';
 import { useNavigate } from 'react-router-dom';
 
 const UserSearchDropdown = ({ searchQuery, onClose, className = '' }) => {
@@ -138,6 +138,11 @@ const UserSearchDropdown = ({ searchQuery, onClose, className = '' }) => {
                                             width: '40px',
                                             height: '40px',
                                             objectFit: 'cover'
+                                        }}
+                                        onError={(e) => {
+                                            // Fallback khi image load lỗi
+                                            console.log('Image load error for user:', user.displayName);
+                                            e.target.src = generatePlaceholderAvatar(40, user.displayName);
                                         }}
                                     />
                                     <div className="flex-grow-1 text-start">

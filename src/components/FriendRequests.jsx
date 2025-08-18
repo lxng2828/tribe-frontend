@@ -1,42 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import friendshipService from '../services/friendshipService';
+import { useFriends } from '../contexts/FriendsContext';
 import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import Loading from './Loading';
 
 const FriendRequests = ({ userId }) => {
-    const [friendRequests, setFriendRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('received'); // 'received' | 'sent'
+    const { friendRequests, loading, error, acceptFriendRequest, rejectFriendRequest } = useFriends();
     const [processingIds, setProcessingIds] = useState(new Set());
     const navigate = useNavigate();
-
-    useEffect(() => {
-        loadFriendRequests();
-    }, [userId]);
-
-    const loadFriendRequests = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // Chỉ load received requests theo API docs
-            const response = await friendshipService.getFriendRequests(userId);
-
-            if (response.status.success) {
-                // Sử dụng dữ liệu theo API docs: senderId, senderDisplayName, avatarUrl, sentAt
-                setFriendRequests(response.data || []);
-            } else {
-                setError(response.status.displayMessage || 'Không thể tải lời mời kết bạn');
-            }
-        } catch (error) {
-            console.error('Error loading friend requests:', error);
-            setError('Lỗi khi tải lời mời kết bạn');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleAcceptRequest = async (senderId) => {
         if (processingIds.has(senderId)) return;
@@ -44,12 +15,9 @@ const FriendRequests = ({ userId }) => {
         try {
             setProcessingIds(prev => new Set(prev).add(senderId));
 
-            const response = await friendshipService.acceptFriendRequest(senderId, userId);
-            if (response.status.success) {
-                // Remove from friend requests list
-                setFriendRequests(prev => prev.filter(req => req.senderId !== senderId));
-            } else {
-                alert(response.status.displayMessage || 'Không thể chấp nhận lời mời');
+            const success = await acceptFriendRequest(senderId);
+            if (!success) {
+                alert('Không thể chấp nhận lời mời');
             }
         } catch (error) {
             console.error('Error accepting friend request:', error);
@@ -69,12 +37,9 @@ const FriendRequests = ({ userId }) => {
         try {
             setProcessingIds(prev => new Set(prev).add(senderId));
 
-            const response = await friendshipService.rejectFriendRequest(senderId, userId);
-            if (response.status.success) {
-                // Remove from friend requests list
-                setFriendRequests(prev => prev.filter(req => req.senderId !== senderId));
-            } else {
-                alert(response.status.displayMessage || 'Không thể từ chối lời mời');
+            const success = await rejectFriendRequest(senderId);
+            if (!success) {
+                alert('Không thể từ chối lời mời');
             }
         } catch (error) {
             console.error('Error rejecting friend request:', error);
@@ -104,7 +69,7 @@ const FriendRequests = ({ userId }) => {
                     <div>
                         <div>{error}</div>
                         <button
-                            onClick={loadFriendRequests}
+                            onClick={() => window.location.reload()}
                             className="btn btn-outline-danger btn-sm mt-2"
                         >
                             Thử lại
@@ -164,7 +129,7 @@ const FriendRequests = ({ userId }) => {
                                 <div className="flex-grow-1 me-4">
                                     <h5
                                         className="mb-2 fw-semibold text-primary"
-                                        style={{ 
+                                        style={{
                                             cursor: 'pointer',
                                             fontSize: '1.2rem'
                                         }}
@@ -195,7 +160,7 @@ const FriendRequests = ({ userId }) => {
                                             </div>
                                         ) : (
                                             <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
                                             </svg>
                                         )}
                                         Chấp nhận
@@ -217,7 +182,7 @@ const FriendRequests = ({ userId }) => {
                                             </div>
                                         ) : (
                                             <svg width="16" height="16" fill="currentColor" className="me-2" viewBox="0 0 16 16">
-                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
                                             </svg>
                                         )}
                                         Từ chối

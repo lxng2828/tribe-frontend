@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { MessageProvider } from './contexts/MessageContext';
+import { FriendsProvider } from './contexts/FriendsContext';
 import AppRoutes from './AppRoutes';
 
 function App() {
@@ -13,19 +14,21 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <MessageProvider>
-            <AppRoutes />
-            <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="light"
-            />
+            <FriendsProvider>
+              <AppRoutes />
+              <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+              />
+            </FriendsProvider>
           </MessageProvider>
         </NotificationProvider>
       </AuthProvider>

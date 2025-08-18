@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import friendshipService from '../services/friendshipService';
+import { useFriends } from '../contexts/FriendsContext';
 import { useAuth } from '../contexts/AuthContext';
 
 const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const { user } = useAuth();
+    const { sendFriendRequest, acceptFriendRequest, rejectFriendRequest, unfriend, getFriendshipStatus } = useFriends();
     const [friendshipStatus, setFriendshipStatus] = useState('NOT_FRIENDS');
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
@@ -19,7 +20,7 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const checkFriendshipStatus = async () => {
         try {
             setLoading(true);
-            const status = await friendshipService.getFriendshipStatus(user.id, targetUserId);
+            const status = await getFriendshipStatus(targetUserId);
             setFriendshipStatus(status.status);
         } catch (error) {
             console.error('Error checking friendship status:', error);
@@ -32,13 +33,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const handleSendFriendRequest = async () => {
         try {
             setProcessing(true);
-            const response = await friendshipService.sendFriendRequest(user.id, targetUserId);
+            const success = await sendFriendRequest(targetUserId);
 
-            if (response.status.success) {
+            if (success) {
                 setFriendshipStatus('PENDING_SENT');
                 onStatusChange?.(targetUserId, 'PENDING_SENT');
             } else {
-                alert(response.status.displayMessage || 'Không thể gửi lời mời kết bạn');
+                alert('Không thể gửi lời mời kết bạn');
             }
         } catch (error) {
             console.error('Error sending friend request:', error);
@@ -51,13 +52,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const handleAcceptFriendRequest = async () => {
         try {
             setProcessing(true);
-            const response = await friendshipService.acceptFriendRequest(targetUserId, user.id);
+            const success = await acceptFriendRequest(targetUserId);
 
-            if (response.status.success) {
+            if (success) {
                 setFriendshipStatus('FRIENDS');
                 onStatusChange?.(targetUserId, 'FRIENDS');
             } else {
-                alert(response.status.displayMessage || 'Không thể chấp nhận lời mời');
+                alert('Không thể chấp nhận lời mời');
             }
         } catch (error) {
             console.error('Error accepting friend request:', error);
@@ -70,13 +71,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const handleRejectFriendRequest = async () => {
         try {
             setProcessing(true);
-            const response = await friendshipService.rejectFriendRequest(targetUserId, user.id);
+            const success = await rejectFriendRequest(targetUserId);
 
-            if (response.status.success) {
+            if (success) {
                 setFriendshipStatus('NOT_FRIENDS');
                 onStatusChange?.(targetUserId, 'NOT_FRIENDS');
             } else {
-                alert(response.status.displayMessage || 'Không thể từ chối lời mời');
+                alert('Không thể từ chối lời mời');
             }
         } catch (error) {
             console.error('Error rejecting friend request:', error);
@@ -92,13 +93,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
 
         try {
             setProcessing(true);
-            const response = await friendshipService.unfriend(user.id, targetUserId);
+            const success = await unfriend(targetUserId);
 
-            if (response.status.success) {
+            if (success) {
                 setFriendshipStatus('NOT_FRIENDS');
                 onStatusChange?.(targetUserId, 'NOT_FRIENDS');
             } else {
-                alert(response.status.displayMessage || 'Không thể hủy kết bạn');
+                alert('Không thể hủy kết bạn');
             }
         } catch (error) {
             console.error('Error unfriending:', error);

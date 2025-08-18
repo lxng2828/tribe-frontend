@@ -5,15 +5,15 @@ import commentReactionService from './commentReactionService';
 import CommentReactionPicker from './CommentReactionPicker';
 
 const PostCommentsModal = () => {
-    const { 
-        showCommentsModal, 
-        closeCommentsModal, 
+    const {
+        showCommentsModal,
+        closeCommentsModal,
         selectedPost,
         addComment,
         deleteComment,
-        loading 
+        loading
     } = usePostManager();
-    
+
     const [comments, setComments] = useState([]);
     const [commentText, setCommentText] = useState('');
     const [replyingTo, setReplyingTo] = useState(null);
@@ -27,12 +27,26 @@ const PostCommentsModal = () => {
             // Load reaction status for each comment
             loadCommentReactions(selectedPost.comments || []);
         }
-    }, [showCommentsModal, selectedPost]);
+    }, [showCommentsModal, selectedPost?.id]);
+
+    // Sync comments with PostManager state
+    useEffect(() => {
+        if (showCommentsModal && selectedPost) {
+            setComments(selectedPost.comments || []);
+        }
+    }, [selectedPost?.comments, selectedPost?.id, showCommentsModal]);
+
+    // Force update comments when selectedPost changes
+    useEffect(() => {
+        if (showCommentsModal && selectedPost) {
+            setComments(selectedPost.comments || []);
+        }
+    }, [selectedPost, showCommentsModal]);
 
     // Load reaction status for comments and replies
     const loadCommentReactions = async (commentsList) => {
         const reactions = {};
-        
+
         // Helper function to load reaction for a single comment/reply
         const loadReactionForComment = async (comment) => {
             try {
@@ -54,7 +68,7 @@ const PostCommentsModal = () => {
         // Load reactions for main comments
         for (const comment of commentsList) {
             await loadReactionForComment(comment);
-            
+
             // Load reactions for replies if they exist
             if (comment.replies && comment.replies.length > 0) {
                 for (const reply of comment.replies) {
@@ -62,7 +76,7 @@ const PostCommentsModal = () => {
                 }
             }
         }
-        
+
         setCommentReactions(reactions);
     };
 
@@ -86,11 +100,8 @@ const PostCommentsModal = () => {
         if (!commentText.trim()) return;
 
         try {
-            const newComment = await addComment(selectedPost.id, commentText, replyingTo);
-            
-            // Add new comment to the list
-            setComments(prev => [...prev, newComment]);
-            
+            await addComment(selectedPost.id, commentText, replyingTo);
+
             // Reset form
             setCommentText('');
             setReplyingTo(null);
@@ -110,9 +121,7 @@ const PostCommentsModal = () => {
     const handleDeleteComment = async (commentId) => {
         try {
             await deleteComment(selectedPost.id, commentId);
-            
-            // Remove comment from the list
-            setComments(prev => prev.filter(comment => comment.id !== commentId));
+            // Comments sẽ được cập nhật tự động thông qua useEffect sync
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
@@ -125,7 +134,7 @@ const PostCommentsModal = () => {
             const currentReaction = prev[commentId];
             const wasReacted = currentReaction?.userReaction;
             const isReacted = result !== null;
-            
+
             // Calculate new count
             let newCount = currentReaction?.count || 0;
             if (wasReacted && !isReacted) {
@@ -138,7 +147,7 @@ const PostCommentsModal = () => {
                 // Changed reaction type - count stays the same
                 newCount = newCount;
             }
-            
+
             return {
                 ...prev,
                 [commentId]: {
@@ -150,8 +159,12 @@ const PostCommentsModal = () => {
     };
 
     const canDeleteComment = (comment) => {
-        // Add logic to check if user can delete this comment
-        return true; // For now, allow all users to delete
+        // Kiểm tra xem user hiện tại có thể xóa comment này không
+        const currentUserId = comment.user?.id || comment.author?.id;
+        const commentUserId = comment.user?.id || comment.author?.id;
+
+        // User có thể xóa comment của chính mình hoặc comment có isOwner = true
+        return comment.isOwner || currentUserId === commentUserId;
     };
 
     const handleCancel = () => {
@@ -165,32 +178,32 @@ const PostCommentsModal = () => {
     return (
         <>
             {/* Backdrop */}
-            <div 
-                className="modal-backdrop fade show" 
+            <div
+                className="modal-backdrop fade show"
                 onClick={handleCancel}
                 style={{ zIndex: 1040 }}
             ></div>
-            
+
             {/* Modal */}
-            <div 
-                className="modal fade show" 
-                style={{ display: 'block', zIndex: 1050 }} 
+            <div
+                className="modal fade show"
+                style={{ display: 'block', zIndex: 1050 }}
                 tabIndex="-1"
             >
                 <div className="modal-dialog modal-lg">
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title">
-                                Bình luận ({comments.length})
+                                Bình luận ({selectedPost?.commentsCount || comments.length})
                             </h5>
-                            <button 
-                                type="button" 
-                                className="btn-close" 
+                            <button
+                                type="button"
+                                className="btn-close"
                                 onClick={closeCommentsModal}
                                 disabled={loading}
                             ></button>
                         </div>
-                        
+
                         <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
                             {/* Comments list */}
                             {comments.length === 0 ? (
@@ -203,8 +216,8 @@ const PostCommentsModal = () => {
                                         <div key={comment.id} className="comment-item mb-3">
                                             <div className="d-flex">
                                                 <img
-                                                    src={getAvatarUrl(comment.user)}
-                                                    alt={comment.user?.name || 'User'}
+                                                    src={comment.user?.avatar || comment.author?.avatar || getAvatarUrl({ displayName: 'Người dùng' })}
+                                                    alt={comment.user?.name || comment.author?.name || 'User'}
                                                     className="rounded-circle me-3"
                                                     style={{ width: '40px', height: '40px' }}
                                                 />
@@ -212,14 +225,14 @@ const PostCommentsModal = () => {
                                                     <div className="comment-content">
                                                         <div className="d-flex align-items-center mb-1">
                                                             <strong className="me-2">
-                                                                {comment.user?.name || 'Người dùng'}
+                                                                {comment.user?.name || comment.author?.name || 'Người dùng'}
                                                             </strong>
                                                             <small className="text-muted">
                                                                 {formatDate(comment.createdAt)}
                                                             </small>
                                                         </div>
                                                         <p className="mb-2">{comment.content}</p>
-                                                        
+
                                                         <div className="comment-actions">
                                                             {commentReactions[comment.id]?.userReaction ? (
                                                                 <CommentReactionPicker
@@ -246,13 +259,13 @@ const PostCommentsModal = () => {
                                                                     Thích
                                                                 </button>
                                                             )}
-                                                            
+
                                                             {commentReactions[comment.id]?.count > 0 && (
                                                                 <span className="badge bg-light text-dark me-3">
                                                                     {commentReactions[comment.id].count}
                                                                 </span>
                                                             )}
-                                                            
+
                                                             <button
                                                                 type="button"
                                                                 className="btn btn-link btn-sm p-0 me-3"
@@ -260,7 +273,7 @@ const PostCommentsModal = () => {
                                                             >
                                                                 Trả lời
                                                             </button>
-                                                            
+
                                                             {canDeleteComment(comment) && (
                                                                 <button
                                                                     type="button"
@@ -272,7 +285,7 @@ const PostCommentsModal = () => {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Replies */}
                                                     {comment.replies && comment.replies.length > 0 && (
                                                         <div className="replies-container mt-3 ms-4">
@@ -280,8 +293,8 @@ const PostCommentsModal = () => {
                                                                 <div key={reply.id} className="reply-item mb-2">
                                                                     <div className="d-flex">
                                                                         <img
-                                                                            src={getAvatarUrl(reply.user)}
-                                                                            alt={reply.user?.name || 'User'}
+                                                                            src={reply.user?.avatar || reply.author?.avatar || getAvatarUrl({ displayName: 'Người dùng' })}
+                                                                            alt={reply.user?.name || reply.author?.name || 'User'}
                                                                             className="rounded-circle me-2"
                                                                             style={{ width: '32px', height: '32px' }}
                                                                         />
@@ -289,14 +302,14 @@ const PostCommentsModal = () => {
                                                                             <div className="reply-content">
                                                                                 <div className="d-flex align-items-center mb-1">
                                                                                     <strong className="me-2" style={{ fontSize: '14px' }}>
-                                                                                        {reply.user?.name || 'Người dùng'}
+                                                                                        {reply.user?.name || reply.author?.name || 'Người dùng'}
                                                                                     </strong>
                                                                                     <small className="text-muted">
                                                                                         {formatDate(reply.createdAt)}
                                                                                     </small>
                                                                                 </div>
                                                                                 <p className="mb-2" style={{ fontSize: '14px' }}>{reply.content}</p>
-                                                                                
+
                                                                                 <div className="reply-actions">
                                                                                     {commentReactions[reply.id]?.userReaction ? (
                                                                                         <CommentReactionPicker
@@ -323,13 +336,13 @@ const PostCommentsModal = () => {
                                                                                             Thích
                                                                                         </button>
                                                                                     )}
-                                                                                    
+
                                                                                     {commentReactions[reply.id]?.count > 0 && (
                                                                                         <span className="badge bg-light text-dark me-3">
                                                                                             {commentReactions[reply.id].count}
                                                                                         </span>
                                                                                     )}
-                                                                                    
+
                                                                                     <button
                                                                                         type="button"
                                                                                         className="btn btn-link btn-sm p-0 me-3"
@@ -337,7 +350,7 @@ const PostCommentsModal = () => {
                                                                                     >
                                                                                         Trả lời
                                                                                     </button>
-                                                                                    
+
                                                                                     {canDeleteComment(reply) && (
                                                                                         <button
                                                                                             type="button"

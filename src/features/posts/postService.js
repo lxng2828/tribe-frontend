@@ -21,6 +21,77 @@ export const getCurrentUserId = () => {
     return null;
 };
 
+// Helper function để format comment data một cách nhất quán
+const formatCommentData = (comment, currentUserId = null) => {
+    // Xử lý thông tin user từ cấu trúc mới
+    const user = comment.user || {};
+
+    // Lấy thông tin user từ cấu trúc mới
+    const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
+    const userId = user.senderId || user.id || user.userId || comment.userId;
+
+    // Xử lý avatar với logic cải thiện
+    let userAvatar = null;
+
+    // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
+    if (user.avatarSender) {
+        userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
+    }
+    // Ưu tiên 2: avatarUrl từ user object
+    else if (user.avatarUrl) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Ưu tiên 3: avatar từ user object
+    else if (user.avatar) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Ưu tiên 4: profilePicture từ user object
+    else if (user.profilePicture) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Fallback: tạo placeholder từ tên
+    else {
+        userAvatar = getAvatarUrl({ displayName: userName });
+    }
+
+    // Xử lý replies nếu có
+    const processReplies = (replies) => {
+        if (!replies || !Array.isArray(replies)) return [];
+        return replies.map(reply => formatCommentData(reply, currentUserId));
+    };
+
+    return {
+        id: comment.id,
+        content: comment.content,
+        user: {
+            id: userId,
+            name: userName,
+            avatar: userAvatar,
+            // Thêm thông tin user đầy đủ để component có thể sử dụng
+            displayName: user.displayName,
+            fullName: user.fullName,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            senderId: user.senderId
+        },
+        author: {
+            id: userId,
+            name: userName,
+            avatar: userAvatar,
+            displayName: user.displayName,
+            fullName: user.fullName,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            senderId: user.senderId
+        },
+        parentCommentId: comment.parentCommentId,
+        createdAt: comment.createdAt,
+        updatedAt: comment.updatedAt,
+        replies: processReplies(comment.replies),
+        isOwner: userId === currentUserId
+    };
+};
+
 // Helper function để format post data một cách nhất quán
 const formatPostData = (post, currentUserId = null) => {
     // Xử lý thông tin user từ cấu trúc mới
@@ -88,20 +159,7 @@ const formatPostData = (post, currentUserId = null) => {
     // Xử lý comments từ cấu trúc mới
     const processComments = (comments) => {
         if (!comments || !Array.isArray(comments)) return [];
-        return comments.map(comment => ({
-            id: comment.id,
-            content: comment.content,
-            user: {
-                id: comment.user?.senderId || comment.user?.id,
-                name: comment.user?.nameSender || comment.user?.name,
-                avatar: comment.user?.avatarSender ?
-                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
-                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
-            },
-            parentCommentId: comment.parentCommentId,
-            createdAt: comment.createdAt,
-            replies: comment.replies ? processComments(comment.replies) : []
-        }));
+        return comments.map(comment => formatCommentData(comment, currentUserId));
     };
 
     return {
@@ -394,7 +452,7 @@ class PostService {
 
             const { status, data } = response.data;
             if (status.success) {
-                return data;
+                return formatCommentData(data, getCurrentUserId());
             } else {
                 throw new Error(status.displayMessage || 'Lỗi khi thêm bình luận');
             }
@@ -515,20 +573,7 @@ class PostService {
                         // Xử lý comments từ cấu trúc mới
                         const processComments = (comments) => {
                             if (!comments || !Array.isArray(comments)) return [];
-                            return comments.map(comment => ({
-                                id: comment.id,
-                                content: comment.content,
-                                user: {
-                                    id: comment.user?.senderId || comment.user?.id,
-                                    name: comment.user?.nameSender || comment.user?.name,
-                                    avatar: comment.user?.avatarSender ?
-                                        getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
-                                        getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
-                                },
-                                parentCommentId: comment.parentCommentId,
-                                createdAt: comment.createdAt,
-                                replies: comment.replies ? processComments(comment.replies) : []
-                            }));
+                            return comments.map(comment => formatCommentData(comment, getCurrentUserId()));
                         };
 
                         return {
@@ -704,20 +749,7 @@ class PostService {
                     // Xử lý comments từ cấu trúc mới
                     const processComments = (comments) => {
                         if (!comments || !Array.isArray(comments)) return [];
-                        return comments.map(comment => ({
-                            id: comment.id,
-                            content: comment.content,
-                            user: {
-                                id: comment.user?.senderId || comment.user?.id,
-                                name: comment.user?.nameSender || comment.user?.name,
-                                avatar: comment.user?.avatarSender ?
-                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
-                                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
-                            },
-                            parentCommentId: comment.parentCommentId,
-                            createdAt: comment.createdAt,
-                            replies: comment.replies ? processComments(comment.replies) : []
-                        }));
+                        return comments.map(comment => formatCommentData(comment, getCurrentUserId()));
                     };
 
                     return {

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import postService from '../features/posts/postService';
 import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { toast } from 'react-toastify';
 
 const CreatePost = ({ onPostCreate }) => {
     const [postText, setPostText] = useState('');
@@ -34,7 +35,7 @@ const CreatePost = ({ onPostCreate }) => {
             setShowPostBox(false);
         } catch (error) {
             console.error('Error creating post:', error);
-            alert(`Có lỗi xảy ra khi đăng bài viết: ${error.message}`);
+            toast.error(`Có lỗi xảy ra khi đăng bài viết: ${error.message}`);
         } finally {
             setIsSubmitting(false);
         }

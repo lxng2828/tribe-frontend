@@ -3,6 +3,7 @@ import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
 import userService from '../services/userService';
 import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { toast } from 'react-toastify';
 import './NewConversationModal.css';
 
 const NewConversationModal = ({ onClose, onConversationCreated }) => {
@@ -69,7 +70,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
             onConversationCreated(conversation);
         } catch (error) {
             console.error('Error creating conversation:', error);
-            alert('Failed to create conversation. Please try again.');
+            toast.error('Failed to create conversation. Please try again.');
         } finally {
             setCreating(false);
         }
@@ -77,11 +78,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
 
     const handleCreateGroup = () => {
         if (selectedUsers.length === 0) {
-            alert('Please select at least one user for the group');
+            toast.error('Please select at least one user for the group');
             return;
         }
         if (!groupName.trim()) {
-            alert('Please enter a group name');
+            toast.error('Please enter a group name');
             return;
         }
         handleCreateConversation('GROUP', selectedUsers, groupName);

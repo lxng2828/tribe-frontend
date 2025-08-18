@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useFriends } from '../contexts/FriendsContext';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
+import ConfirmationModal from './ConfirmationModal';
 
 const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
     const { user } = useAuth();
@@ -38,12 +40,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
             if (success) {
                 setFriendshipStatus('PENDING_SENT');
                 onStatusChange?.(targetUserId, 'PENDING_SENT');
+                toast.success('Đã gửi lời mời kết bạn thành công!');
             } else {
-                alert('Không thể gửi lời mời kết bạn');
+                toast.error('Không thể gửi lời mời kết bạn');
             }
         } catch (error) {
             console.error('Error sending friend request:', error);
-            alert('Lỗi khi gửi lời mời kết bạn');
+            toast.error('Lỗi khi gửi lời mời kết bạn');
         } finally {
             setProcessing(false);
         }
@@ -57,12 +60,13 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
             if (success) {
                 setFriendshipStatus('FRIENDS');
                 onStatusChange?.(targetUserId, 'FRIENDS');
+                toast.success('Đã chấp nhận lời mời kết bạn thành công!');
             } else {
-                alert('Không thể chấp nhận lời mời');
+                toast.error('Không thể chấp nhận lời mời');
             }
         } catch (error) {
             console.error('Error accepting friend request:', error);
-            alert('Lỗi khi chấp nhận lời mời kết bạn');
+            toast.error('Lỗi khi chấp nhận lời mời kết bạn');
         } finally {
             setProcessing(false);
         }
@@ -76,19 +80,20 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
             if (success) {
                 setFriendshipStatus('NOT_FRIENDS');
                 onStatusChange?.(targetUserId, 'NOT_FRIENDS');
+                toast.success('Đã từ chối lời mời kết bạn');
             } else {
-                alert('Không thể từ chối lời mời');
+                toast.error('Không thể từ chối lời mời');
             }
         } catch (error) {
             console.error('Error rejecting friend request:', error);
-            alert('Lỗi khi từ chối lời mời kết bạn');
+            toast.error('Lỗi khi từ chối lời mời kết bạn');
         } finally {
             setProcessing(false);
         }
     };
 
     const handleUnfriend = async () => {
-        const confirmed = window.confirm(`Bạn có chắc muốn hủy kết bạn với ${targetUserName}?`);
+        const confirmed = await ConfirmationModal.confirmUnfriend(targetUserName);
         if (!confirmed) return;
 
         try {
@@ -98,12 +103,12 @@ const FriendshipButton = ({ targetUserId, targetUserName, onStatusChange }) => {
             if (success) {
                 setFriendshipStatus('NOT_FRIENDS');
                 onStatusChange?.(targetUserId, 'NOT_FRIENDS');
+                toast.success('Đã hủy kết bạn thành công');
             } else {
-                alert('Không thể hủy kết bạn');
+                toast.error('Không thể hủy kết bạn');
             }
         } catch (error) {
             console.error('Error unfriending:', error);
-            alert('Lỗi khi hủy kết bạn');
         } finally {
             setProcessing(false);
         }

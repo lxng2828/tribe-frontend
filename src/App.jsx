@@ -17,16 +17,17 @@ function App() {
             <FriendsProvider>
               <AppRoutes />
               <ToastContainer
-                position="top-right"
-                autoClose={5000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
+                position="top-center"
+                autoClose={false}
+                hideProgressBar={true}
+                newestOnTop={true}
+                closeOnClick={false}
                 rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
+                pauseOnFocusLoss={false}
+                draggable={true}
+                pauseOnHover={true}
                 theme="light"
+                limit={3}
               />
             </FriendsProvider>
           </MessageProvider>

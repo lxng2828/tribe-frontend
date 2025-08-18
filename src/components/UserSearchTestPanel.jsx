@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import userService from '../services/userService';
+import { toast } from 'react-toastify';
 import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 
 const UserSearchTestPanel = () => {
@@ -10,7 +11,7 @@ const UserSearchTestPanel = () => {
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) {
-            alert('Vui lòng nhập từ khóa tìm kiếm');
+            toast.error('Vui lòng nhập từ khóa tìm kiếm');
             return;
         }
 

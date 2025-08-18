@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFriends } from '../contexts/FriendsContext';
 import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import Loading from './Loading';
+import { toast } from 'react-toastify';
 
 const FriendRequests = ({ userId }) => {
     const { friendRequests, loading, error, acceptFriendRequest, rejectFriendRequest } = useFriends();
@@ -17,11 +18,13 @@ const FriendRequests = ({ userId }) => {
 
             const success = await acceptFriendRequest(senderId);
             if (!success) {
-                alert('Không thể chấp nhận lời mời');
+                toast.error('Không thể chấp nhận lời mời');
+            } else {
+                toast.success('Đã chấp nhận lời mời kết bạn thành công!');
             }
         } catch (error) {
             console.error('Error accepting friend request:', error);
-            alert('Lỗi khi chấp nhận lời mời kết bạn');
+            toast.error('Lỗi khi chấp nhận lời mời kết bạn');
         } finally {
             setProcessingIds(prev => {
                 const newSet = new Set(prev);
@@ -39,11 +42,13 @@ const FriendRequests = ({ userId }) => {
 
             const success = await rejectFriendRequest(senderId);
             if (!success) {
-                alert('Không thể từ chối lời mời');
+                toast.error('Không thể từ chối lời mời');
+            } else {
+                toast.success('Đã từ chối lời mời kết bạn');
             }
         } catch (error) {
             console.error('Error rejecting friend request:', error);
-            alert('Lỗi khi từ chối lời mời kết bạn');
+            toast.error('Lỗi khi từ chối lời mời kết bạn');
         } finally {
             setProcessingIds(prev => {
                 const newSet = new Set(prev);

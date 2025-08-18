@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
 import { useAvatarSync } from '../hooks/useAvatarSync';
 import PostsApp from '../features/posts/PostsApp';
@@ -142,9 +143,9 @@ const ProfilePage = () => {
                     postListRef.current.refreshPosts();
                 }
                 // Thông báo thành công
-                alert('Cập nhật ảnh đại diện thành công!');
+                toast.success('Cập nhật ảnh đại diện thành công!');
             } else {
-                alert(response?.message || 'Không thể cập nhật ảnh đại diện');
+                toast.error(response?.message || 'Không thể cập nhật ảnh đại diện');
             }
         } catch (error) {
             console.error('Error updating avatar:', error);
@@ -160,7 +161,7 @@ const ProfilePage = () => {
                 errorMessage = error.message;
             }
             
-            alert(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setUploadingAvatar(false);
         }

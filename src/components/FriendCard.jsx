@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFriends } from '../contexts/FriendsContext';
 import { getFullUrl, DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { toast } from 'react-toastify';
+import ConfirmationModal from './ConfirmationModal';
 
 const FriendCard = ({ friend, onUnfriend }) => {
     const navigate = useNavigate();
@@ -18,7 +20,7 @@ const FriendCard = ({ friend, onUnfriend }) => {
     const handleUnfriend = async (e) => {
         e.stopPropagation(); // Ngăn không cho trigger handleClick
 
-        const confirmed = window.confirm(`Bạn có chắc muốn hủy kết bạn với ${friend.displayName}?`);
+        const confirmed = await ConfirmationModal.confirmUnfriend(friend.displayName);
         if (!confirmed) return;
 
         try {
@@ -28,13 +30,12 @@ const FriendCard = ({ friend, onUnfriend }) => {
             if (success) {
                 // Gọi callback để cập nhật danh sách bạn bè (nếu cần)
                 onUnfriend?.(friend.id);
-                alert('Đã hủy kết bạn thành công');
+                toast.success('Đã hủy kết bạn thành công');
             } else {
-                alert('Không thể hủy kết bạn');
+                toast.error('Không thể hủy kết bạn');
             }
         } catch (error) {
             console.error('Error unfriending:', error);
-            alert('Lỗi khi hủy kết bạn');
         } finally {
             setProcessing(false);
         }

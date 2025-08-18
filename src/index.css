@@ -75,7 +75,7 @@ body {
 
 .friend-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 /* Friends list responsive */
@@ -83,11 +83,11 @@ body {
     .friends-list .row {
         justify-content: center;
     }
-    
+
     .friend-card {
         min-height: 120px;
     }
-    
+
     .friend-card img {
         width: 60px !important;
         height: 60px !important;
@@ -98,7 +98,7 @@ body {
     .friend-card {
         min-height: 110px;
     }
-    
+
     .friend-card img {
         width: 50px !important;
         height: 50px !important;
@@ -224,7 +224,7 @@ body {
     .navbar-fb {
         padding: 0.5rem 0;
     }
-    
+
     .navbar-fb .navbar-brand {
         font-size: 1.5rem;
     }
@@ -484,6 +484,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -502,6 +503,7 @@ body {
     0% {
         background-position: 200% 0;
     }
+
     100% {
         background-position: -200% 0;
     }
@@ -558,6 +560,7 @@ body {
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -689,7 +692,8 @@ body {
     padding: 2.5rem;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #111827; /* Thêm màu đen cho text trong card */
+    color: #111827;
+    /* Thêm màu đen cho text trong card */
 }
 
 .form-group {
@@ -697,7 +701,8 @@ body {
 }
 
 .form-label-custom {
-    color: #111827; /* Đổi thành màu đen đậm hơn */
+    color: #111827;
+    /* Đổi thành màu đen đậm hơn */
     font-weight: 600;
     margin-bottom: 0.5rem;
     display: block;
@@ -724,11 +729,13 @@ body {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: white;
-    color: #111827; /* Màu đen cho text trong input */
+    color: #111827;
+    /* Màu đen cho text trong input */
 }
 
 .form-control-custom::placeholder {
-    color: #6b7280; /* Màu xám đậm hơn cho placeholder */
+    color: #6b7280;
+    /* Màu xám đậm hơn cho placeholder */
 }
 
 .form-control-custom:focus {
@@ -766,7 +773,8 @@ body {
 }
 
 .form-check-label-custom {
-    color: #111827; /* Đổi thành màu đen đậm hơn */
+    color: #111827;
+    /* Đổi thành màu đen đậm hơn */
     font-weight: 500;
     cursor: pointer;
     margin-left: 0.5rem;
@@ -851,7 +859,8 @@ body {
 .divider span {
     background: white;
     padding: 0 1rem;
-    color: #111827; /* Đổi thành màu đen đậm hơn */
+    color: #111827;
+    /* Đổi thành màu đen đậm hơn */
     font-size: 0.875rem;
 }
 
@@ -917,7 +926,8 @@ body {
 }
 
 .demo-header h6 {
-    color: #111827; /* Đổi thành màu đen đậm hơn */
+    color: #111827;
+    /* Đổi thành màu đen đậm hơn */
     font-weight: 600;
     margin-bottom: 1rem;
 }
@@ -947,7 +957,8 @@ body {
 
 .demo-label {
     font-weight: 500;
-    color: #111827; /* Đổi thành màu đen đậm hơn */
+    color: #111827;
+    /* Đổi thành màu đen đậm hơn */
 }
 
 .demo-email {
@@ -977,6 +988,7 @@ body {
         opacity: 0;
         transform: translateX(-50px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -988,6 +1000,7 @@ body {
         opacity: 0;
         transform: translateX(50px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -999,6 +1012,7 @@ body {
         opacity: 0;
         transform: translateY(-50px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1010,6 +1024,7 @@ body {
         opacity: 0;
         transform: translateY(50px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1018,6 +1033,7 @@ body {
 
 /* Responsive design */
 @media (max-width: 768px) {
+
     .login-card,
     .register-card,
     .forgot-password-card {
@@ -1142,14 +1158,16 @@ body {
 .login-card h2,
 .register-card h2,
 .forgot-password-card h2 {
-    color: #111827 !important; /* Màu đen đậm cho heading */
+    color: #111827 !important;
+    /* Màu đen đậm cho heading */
     font-weight: 700;
 }
 
 .login-card p,
 .register-card p,
 .forgot-password-card p {
-    color: #374151 !important; /* Màu xám đậm cho text thường */
+    color: #374151 !important;
+    /* Màu xám đậm cho text thường */
 }
 
 /* Đảm bảo tất cả text trong card có màu đen nổi bật */
@@ -1317,7 +1335,7 @@ body {
     .otp-boxes {
         gap: 0.5rem;
     }
-    
+
     .otp-box {
         width: 2.5rem;
         height: 2.5rem;
@@ -1327,73 +1345,146 @@ body {
 
 /* Toast Customization */
 .Toastify__toast-container {
-  z-index: 9999;
+    z-index: 9999;
 }
 
 .Toastify__toast {
-  border-radius: 12px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: none;
+    border-radius: 12px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: none;
 }
 
 .Toastify__toast--success {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
 }
 
 .Toastify__toast--error {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
 }
 
 .Toastify__toast--warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  color: white;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
 }
 
 .Toastify__toast--info {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: white;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
 }
 
 .Toastify__toast-body {
-  padding: 12px 16px;
-  line-height: 1.5;
+    padding: 12px 16px;
+    line-height: 1.5;
 }
 
 .Toastify__progress-bar {
-  background: rgba(255, 255, 255, 0.3);
-  height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    height: 3px;
 }
 
 .Toastify__close-button {
-  color: rgba(255, 255, 255, 0.8);
-  opacity: 0.8;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.8;
 }
 
 .Toastify__close-button:hover {
-  opacity: 1;
+    opacity: 1;
 }
 
 /* Loading toast */
 .Toastify__toast--default {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: white;
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .Toastify__toast-container {
-    width: 90vw;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  .Toastify__toast {
-    margin-bottom: 8px;
-    font-size: 13px;
-  }
+    .Toastify__toast-container {
+        width: 90vw;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .Toastify__toast {
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+}
+
+/* Confirmation Toast Modal Styles */
+.confirmation-toast {
+    padding: 0;
+    font-family: inherit;
+}
+
+.confirmation-header {
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.confirmation-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.confirmation-message {
+    margin-bottom: 16px;
+}
+
+.confirmation-message p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #666;
+}
+
+.confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.confirmation-actions .btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirmation-actions .btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.confirmation-actions .btn-danger:hover {
+    background-color: #c82333;
+}
+
+.confirmation-actions .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.confirmation-actions .btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Toast container customization */
+.Toastify__toast-container {
+    z-index: 9999;
+}
+
+.Toastify__toast {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }

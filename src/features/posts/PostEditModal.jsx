@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePostManager } from './PostManager';
+import { toast } from 'react-toastify';
 
 const PostEditModal = () => {
     const { 
@@ -29,7 +30,7 @@ const PostEditModal = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!postText.trim() && selectedImages.length === 0 && existingImages.length === 0) {
-            alert('Vui lòng nhập nội dung hoặc chọn ảnh!');
+            toast.error('Vui lòng nhập nội dung hoặc chọn ảnh!');
             return;
         }
 

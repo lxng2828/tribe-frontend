@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DEFAULT_AVATAR, getPostAuthorAvatar, getCommentAuthorAvatar, getAvatarUrl } from '../../utils/placeholderImages';
 import postService from './postService';
+import { toast } from 'react-toastify';
 import PostReactionPicker from './PostReactionPicker';
+import ConfirmationModal from '../ConfirmationModal';
 
 const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
     const [showComments, setShowComments] = useState(true);
@@ -11,7 +13,9 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
     const [commentText, setCommentText] = useState('');
     const [isLiking, setIsLiking] = useState(false);
     const [postReaction, setPostReaction] = useState(post.liked ? { reactionType: 'LIKE' } : null);
-    
+    const [showDeleteCommentConfirm, setShowDeleteCommentConfirm] = useState(false);
+    const [commentToDelete, setCommentToDelete] = useState(null);
+
     const { user } = useAuth();
 
     // Check if current user can edit/delete this post
@@ -36,22 +40,22 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
         switch (visibility) {
             case 'PUBLIC':
                 return {
-                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>,
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg>,
                     text: 'Công khai'
                 };
             case 'FRIENDS':
                 return {
-                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01 1l-1.7 2.26A3.997 3.997 0 0 0 10 15c-2.21 0-4 1.79-4 4v2h14zm-8-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z"/></svg>,
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M16 4c0-1.11.89-2 2-2s2 .89 2 2-.89 2-2 2-2-.89-2-2zm4 18v-6h2.5l-2.54-7.63A1.5 1.5 0 0 0 18.54 8H17c-.8 0-1.54.37-2.01 1l-1.7 2.26A3.997 3.997 0 0 0 10 15c-2.21 0-4 1.79-4 4v2h14zm-8-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" /></svg>,
                     text: 'Bạn bè'
                 };
             case 'PRIVATE':
                 return {
-                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>,
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" /></svg>,
                     text: 'Chỉ mình tôi'
                 };
             default:
                 return {
-                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>,
+                    icon: <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" /></svg>,
                     text: 'Công khai'
                 };
         }
@@ -59,15 +63,15 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
 
     const handleLike = async () => {
         if (isLiking) return;
-        
+
         try {
             setIsLiking(true);
             const result = await postService.toggleReaction(post.id, 'LIKE');
-            
+
             if (onLike) {
                 onLike(post.id);
             }
-            
+
             console.log('Reaction result:', result);
         } catch (error) {
             console.error('Error toggling reaction:', error);
@@ -78,10 +82,10 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
 
     const handlePostReactionChange = async (result) => {
         if (isLiking) return;
-        
+
         try {
             setIsLiking(true);
-            
+
             if (result) {
                 if (postReaction && postReaction.reactionType === result.reactionType) {
                     const apiResult = await postService.toggleReaction(post.id, result.reactionType);
@@ -94,7 +98,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                 const apiResult = await postService.toggleReaction(post.id, 'LIKE');
                 setPostReaction(null);
             }
-            
+
             if (onLike) {
                 onLike(post.id);
             }
@@ -147,7 +151,25 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
             }
         } catch (error) {
             console.error('Error deleting comment:', error);
-            alert('Không thể xóa comment: ' + error.message);
+            toast.error('Không thể xóa comment: ' + error.message);
+        }
+    };
+
+    const confirmDeleteComment = async () => {
+        if (!commentToDelete) return;
+
+        try {
+            await postService.deleteComment(post.id, commentToDelete);
+            if (onAddComment) {
+                await onAddComment(post.id, null, null, true);
+            }
+            toast.success('Đã xóa bình luận thành công');
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            toast.error('Không thể xóa comment: ' + error.message);
+        } finally {
+            setCommentToDelete(null);
+            setShowDeleteCommentConfirm(false);
         }
     };
 
@@ -174,17 +196,17 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
         // Logic phân quyền chính xác:
         // 1. Nếu là chủ bài viết: có thể xóa tất cả comment
         // 2. Nếu không phải chủ bài viết: chỉ có thể xóa comment của chính mình
-        
+
         // Hỗ trợ cả comment.user.id và comment.author.id
         const commentAuthorId = comment.user?.id || comment.author?.id;
         const postAuthorId = post.author?.id;
         const currentUserId = user?.id;
-        
+
         const isCommentAuthor = commentAuthorId === currentUserId;
         const isPostAuthor = postAuthorId === currentUserId;
-        
+
         const canDelete = isCommentAuthor || isPostAuthor;
-        
+
         console.log('Delete permission result:', {
             canDelete,
             commentAuthorId,
@@ -194,7 +216,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
             isPostAuthor,
             reason: isCommentAuthor ? 'Comment author' : isPostAuthor ? 'Post author' : 'No permission'
         });
-        
+
         return canDelete;
     };
 
@@ -533,18 +555,18 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                         <div className="d-flex align-items-center">
                             <div className="d-flex me-3" style={{ position: 'relative' }}>
                                 {post.reactions.slice(0, 3).map((reaction, index) => (
-                                    <div key={index} 
+                                    <div key={index}
                                         style={{
                                             width: '20px',
                                             height: '20px',
                                             borderRadius: '50%',
                                             background: reaction.type === 'LIKE' ? 'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)' :
-                                                       reaction.type === 'LOVE' ? 'linear-gradient(135deg, #e41e3f 0%, #ff6b9d 100%)' :
-                                                       reaction.type === 'WOW' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
-                                                       reaction.type === 'HAHA' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
-                                                       reaction.type === 'SAD' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
-                                                       reaction.type === 'ANGRY' ? 'linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%)' : 
-                                                       'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)',
+                                                reaction.type === 'LOVE' ? 'linear-gradient(135deg, #e41e3f 0%, #ff6b9d 100%)' :
+                                                    reaction.type === 'WOW' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                        reaction.type === 'HAHA' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                            reaction.type === 'SAD' ? 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)' :
+                                                                reaction.type === 'ANGRY' ? 'linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%)' :
+                                                                    'linear-gradient(135deg, #1877f2 0%, #42a5f5 100%)',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
@@ -567,15 +589,15 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                             e.target.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)';
                                         }}
                                     >
-                                        {reaction.type === 'LIKE' ? '👍' : 
-                                         reaction.type === 'LOVE' ? '❤️' : 
-                                         reaction.type === 'WOW' ? '😮' : 
-                                         reaction.type === 'HAHA' ? '😂' : 
-                                         reaction.type === 'SAD' ? '😢' : 
-                                         reaction.type === 'ANGRY' ? '😠' : '👍'}
+                                        {reaction.type === 'LIKE' ? '👍' :
+                                            reaction.type === 'LOVE' ? '❤️' :
+                                                reaction.type === 'WOW' ? '😮' :
+                                                    reaction.type === 'HAHA' ? '😂' :
+                                                        reaction.type === 'SAD' ? '😢' :
+                                                            reaction.type === 'ANGRY' ? '😠' : '👍'}
                                     </div>
                                 ))}
-                                
+
                                 <div style={{
                                     position: 'absolute',
                                     top: '50%',
@@ -588,17 +610,17 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                     zIndex: -1
                                 }} />
                             </div>
-                            
+
                             <div className="d-flex align-items-center">
-                                <span style={{ 
-                                    color: '#65676b', 
+                                <span style={{
+                                    color: '#65676b',
                                     fontSize: '13px',
                                     fontWeight: '500',
                                     cursor: 'pointer',
                                     transition: 'color 0.2s ease'
                                 }}
-                                onMouseEnter={(e) => e.target.style.color = '#1877f2'}
-                                onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                    onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                    onMouseLeave={(e) => e.target.style.color = '#65676b'}
                                 >
                                     {post.reactions.length === 1 ? (
                                         post.reactions[0].user.name
@@ -610,25 +632,25 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                         `${post.reactions[0].user.name}, ${post.reactions[1].user.name} và ${post.reactions.length - 2} người khác`
                                     )}
                                 </span>
-                                
+
                                 {post.commentsCount > 0 && (
                                     <>
-                                        <span style={{ 
-                                            color: '#65676b', 
+                                        <span style={{
+                                            color: '#65676b',
                                             fontSize: '13px',
                                             margin: '0 12px'
                                         }}>
                                             •
                                         </span>
-                                        <span style={{ 
-                                            color: '#65676b', 
+                                        <span style={{
+                                            color: '#65676b',
                                             fontSize: '13px',
                                             fontWeight: '500',
                                             cursor: 'pointer',
                                             transition: 'color 0.2s ease'
                                         }}
-                                        onMouseEnter={(e) => e.target.style.color = '#1877f2'}
-                                        onMouseLeave={(e) => e.target.style.color = '#65676b'}
+                                            onMouseEnter={(e) => e.target.style.color = '#1877f2'}
+                                            onMouseLeave={(e) => e.target.style.color = '#65676b'}
                                         >
                                             {post.commentsCount} bình luận
                                         </span>
@@ -651,44 +673,44 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                         />
                     </div>
                 ) : (
-                   <button
-                       className="post-action-btn flex-grow-1"
-                       onClick={() => handlePostReactionChange({ reactionType: 'LIKE' })}
-                       disabled={isLiking}
-                       style={{
-                           backgroundColor: 'transparent',
-                           border: 'none',
-                           color: '#65676b',
-                           fontSize: '14px',
-                           fontWeight: '600',
-                           cursor: 'pointer'
-                       }}
-                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                   >
-                       <span>{isLiking ? 'Đang xử lý...' : 'Thích'}</span>
-                   </button>
-               )}
+                    <button
+                        className="post-action-btn flex-grow-1"
+                        onClick={() => handlePostReactionChange({ reactionType: 'LIKE' })}
+                        disabled={isLiking}
+                        style={{
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            color: '#65676b',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            cursor: 'pointer'
+                        }}
+                        onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                    >
+                        <span>{isLiking ? 'Đang xử lý...' : 'Thích'}</span>
+                    </button>
+                )}
 
-               <button
-                   className="post-action-btn flex-grow-1"
-                   onClick={() => setShowComments(!showComments)}
-               >
-                   <span className="icon">💬</span>
-                   <span>Bình luận</span>
-               </button>
+                <button
+                    className="post-action-btn flex-grow-1"
+                    onClick={() => setShowComments(!showComments)}
+                >
+                    <span className="icon">💬</span>
+                    <span>Bình luận</span>
+                </button>
 
-               <button
-                   className="post-action-btn flex-grow-1"
-               >
-                   <span className="icon">📤</span>
-                   <span>Chia sẻ</span>
-               </button>
-           </div>
+                <button
+                    className="post-action-btn flex-grow-1"
+                >
+                    <span className="icon">📤</span>
+                    <span>Chia sẻ</span>
+                </button>
+            </div>
 
             {/* Comments Section */}
             {showComments && (
-                <div className="border-top px-4 py-3" style={{ 
+                <div className="border-top px-4 py-3" style={{
                     backgroundColor: '#f8f9fa'
                 }}>
                     {/* Comment Input */}
@@ -721,12 +743,12 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                 }}
                             />
                             <div className="position-absolute end-0 top-50 translate-middle-y me-2 d-flex align-items-center">
-                                <button 
+                                <button
                                     className="send-btn"
                                     onClick={handleSubmitComment}
-                                    style={{ 
-                                        backgroundColor: 'transparent', 
-                                        border: 'none', 
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        border: 'none',
                                         color: '#1877f2',
                                         fontWeight: 'bold',
                                         fontSize: '16px'
@@ -739,15 +761,15 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                     </div>
 
                     {/* Comments Filter */}
-                    <div className="comments-filter mb-3" style={{ 
-                        fontSize: '13px', 
+                    <div className="comments-filter mb-3" style={{
+                        fontSize: '13px',
                         color: '#65676b',
                         cursor: 'pointer'
                     }}>
                         <span>Phù hợp nhất</span>
                         <span className="dropdown-arrow ms-1">▼</span>
                     </div>
-                    
+
                     {/* Comments List */}
                     <div className="comments-container">
                         {post.comments && post.comments.map((comment) => (
@@ -757,9 +779,9 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                         src={getCommentAuthorAvatar(comment)}
                                         alt={comment.author?.name || comment.author?.displayName || comment.author?.fullName || 'User'}
                                         className="profile-pic-sm-fb me-3"
-                                        style={{ 
-                                            width: '32px', 
-                                            height: '32px', 
+                                        style={{
+                                            width: '32px',
+                                            height: '32px',
                                             borderRadius: '50%',
                                             flexShrink: 0
                                         }}
@@ -774,26 +796,26 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                 position: 'relative'
                                             }}>
                                             <div className="fw-bold mb-1"
-                                                style={{ 
-                                                    color: '#1c1e21', 
+                                                style={{
+                                                    color: '#1c1e21',
                                                     fontSize: '13px',
                                                     fontWeight: '600'
                                                 }}>
                                                 {comment.author?.name || 'Người dùng'}
                                             </div>
-                                            <div style={{ 
-                                                color: '#1c1e21', 
+                                            <div style={{
+                                                color: '#1c1e21',
                                                 fontSize: '14px',
                                                 lineHeight: '1.33'
                                             }}>
                                                 {comment.content}
                                             </div>
                                         </div>
-                                       
+
                                         {/* Comment Actions */}
                                         <div className="d-flex align-items-center mt-1 ms-2">
-                                            <small style={{ 
-                                                color: '#65676b', 
+                                            <small style={{
+                                                color: '#65676b',
                                                 fontSize: '12px',
                                                 fontWeight: '500',
                                                 marginRight: '12px'
@@ -815,7 +837,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                             >
                                                 Thích
                                             </button>
-                                            <button 
+                                            <button
                                                 className="comment-action-btn"
                                                 style={{
                                                     backgroundColor: 'transparent',
@@ -834,7 +856,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                             </button>
                                             {/* CHỈ HIỂN THỊ NÚT XÓA KHI CÓ QUYỀN */}
                                             {canDeleteComment(comment) && (
-                                                <button 
+                                                <button
                                                     className="comment-action-btn"
                                                     style={{
                                                         backgroundColor: 'transparent',
@@ -847,9 +869,8 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                     onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                                                     onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                                                     onClick={() => {
-                                                        if (window.confirm('Bạn có chắc chắn muốn xóa comment này?')) {
-                                                            handleDeleteComment(comment.id);
-                                                        }
+                                                        setCommentToDelete(comment.id);
+                                                        setShowDeleteCommentConfirm(true);
                                                     }}
                                                 >
                                                     Xóa
@@ -866,9 +887,9 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                             src={getCommentAuthorAvatar(reply)}
                                                             alt={reply.author?.name || 'User'}
                                                             className="profile-pic-sm-fb me-2"
-                                                            style={{ 
-                                                                width: '28px', 
-                                                                height: '28px', 
+                                                            style={{
+                                                                width: '28px',
+                                                                height: '28px',
                                                                 borderRadius: '50%',
                                                                 flexShrink: 0
                                                             }}
@@ -883,26 +904,26 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                                     position: 'relative'
                                                                 }}>
                                                                 <div className="fw-bold mb-1"
-                                                                    style={{ 
-                                                                        color: '#1c1e21', 
+                                                                    style={{
+                                                                        color: '#1c1e21',
                                                                         fontSize: '12px',
                                                                         fontWeight: '600'
                                                                     }}>
                                                                     {reply.author?.name || 'Người dùng'}
                                                                 </div>
-                                                                <div style={{ 
-                                                                    color: '#1c1e21', 
+                                                                <div style={{
+                                                                    color: '#1c1e21',
                                                                     fontSize: '13px',
                                                                     lineHeight: '1.4'
                                                                 }}>
                                                                     {reply.content}
                                                                 </div>
                                                             </div>
-                                                            
+
                                                             {/* Reply Actions */}
                                                             <div className="d-flex align-items-center mt-1 ms-2">
-                                                                <small style={{ 
-                                                                    color: '#65676b', 
+                                                                <small style={{
+                                                                    color: '#65676b',
                                                                     fontSize: '11px',
                                                                     fontWeight: '500'
                                                                 }}>
@@ -922,7 +943,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                                 >
                                                                     Thích
                                                                 </button>
-                                                                <button 
+                                                                <button
                                                                     className="btn btn-sm ms-1 p-0 comment-action-btn"
                                                                     style={{
                                                                         backgroundColor: 'transparent',
@@ -940,7 +961,7 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                                 </button>
                                                                 {/* CHỈ HIỂN THỊ NÚT XÓA KHI CÓ QUYỀN */}
                                                                 {canDeleteComment(reply) && (
-                                                                    <button 
+                                                                    <button
                                                                         className="btn btn-sm ms-1 p-0 comment-action-btn"
                                                                         style={{
                                                                             backgroundColor: 'transparent',
@@ -953,9 +974,8 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                                                                         onMouseEnter={(e) => e.target.style.color = '#c0392b'}
                                                                         onMouseLeave={(e) => e.target.style.color = '#e74c3c'}
                                                                         onClick={() => {
-                                                                            if (window.confirm('Bạn có chắc chắn muốn xóa phản hồi này?')) {
-                                                                                handleDeleteComment(reply.id);
-                                                                            }
+                                                                            setCommentToDelete(reply.id);
+                                                                            setShowDeleteCommentConfirm(true);
                                                                         }}
                                                                     >
                                                                         Xóa
@@ -973,18 +993,29 @@ const PostItem = ({ post, onLike, onDelete, onAddComment }) => {
                         ))}
                     </div>
 
-                   {/* No Comments Message */}
-                   {(!post.comments || post.comments.length === 0) && (
-                       <div className="text-center py-4">
-                           <div style={{ color: '#65676b', fontSize: '14px' }}>
-                               Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
-                           </div>
-                       </div>
-                   )}
-               </div>
-           )}
-       </div>
-   );
+                    {/* No Comments Message */}
+                    {(!post.comments || post.comments.length === 0) && (
+                        <div className="text-center py-4">
+                            <div style={{ color: '#65676b', fontSize: '14px' }}>
+                                Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <ConfirmationModal
+                isOpen={showDeleteCommentConfirm}
+                onClose={() => setShowDeleteCommentConfirm(false)}
+                onConfirm={confirmDeleteComment}
+                title="Xóa bình luận"
+                message="Bạn có chắc chắn muốn xóa bình luận này?"
+                confirmText="Xóa"
+                cancelText="Hủy"
+                type="danger"
+            />
+        </div>
+    );
 };
 
 export default PostItem;

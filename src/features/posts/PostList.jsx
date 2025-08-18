@@ -3,6 +3,8 @@ import PostItem from './PostItem';
 import postService from './postService';
 import { useAuth } from '../../contexts/AuthContext';
 import { usePostAvatarSync } from '../../hooks/usePostAvatarSync';
+import { toast } from 'react-toastify';
+import ConfirmationModal from '../ConfirmationModal';
 
 const PostList = forwardRef((props, ref) => {
     const { userId, isUserPosts = false } = props; // Thêm props để xác định loại bài viết
@@ -12,8 +14,10 @@ const PostList = forwardRef((props, ref) => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [postToDelete, setPostToDelete] = useState(null);
     const { user } = useAuth();
-    
+
     // Sử dụng hook để đồng bộ avatar bài đăng
     const { posts: syncedPosts, refreshAllAvatars } = usePostAvatarSync(posts);
 
@@ -105,9 +109,9 @@ const PostList = forwardRef((props, ref) => {
                 const response = await postService.getPosts(page);
                 const updatedPost = response.posts.find(p => p.id === postId);
                 if (updatedPost) {
-                    setPosts(prev => 
-                        prev.map(post => 
-                            post.id === postId 
+                    setPosts(prev =>
+                        prev.map(post =>
+                            post.id === postId
                                 ? { ...post, comments: updatedPost.comments, commentsCount: updatedPost.commentsCount }
                                 : post
                         )
@@ -119,22 +123,22 @@ const PostList = forwardRef((props, ref) => {
             console.log('Adding comment:', { postId, content, parentCommentId });
             const newComment = await postService.addComment(postId, content, parentCommentId);
             console.log('New comment received:', newComment);
-            
+
             setPosts(prev => {
                 console.log('Previous posts:', prev);
-                const updatedPosts = prev.map(post => 
-                    post.id === postId 
-                        ? { 
-                            ...post, 
+                const updatedPosts = prev.map(post =>
+                    post.id === postId
+                        ? {
+                            ...post,
                             commentsCount: (post.commentsCount || 0) + 1,
                             comments: [...(post.comments || []), newComment]
-                        } 
+                        }
                         : post
                 );
                 console.log('Updated posts:', updatedPosts);
                 return updatedPosts;
             });
-            
+
             return newComment;
         } catch (error) {
             console.error('Error adding comment:', error);
@@ -147,21 +151,30 @@ const PostList = forwardRef((props, ref) => {
         if (!post) return;
 
         // Check if user can delete this post
-        const canDelete = post.author?.id === user?.id || post.isOwner;
+        const post = posts.find(p => p.id === postId);
+        const canDelete = post?.author?.id === user?.id || post?.isOwner;
         if (!canDelete) {
-            alert('Bạn không có quyền xóa bài viết này!');
+            toast.error('Bạn không có quyền xóa bài viết này!');
             return;
         }
 
-        const confirmed = window.confirm('Bạn có chắc chắn muốn xóa bài viết này?');
-        if (!confirmed) return;
+        setPostToDelete(postId);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDeletePost = async () => {
+        if (!postToDelete) return;
 
         try {
-            await postService.deletePost(postId);
-            setPosts(prev => prev.filter(post => post.id !== postId));
+            await postService.deletePost(postToDelete);
+            setPosts(prev => prev.filter(post => post.id !== postToDelete));
+            toast.success('Đã xóa bài viết thành công');
         } catch (err) {
             console.error('Lỗi khi xóa bài viết:', err);
-            alert('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại.');
+            toast.error('Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại.');
+        } finally {
+            setPostToDelete(null);
+            setShowDeleteConfirm(false);
         }
     };
 
@@ -248,7 +261,7 @@ const PostList = forwardRef((props, ref) => {
     return (
         <div>
             {!loading && syncedPosts.length === 0 && renderNoPosts()}
-            
+
             {syncedPosts.length > 0 && (
                 <div className="d-flex flex-column">
                     {syncedPosts.map((post) => (
@@ -256,7 +269,7 @@ const PostList = forwardRef((props, ref) => {
                             key={post.id}
                             post={post}
                             onLike={handleLike}
-                            onDelete={handleDelete}
+                            onDelete={handleDeletePost}
                             onAddComment={handleAddComment}
                         />
                     ))}
@@ -268,6 +281,17 @@ const PostList = forwardRef((props, ref) => {
             {!loading && hasMore && syncedPosts.length > 0 && renderLoadMoreButton()}
 
             {!loading && !hasMore && syncedPosts.length > 0 && renderNoMorePosts()}
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={confirmDeletePost}
+                title="Xóa bài viết"
+                message="Bạn có chắc chắn muốn xóa bài viết này?"
+                confirmText="Xóa"
+                cancelText="Hủy"
+                type="danger"
+            />
         </div>
     );
 });

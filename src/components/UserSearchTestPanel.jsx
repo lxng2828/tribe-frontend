@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { toast } from 'react-toastify';
+import { DEFAULT_AVATAR, getAvatarUrl, generatePlaceholderAvatar } from '../utils/placeholderImages';
 
 const UserSearchTestPanel = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -10,7 +11,7 @@ const UserSearchTestPanel = () => {
 
     const handleSearch = async () => {
         if (!searchQuery.trim()) {
-            alert('Vui lòng nhập từ khóa tìm kiếm');
+            toast.error('Vui lòng nhập từ khóa tìm kiếm');
             return;
         }
 
@@ -131,6 +132,11 @@ const UserSearchTestPanel = () => {
                                                 width: '40px',
                                                 height: '40px',
                                                 objectFit: 'cover'
+                                            }}
+                                            onError={(e) => {
+                                                // Fallback khi image load lỗi
+                                                console.log('Image load error for user:', user.displayName);
+                                                e.target.src = generatePlaceholderAvatar(40, user.displayName);
                                             }}
                                         />
                                         <div className="flex-grow-1">

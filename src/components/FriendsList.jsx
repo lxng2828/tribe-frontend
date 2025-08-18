@@ -1,39 +1,10 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import friendshipService from '../services/friendshipService';
+import { useFriends } from '../contexts/FriendsContext';
 import FriendCard from './FriendCard';
 import Loading from './Loading';
 
 const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
-    const [friends, setFriends] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        loadFriends();
-    }, [userId]);
-
-    const loadFriends = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const response = await friendshipService.getFriends(userId);
-            const { status, data } = response;
-
-            if (status.success) {
-                // Sử dụng dữ liệu theo đúng API docs: id, displayName, avatarUrl
-                setFriends(data || []);
-            } else {
-                setError(status.displayMessage || 'Không thể tải danh sách bạn bè');
-            }
-        } catch (error) {
-            console.error('Error loading friends:', error);
-            setError('Lỗi khi tải danh sách bạn bè');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const { friends, loading, error, loadFriends } = useFriends();
 
     if (loading) {
         return <Loading />;
@@ -95,8 +66,8 @@ const FriendsList = ({ userId, showHeader = true, maxItems = null }) => {
                 <div className="row g-3">
                     {displayedFriends.map((friend) => (
                         <div key={friend.id} className="col-xl-4 col-lg-4 col-md-6 col-sm-6 col-6">
-                            <FriendCard 
-                                friend={friend} 
+                            <FriendCard
+                                friend={friend}
                                 onUnfriend={(friendId) => {
                                     // Cập nhật danh sách bạn bè sau khi hủy kết bạn
                                     setFriends(prev => prev.filter(f => f.id !== friendId));

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 
 const NotificationTestPanel = () => {
     const [testNotification, setTestNotification] = useState({
@@ -27,7 +28,7 @@ const NotificationTestPanel = () => {
 
     const handleCreateTestNotification = async () => {
         if (!testNotification.title || !testNotification.content) {
-            alert('Vui lòng nhập đầy đủ tiêu đề và nội dung');
+            toast.error('Vui lòng nhập đầy đủ tiêu đề và nội dung');
             return;
         }
 
@@ -53,10 +54,10 @@ const NotificationTestPanel = () => {
                 type: 'MESSAGE'
             });
 
-            alert('Tạo thông báo test thành công!');
+            toast.success('Tạo thông báo test thành công!');
         } catch (error) {
             console.error('Error creating test notification:', error);
-            alert('Lỗi khi tạo thông báo test');
+            toast.error('Lỗi khi tạo thông báo test');
         } finally {
             setIsCreating(false);
         }
@@ -65,9 +66,9 @@ const NotificationTestPanel = () => {
     const handleRequestPermission = async () => {
         const granted = await requestNotificationPermission();
         if (granted) {
-            alert('Đã cấp quyền thông báo!');
+            toast.success('Đã cấp quyền thông báo!');
         } else {
-            alert('Không thể cấp quyền thông báo');
+            toast.error('Không thể cấp quyền thông báo');
         }
     };
 
@@ -114,10 +115,10 @@ const NotificationTestPanel = () => {
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
 
-            alert('Đã tạo 5 thông báo mẫu!');
+            toast.success('Đã tạo 5 thông báo mẫu!');
         } catch (error) {
             console.error('Error creating sample notifications:', error);
-            alert('Lỗi khi tạo thông báo mẫu');
+            toast.error('Lỗi khi tạo thông báo mẫu');
         } finally {
             setIsCreating(false);
         }

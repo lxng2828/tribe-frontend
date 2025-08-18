@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useMessage } from '../contexts/MessageContext';
 import { useAuth } from '../contexts/AuthContext';
 import userService from '../services/userService';
-import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl, generatePlaceholderAvatar } from '../utils/placeholderImages';
+import { toast } from 'react-toastify';
 import './NewConversationModal.css';
 
 const NewConversationModal = ({ onClose, onConversationCreated }) => {
@@ -69,7 +70,7 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
             onConversationCreated(conversation);
         } catch (error) {
             console.error('Error creating conversation:', error);
-            alert('Failed to create conversation. Please try again.');
+            toast.error('Failed to create conversation. Please try again.');
         } finally {
             setCreating(false);
         }
@@ -77,11 +78,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
 
     const handleCreateGroup = () => {
         if (selectedUsers.length === 0) {
-            alert('Please select at least one user for the group');
+            toast.error('Please select at least one user for the group');
             return;
         }
         if (!groupName.trim()) {
-            alert('Please enter a group name');
+            toast.error('Please enter a group name');
             return;
         }
         handleCreateConversation('GROUP', selectedUsers, groupName);
@@ -155,11 +156,11 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                             <div className="selected-users-list">
                                 {selectedUsers.map(user => (
                                     <div key={user.id} className="selected-user-item">
-                                                                            <img
-                                        src={getAvatarUrl(user)}
-                                        alt={user.displayName}
-                                        className="user-avatar-small"
-                                    />
+                                        <img
+                                            src={getAvatarUrl(user)}
+                                            alt={user.displayName}
+                                            className="user-avatar-small"
+                                        />
                                         <span className="user-name">{user.displayName}</span>
                                         <button
                                             className="remove-user-btn"
@@ -197,11 +198,16 @@ const NewConversationModal = ({ onClose, onConversationCreated }) => {
                                             }`}
                                         onClick={() => handleUserSelect(result)}
                                     >
-                                                                        <img
-                                    src={getAvatarUrl(result)}
-                                    alt={result.displayName}
-                                    className="user-avatar"
-                                />
+                                        <img
+                                            src={getAvatarUrl(result)}
+                                            alt={result.displayName}
+                                            className="user-avatar"
+                                            onError={(e) => {
+                                                // Fallback khi image load lỗi
+                                                console.log('Image load error for user:', result.displayName);
+                                                e.target.src = generatePlaceholderAvatar(40, result.displayName);
+                                            }}
+                                        />
                                         <div className="user-info">
                                             <h4>{result.displayName}</h4>
                                             <p>{result.email}</p>

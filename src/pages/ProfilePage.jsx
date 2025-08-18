@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-toastify';
 import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
 import { useAvatarSync } from '../hooks/useAvatarSync';
 import PostsApp from '../features/posts/PostsApp';
@@ -13,7 +14,7 @@ const ProfilePage = () => {
     const { userId: urlUserId } = useParams(); // Lấy userId từ URL
     const { user, refreshUserInfo } = useAuth();
     const { forceRefreshAvatar } = useAvatarSync();
-    
+
     // Ref để refresh PostList
     const postListRef = useRef();
     const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ const ProfilePage = () => {
     // Kiểm tra xem có phải profile của mình không
     const isOwnProfile = !urlUserId || urlUserId === user?.id;
     const targetUserId = urlUserId || user?.id;
-    
+
     console.log('ProfilePage state:', {
         urlUserId,
         user: user?.id,
@@ -124,7 +125,7 @@ const ProfilePage = () => {
         try {
             // Validate file trước khi upload
             validateFile(file);
-            
+
             setUploadingAvatar(true);
             const formData = new FormData();
             formData.append('file', file); // Sử dụng field name 'file' theo API docs
@@ -142,16 +143,16 @@ const ProfilePage = () => {
                     postListRef.current.refreshPosts();
                 }
                 // Thông báo thành công
-                alert('Cập nhật ảnh đại diện thành công!');
+                toast.success('Cập nhật ảnh đại diện thành công!');
             } else {
-                alert(response?.message || 'Không thể cập nhật ảnh đại diện');
+                toast.error(response?.message || 'Không thể cập nhật ảnh đại diện');
             }
         } catch (error) {
             console.error('Error updating avatar:', error);
-            
+
             // Hiển thị thông báo lỗi chi tiết hơn
             let errorMessage = 'Lỗi khi cập nhật ảnh đại diện';
-            
+
             if (error.response?.status === 401) {
                 errorMessage = 'Bạn cần đăng nhập lại để thực hiện thao tác này';
             } else if (error.response?.status === 500) {
@@ -159,8 +160,8 @@ const ProfilePage = () => {
             } else if (error.message) {
                 errorMessage = error.message;
             }
-            
-            alert(errorMessage);
+
+            toast.error(errorMessage);
         } finally {
             setUploadingAvatar(false);
         }
@@ -282,18 +283,17 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Content Area - chỉ hiển thị posts */}
+            {/* Content Area - giới thiệu và bài viết full width */}
             <div className="container mt-4">
                 <div className="row">
-                    {/* Left Sidebar - có thể thêm thông tin khác sau */}
-                    <div className="col-12 col-lg-5">
-                        {/* Intro Card placeholder */}
+                    {/* Intro section full width and left aligned */}
+                    <div className="col-12">
                         <div className="card mb-4" style={{ border: '1px solid var(--fb-border)', borderRadius: '8px' }}>
-                            <div className="card-body">
+                            <div className="card-body" style={{ paddingLeft: '2rem' }}>
                                 <h5 className="fw-bold mb-3">Giới thiệu</h5>
-                                <p className="text-muted">{profileData?.bio || "Chưa có thông tin giới thiệu"}</p>
+                                <p className="text-muted mb-0">{profileData?.bio || "Chưa có thông tin giới thiệu"}</p>
                                 {profileData?.email && (
-                                    <div className="d-flex align-items-center mb-2 text-muted">
+                                    <div className="d-flex align-items-center mt-2 text-muted">
                                         <svg width="16" height="16" className="me-2" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                                         </svg>
@@ -303,13 +303,15 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Right Content - chỉ hiển thị posts */}
-                    <div className="col-12 col-lg-7">
-                        {/* Posts */}
-                        <PostsApp 
-                            userId={targetUserId} 
-                            isUserPosts={true} 
+                    {/* Divider */}
+                    <div className="col-12">
+                        <hr className="my-4" style={{ border: 'none', borderTop: '1px solid var(--fb-border)', margin: '1.5rem 0' }} />
+                    </div>
+                    {/* Posts full width below */}
+                    <div className="col-12">
+                        <PostsApp
+                            userId={targetUserId}
+                            isUserPosts={true}
                             showCreatePost={isOwnProfile}
                         />
                     </div>

@@ -1,40 +1,11 @@
 import Navbar from '../components/Navbar';
 import { generatePlaceholderAvatar, getAvatarUrl } from '../utils/placeholderImages';
 import { Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import friendshipService from '../services/friendshipService';
+import { useFriends } from '../contexts/FriendsContext';
 
 const MainLayout = ({ children }) => {
     const location = useLocation();
-    const { user } = useAuth();
-    const [friends, setFriends] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    const fetchFriends = async () => {
-        if (user?.id) {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await friendshipService.getFriends(user.id);
-                if (response.status.success) {
-                    setFriends(response.data || []);
-                } else {
-                    setError('Không thể tải danh sách bạn bè');
-                }
-            } catch (error) {
-                console.error('Error fetching friends:', error);
-                setError('Có lỗi xảy ra khi tải danh sách bạn bè');
-            } finally {
-                setLoading(false);
-            }
-        }
-    };
-
-    useEffect(() => {
-        fetchFriends();
-    }, [user?.id]);
+    const { friends, loading, error, loadFriends } = useFriends();
 
     const getInitials = (name) => {
         if (!name) return 'U';
@@ -106,7 +77,7 @@ const MainLayout = ({ children }) => {
                                             )}
                                         </h6>
                                     </div>
-                                    
+
                                     {loading ? (
                                         <div className="text-center py-3">
                                             <div className="spinner-border spinner-border-sm" role="status">
@@ -116,9 +87,9 @@ const MainLayout = ({ children }) => {
                                     ) : error ? (
                                         <div className="text-center py-3">
                                             <div className="text-danger small">{error}</div>
-                                            <button 
+                                            <button
                                                 className="btn btn-sm btn-outline-primary mt-2"
-                                                onClick={() => fetchFriends()}
+                                                onClick={() => loadFriends()}
                                             >
                                                 Thử lại
                                             </button>
@@ -126,8 +97,8 @@ const MainLayout = ({ children }) => {
                                     ) : friends.length > 0 ? (
                                         <div className="flex-grow-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                                             {friends.map((friend, index) => (
-                                                <Link 
-                                                    key={friend.id} 
+                                                <Link
+                                                    key={friend.id}
                                                     to={`/profile/${friend.id}`}
                                                     className="d-flex align-items-center hover-fb p-2 rounded text-decoration-none"
                                                     style={{ color: 'inherit' }}
@@ -161,8 +132,8 @@ const MainLayout = ({ children }) => {
                                     ) : (
                                         <div className="text-center py-3">
                                             <div className="text-muted small mb-2">Chưa có bạn bè nào</div>
-                                            <Link 
-                                                to="/friends" 
+                                            <Link
+                                                to="/friends"
                                                 className="btn btn-sm btn-outline-primary"
                                             >
                                                 Tìm bạn bè
@@ -174,7 +145,7 @@ const MainLayout = ({ children }) => {
                                 {/* Link "Xem tất cả" ở cuối */}
                                 {!loading && !error && friends.length > 0 && (
                                     <div className="mt-3 pt-2 border-top">
-                                        <Link 
+                                        <Link
                                             to="/friends"
                                             className="d-block text-primary text-decoration-none small"
                                         >

@@ -1,11 +1,11 @@
 import React from 'react';
-import { getAvatarUrl } from '../utils/placeholderImages';
+import { getAvatarUrl, generatePlaceholderAvatar } from '../utils/placeholderImages';
 
-const Avatar = ({ 
-    user, 
-    size = 'medium', 
-    className = '', 
-    alt = '', 
+const Avatar = ({
+    user,
+    size = 'medium',
+    className = '',
+    alt = '',
     onClick,
     style = {}
 }) => {
@@ -36,6 +36,11 @@ const Avatar = ({
                 ...style
             }}
             onClick={onClick}
+            onError={(e) => {
+                // Fallback khi image load lỗi
+                console.log('Image load error for user:', displayName);
+                e.target.src = generatePlaceholderAvatar(parseInt(avatarSize.width), displayName);
+            }}
         />
     );
 };

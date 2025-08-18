@@ -27,7 +27,21 @@ const PostCommentsModal = () => {
             // Load reaction status for each comment
             loadCommentReactions(selectedPost.comments || []);
         }
-    }, [showCommentsModal, selectedPost]);
+    }, [showCommentsModal, selectedPost?.id]);
+
+    // Sync comments with PostManager state
+    useEffect(() => {
+        if (showCommentsModal && selectedPost) {
+            setComments(selectedPost.comments || []);
+        }
+    }, [selectedPost?.comments, selectedPost?.id, showCommentsModal]);
+
+    // Force update comments when selectedPost changes
+    useEffect(() => {
+        if (showCommentsModal && selectedPost) {
+            setComments(selectedPost.comments || []);
+        }
+    }, [selectedPost, showCommentsModal]);
 
     // Load reaction status for comments and replies
     const loadCommentReactions = async (commentsList) => {
@@ -86,29 +100,7 @@ const PostCommentsModal = () => {
         if (!commentText.trim()) return;
 
         try {
-            const newComment = await addComment(selectedPost.id, commentText, replyingTo);
-
-            // Format comment mới để đảm bảo hiển thị đúng
-            const formattedComment = {
-                ...newComment,
-                user: {
-                    ...newComment.user,
-                    id: newComment.user?.id || newComment.author?.id,
-                    name: newComment.user?.name || newComment.author?.name || 'Người dùng',
-                    avatar: newComment.user?.avatar || newComment.author?.avatar || getAvatarUrl({ displayName: 'Người dùng' })
-                },
-                author: {
-                    ...newComment.author,
-                    id: newComment.author?.id || newComment.user?.id,
-                    name: newComment.author?.name || newComment.user?.name || 'Người dùng',
-                    avatar: newComment.author?.avatar || newComment.user?.avatar || getAvatarUrl({ displayName: 'Người dùng' })
-                },
-                createdAt: newComment.createdAt || new Date().toISOString(),
-                isOwner: true
-            };
-
-            // Add new comment to the list
-            setComments(prev => [...prev, formattedComment]);
+            await addComment(selectedPost.id, commentText, replyingTo);
 
             // Reset form
             setCommentText('');
@@ -129,9 +121,7 @@ const PostCommentsModal = () => {
     const handleDeleteComment = async (commentId) => {
         try {
             await deleteComment(selectedPost.id, commentId);
-
-            // Remove comment from the list
-            setComments(prev => prev.filter(comment => comment.id !== commentId));
+            // Comments sẽ được cập nhật tự động thông qua useEffect sync
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
@@ -204,7 +194,7 @@ const PostCommentsModal = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title">
-                                Bình luận ({comments.length})
+                                Bình luận ({selectedPost?.commentsCount || comments.length})
                             </h5>
                             <button
                                 type="button"

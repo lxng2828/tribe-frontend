@@ -109,6 +109,16 @@ const PostManager = ({ children }) => {
         }
     }, [isInitialized]);
 
+    // Sync selectedPost with posts array when posts change
+    useEffect(() => {
+        if (selectedPost && posts.length > 0) {
+            const updatedPost = posts.find(post => post.id === selectedPost.id);
+            if (updatedPost && updatedPost !== selectedPost) {
+                setSelectedPost(updatedPost);
+            }
+        }
+    }, [posts, selectedPost?.id]);
+
     // Create post
     const createPost = async (postData) => {
         try {
@@ -223,6 +233,26 @@ const PostManager = ({ children }) => {
         await toggleReaction(postId, 'LIKE');
     };
 
+    // Helper function để thêm reply vào parent comment
+    const addReplyToComment = (comments, parentCommentId, newReply) => {
+        return comments.map(comment => {
+            if (comment.id === parentCommentId) {
+                return {
+                    ...comment,
+                    replies: [...(comment.replies || []), newReply]
+                };
+            }
+            // Nếu comment có replies, đệ quy tìm parent comment trong replies
+            if (comment.replies && comment.replies.length > 0) {
+                return {
+                    ...comment,
+                    replies: addReplyToComment(comment.replies, parentCommentId, newReply)
+                };
+            }
+            return comment;
+        });
+    };
+
     // Add comment
     const addComment = async (postId, content, parentCommentId = null) => {
         try {
@@ -250,18 +280,33 @@ const PostManager = ({ children }) => {
                     username: user?.username
                 },
                 isOwner: true, // Comment mới tạo luôn là của user hiện tại
-                createdAt: newComment.createdAt || new Date().toISOString()
+                createdAt: newComment.createdAt || new Date().toISOString(),
+                parentCommentId: parentCommentId // Đảm bảo parentCommentId được set
             };
 
-            setPosts(prev => prev.map(post =>
-                post.id === postId
-                    ? {
-                        ...post,
-                        commentsCount: post.commentsCount + 1,
-                        comments: [...(post.comments || []), formattedComment]
+            setPosts(prev => {
+                const updatedPosts = prev.map(post =>
+                    post.id === postId
+                        ? {
+                            ...post,
+                            commentsCount: post.commentsCount + 1,
+                            comments: parentCommentId
+                                ? addReplyToComment(post.comments || [], parentCommentId, formattedComment)
+                                : [...(post.comments || []), formattedComment]
+                        }
+                        : post
+                );
+
+                // Cập nhật selectedPost ngay lập tức nếu đang mở comments modal
+                if (showCommentsModal && selectedPost?.id === postId) {
+                    const updatedPost = updatedPosts.find(post => post.id === postId);
+                    if (updatedPost) {
+                        setSelectedPost(updatedPost);
                     }
-                    : post
-            ));
+                }
+
+                return updatedPosts;
+            });
 
             return formattedComment;
         } catch (error) {
@@ -269,20 +314,47 @@ const PostManager = ({ children }) => {
         }
     };
 
+    // Helper function để xóa comment/reply khỏi nested structure
+    const removeCommentFromNested = (comments, commentIdToRemove) => {
+        return comments
+            .filter(comment => comment.id !== commentIdToRemove)
+            .map(comment => {
+                if (comment.replies && comment.replies.length > 0) {
+                    return {
+                        ...comment,
+                        replies: removeCommentFromNested(comment.replies, commentIdToRemove)
+                    };
+                }
+                return comment;
+            });
+    };
+
     // Delete comment
     const deleteComment = async (postId, commentId) => {
         try {
             await postService.deleteComment(postId, commentId);
 
-            setPosts(prev => prev.map(post =>
-                post.id === postId
-                    ? {
-                        ...post,
-                        commentsCount: post.commentsCount - 1,
-                        comments: post.comments.filter(comment => comment.id !== commentId)
+            setPosts(prev => {
+                const updatedPosts = prev.map(post =>
+                    post.id === postId
+                        ? {
+                            ...post,
+                            commentsCount: post.commentsCount - 1,
+                            comments: removeCommentFromNested(post.comments || [], commentId)
+                        }
+                        : post
+                );
+
+                // Cập nhật selectedPost ngay lập tức nếu đang mở comments modal
+                if (showCommentsModal && selectedPost?.id === postId) {
+                    const updatedPost = updatedPosts.find(post => post.id === postId);
+                    if (updatedPost) {
+                        setSelectedPost(updatedPost);
                     }
-                    : post
-            ));
+                }
+
+                return updatedPosts;
+            });
 
         } catch (error) {
             console.error('Error deleting comment:', error);

@@ -154,14 +154,14 @@ const PostCreateModal = () => {
 
             {/* Modal */}
             <div
-                className="modal fade show post-fb"
+                className="modal fade show"
                 style={{ display: 'block', zIndex: 1050 }}
                 tabIndex="-1"
                 role="dialog"
                 aria-labelledby="createPostModalTitle"
                 aria-modal="true"
             >
-                <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div className="modal-dialog modal-lg">
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title" id="createPostModalTitle">
@@ -194,7 +194,7 @@ const PostCreateModal = () => {
                                 {/* Post content */}
                                 <div className="mb-3">
                                     <textarea
-                                        className="form-control comment-input-field"
+                                        className="form-control"
                                         rows="4"
                                         placeholder="Bạn đang nghĩ gì?"
                                         value={postText}
@@ -213,69 +213,54 @@ const PostCreateModal = () => {
                                     <div className="mb-3">
                                         <h6>Ảnh đã chọn ({selectedImages.length}/{maxImages}):</h6>
                                         <div className="row">
-                                            {loading ? (
-                                                <>
-                                                    <ImageSkeleton />
-                                                    <ImageSkeleton />
-                                                </>
-                                            ) : (
-                                                selectedImages.map((image, index) => (
-                                                    <div key={index} className="col-md-4 mb-2">
-                                                        <div className="position-relative">
-                                                            <img
-                                                                src={URL.createObjectURL(image)}
-                                                                alt={`Preview ${index + 1}`}
-                                                                className="img-fluid rounded post-image-single"
-                                                                style={{ height: '150px', width: '100%', objectFit: 'cover' }}
-                                                                loading="lazy"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                className="btn btn-danger btn-sm position-absolute top-0 end-0"
-                                                                onClick={() => removeImage(index)}
-                                                                disabled={loading}
-                                                                aria-label={`Xóa ảnh ${index + 1}`}
-                                                            >
-                                                                ×
-                                                            </button>
-                                                        </div>
+                                            {selectedImages.map((image, index) => (
+                                                <div key={index} className="col-md-4 mb-2">
+                                                    <div className="position-relative">
+                                                        <img
+                                                            src={URL.createObjectURL(image)}
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="img-fluid rounded"
+                                                            style={{ height: '150px', width: '100%', objectFit: 'cover' }}
+                                                            loading="lazy"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-danger btn-sm position-absolute top-0 end-0"
+                                                            onClick={() => removeImage(index)}
+                                                            disabled={loading}
+                                                            aria-label={`Xóa ảnh ${index + 1}`}
+                                                        >
+                                                            ×
+                                                        </button>
                                                     </div>
-                                                ))
-                                            )}
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Visibility selector */}
                                 <div className="mb-3">
-                                    <label className="form-label" htmlFor="visibilitySelect">
-                                        Quyền riêng tư:
-                                    </label>
-                                    <div className="input-group">
-                                        <span className="input-group-text">{getVisibilityInfo(visibility).icon}</span>
-                                        <select
-                                            id="visibilitySelect"
-                                            className="form-select"
-                                            value={visibility}
-                                            onChange={(e) => setVisibility(e.target.value)}
-                                            disabled={loading}
-                                            aria-label="Chọn quyền riêng tư"
-                                        >
-                                            <option value="PUBLIC">{getVisibilityInfo('PUBLIC').text}</option>
-                                            <option value="FRIENDS">{getVisibilityInfo('FRIENDS').text}</option>
-                                            <option value="PRIVATE">{getVisibilityInfo('PRIVATE').text}</option>
-                                        </select>
-                                    </div>
+                                    <label className="form-label">Quyền riêng tư:</label>
+                                    <select
+                                        className="form-select"
+                                        value={visibility}
+                                        onChange={(e) => setVisibility(e.target.value)}
+                                        disabled={loading}
+                                    >
+                                        <option value="PUBLIC">Công khai</option>
+                                        <option value="FRIENDS">Bạn bè</option>
+                                        <option value="PRIVATE">Chỉ mình tôi</option>
+                                    </select>
                                 </div>
                             </div>
 
                             <div className="modal-footer">
                                 <button
                                     type="button"
-                                    className="btn btn-secondary input-action-btn"
+                                    className="btn btn-secondary"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={loading}
-                                    aria-label="Thêm ảnh"
                                 >
                                     <svg className="me-2" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
@@ -285,19 +270,17 @@ const PostCreateModal = () => {
 
                                 <button
                                     type="button"
-                                    className="btn btn-secondary input-action-btn"
+                                    className="btn btn-secondary"
                                     onClick={handleCancel}
                                     disabled={loading}
-                                    aria-label="Hủy"
                                 >
                                     Hủy
                                 </button>
 
                                 <button
                                     type="submit"
-                                    className="btn btn-primary comment-send-button"
+                                    className="btn btn-primary"
                                     disabled={loading || (!postText.trim() && selectedImages.length === 0)}
-                                    aria-label="Đăng bài viết"
                                 >
                                     {loading ? (
                                         <>

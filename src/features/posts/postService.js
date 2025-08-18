@@ -15,10 +15,121 @@ export const getCurrentUserId = () => {
             console.error('Error parsing user from localStorage:', e);
         }
     }
-    
+
     // Nếu không có user, trả về null thay vì '1'
     console.warn('No user found in localStorage, returning null for userId');
     return null;
+};
+
+// Helper function để format post data một cách nhất quán
+const formatPostData = (post, currentUserId = null) => {
+    // Xử lý thông tin user từ cấu trúc mới
+    const user = post.user || {};
+
+    // Lấy thông tin user từ cấu trúc mới
+    const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
+    const userId = user.senderId || user.id || user.userId || post.userId;
+
+    // Xử lý avatar với logic cải thiện
+    let userAvatar = null;
+
+    // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
+    if (user.avatarSender) {
+        userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
+    }
+    // Ưu tiên 2: avatarUrl từ user object
+    else if (user.avatarUrl) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Ưu tiên 3: avatar từ user object
+    else if (user.avatar) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Ưu tiên 4: profilePicture từ user object
+    else if (user.profilePicture) {
+        userAvatar = getAvatarUrl(user);
+    }
+    // Fallback: tạo placeholder từ tên
+    else {
+        userAvatar = getAvatarUrl({ displayName: userName });
+    }
+
+    // Xử lý đường dẫn ảnh - thêm base URL nếu cần
+    const processImageUrls = (urls) => {
+        if (!urls || !Array.isArray(urls)) return [];
+        return urls.map(url => {
+            if (url.startsWith('http')) {
+                return url; // Đã là URL đầy đủ
+            } else if (url.startsWith('/')) {
+                return `${API_BASE_URL}${url}`; // Thêm base URL
+            } else {
+                return `${API_BASE_URL}/${url}`; // Thêm base URL và dấu /
+            }
+        });
+    };
+
+    // Xử lý reactions từ cấu trúc mới
+    const processReactions = (reactions) => {
+        if (!reactions || !Array.isArray(reactions)) return [];
+        return reactions.map(reaction => ({
+            id: reaction.id,
+            type: reaction.reactionType,
+            user: {
+                id: reaction.user?.senderId || reaction.user?.id,
+                name: reaction.user?.nameSender || reaction.user?.name,
+                avatar: reaction.user?.avatarSender ?
+                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) :
+                    getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
+            },
+            createdAt: reaction.createdAt
+        }));
+    };
+
+    // Xử lý comments từ cấu trúc mới
+    const processComments = (comments) => {
+        if (!comments || !Array.isArray(comments)) return [];
+        return comments.map(comment => ({
+            id: comment.id,
+            content: comment.content,
+            user: {
+                id: comment.user?.senderId || comment.user?.id,
+                name: comment.user?.nameSender || comment.user?.name,
+                avatar: comment.user?.avatarSender ?
+                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
+                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
+            },
+            parentCommentId: comment.parentCommentId,
+            createdAt: comment.createdAt,
+            replies: comment.replies ? processComments(comment.replies) : []
+        }));
+    };
+
+    return {
+        id: post.id,
+        content: post.content,
+        author: {
+            id: userId,
+            name: userName,
+            avatar: userAvatar,
+            // Thêm thông tin user đầy đủ để component có thể sử dụng
+            displayName: user.displayName,
+            fullName: user.fullName,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            senderId: user.senderId
+        },
+        visibility: post.visibility || 'PUBLIC',
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+        likesCount: post.reactionCount || post.likesCount || 0,
+        commentsCount: post.commentCount || post.commentsCount || 0,
+        liked: post.reactions ? post.reactions.some(r => r.user?.senderId === currentUserId || r.user?.id === currentUserId) : false,
+        mediaUrls: processImageUrls(post.mediaUrls),
+        images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
+        isOwner: post.isOwner || false,
+        reactions: processReactions(post.reactions),
+        comments: processComments(post.comments)
+    };
 };
 
 // Base URL cho API
@@ -36,123 +147,7 @@ class PostService {
             console.log('API Response:', response.data);
 
             if (status.success) {
-                const posts = data.map(post => {
-                    // Xử lý thông tin user từ cấu trúc mới
-                    const user = post.user || {};
-                    
-                    // Lấy thông tin user từ cấu trúc mới
-                    const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
-                    const userId = user.senderId || user.id || user.userId || post.userId;
-                    
-                    // Xử lý avatar với logic cải thiện
-                    let userAvatar = null;
-                    
-                    // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
-                    if (user.avatarSender) {
-                        userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
-                    }
-                    // Ưu tiên 2: avatarUrl từ user object
-                    else if (user.avatarUrl) {
-                        userAvatar = getAvatarUrl(user);
-                    }
-                    // Ưu tiên 3: avatar từ user object
-                    else if (user.avatar) {
-                        userAvatar = getAvatarUrl(user);
-                    }
-                    // Ưu tiên 4: profilePicture từ user object
-                    else if (user.profilePicture) {
-                        userAvatar = getAvatarUrl(user);
-                    }
-                    // Fallback: tạo placeholder từ tên
-                    else {
-                        userAvatar = getAvatarUrl({ displayName: userName });
-                    }
-
-                    console.log('Post avatar processing:', {
-                        postId: post.id,
-                        userName,
-                        userId,
-                        userAvatar,
-                        userData: user
-                    });
-
-                    // Xử lý đường dẫn ảnh - thêm base URL nếu cần
-                    const processImageUrls = (urls) => {
-                        if (!urls || !Array.isArray(urls)) return [];
-                        return urls.map(url => {
-                            if (url.startsWith('http')) {
-                                return url; // Đã là URL đầy đủ
-                            } else if (url.startsWith('/')) {
-                                return `${API_BASE_URL}${url}`; // Thêm base URL
-                            } else {
-                                return `${API_BASE_URL}/${url}`; // Thêm base URL và dấu /
-                            }
-                        });
-                    };
-
-                    // Xử lý reactions từ cấu trúc mới
-                    const processReactions = (reactions) => {
-                        if (!reactions || !Array.isArray(reactions)) return [];
-                        return reactions.map(reaction => ({
-                            id: reaction.id,
-                            type: reaction.reactionType,
-                            user: {
-                                id: reaction.user?.senderId || reaction.user?.id,
-                                name: reaction.user?.nameSender || reaction.user?.name,
-                                avatar: reaction.user?.avatarSender ? 
-                                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
-                                    getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
-                            },
-                            createdAt: reaction.createdAt
-                        }));
-                    };
-
-                    // Xử lý comments từ cấu trúc mới
-                    const processComments = (comments) => {
-                        if (!comments || !Array.isArray(comments)) return [];
-                        return comments.map(comment => ({
-                            id: comment.id,
-                            content: comment.content,
-                            user: {
-                                id: comment.user?.senderId || comment.user?.id,
-                                name: comment.user?.nameSender || comment.user?.name,
-                                avatar: comment.user?.avatarSender ? 
-                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
-                                    getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
-                            },
-                            parentCommentId: comment.parentCommentId,
-                            createdAt: comment.createdAt,
-                            replies: comment.replies ? processComments(comment.replies) : []
-                        }));
-                    };
-
-                    return {
-                        id: post.id,
-                        content: post.content,
-                        author: {
-                            id: userId,
-                            name: userName,
-                            avatar: userAvatar,
-                            // Thêm thông tin user đầy đủ để component có thể sử dụng
-                            displayName: user.displayName,
-                            fullName: user.fullName,
-                            username: user.username,
-                            avatarUrl: user.avatarUrl,
-                            senderId: user.senderId
-                        },
-                        visibility: post.visibility || 'PUBLIC',
-                        createdAt: post.createdAt,
-                        updatedAt: post.updatedAt,
-                        likesCount: post.reactionCount || post.likesCount || 0,
-                        commentsCount: post.commentCount || post.commentsCount || 0,
-                        liked: post.reactions ? post.reactions.some(r => r.user?.senderId === getCurrentUserId() || r.user?.id === getCurrentUserId()) : false,
-                        mediaUrls: processImageUrls(post.mediaUrls),
-                        images: processImageUrls(post.mediaUrls), // Sử dụng mediaUrls từ API
-                        isOwner: post.isOwner || false,
-                        reactions: processReactions(post.reactions),
-                        comments: processComments(post.comments)
-                    };
-                });
+                const posts = data.map(post => formatPostData(post, getCurrentUserId()));
 
                 return {
                     posts,
@@ -207,7 +202,8 @@ class PostService {
 
                 const { status, data } = response.data;
                 if (status.success) {
-                    return data;
+                    // Format dữ liệu trả về để đảm bảo nhất quán
+                    return formatPostData(data, getCurrentUserId());
                 } else {
                     throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
                 }
@@ -223,7 +219,8 @@ class PostService {
 
                 const { status, data } = response.data;
                 if (status.success) {
-                    return data;
+                    // Format dữ liệu trả về để đảm bảo nhất quán
+                    return formatPostData(data, getCurrentUserId());
                 } else {
                     throw new Error(status.displayMessage || 'Lỗi khi tạo bài viết');
                 }
@@ -234,61 +231,63 @@ class PostService {
         }
     }
 
-// Cập nhật bài viết
-async updatePost(postId, postData) {
-    try {
-        // Nếu có file, sử dụng multipart/form-data
-        if (postData.images?.length > 0) {
-            const formData = new FormData();
+    // Cập nhật bài viết
+    async updatePost(postId, postData) {
+        try {
+            // Nếu có file, sử dụng multipart/form-data
+            if (postData.images?.length > 0) {
+                const formData = new FormData();
 
-            // Tạo metadata object (thêm existingImages nếu có)
-            const metadata = {
-                userId: postData.userId || getCurrentUserId(),
-                content: postData.content,
-                visibility: postData.visibility || 'PUBLIC',
-                existingImages: postData.existingImages || []
-            };
+                // Tạo metadata object (thêm existingImages nếu có)
+                const metadata = {
+                    userId: postData.userId || getCurrentUserId(),
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC',
+                    existingImages: postData.existingImages || []
+                };
 
-            formData.append('metadata', JSON.stringify(metadata));
+                formData.append('metadata', JSON.stringify(metadata));
 
-            // Thêm files mới
-            postData.images.forEach(image => {
-                formData.append('files', image);
-            });
+                // Thêm files mới
+                postData.images.forEach(image => {
+                    formData.append('files', image);
+                });
 
-            const response = await api.put(`/posts/${postId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+                const response = await api.put(`/posts/${postId}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
 
-            const { status, data } = response.data;
-            if (status.success) {
-                return data;
+                const { status, data } = response.data;
+                if (status.success) {
+                    // Format dữ liệu trả về để đảm bảo nhất quán
+                    return formatPostData(data, getCurrentUserId());
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+                }
             } else {
-                throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
-            }
-        } else {
-            // Không có file, sử dụng simple endpoint
-            const requestData = {
-                userId: postData.userId || getCurrentUserId(),
-                content: postData.content,
-                visibility: postData.visibility || 'PUBLIC',
-                existingImages: postData.existingImages || []
-            };
+                // Không có file, sử dụng simple endpoint
+                const requestData = {
+                    userId: postData.userId || getCurrentUserId(),
+                    content: postData.content,
+                    visibility: postData.visibility || 'PUBLIC',
+                    existingImages: postData.existingImages || []
+                };
 
-            const response = await api.put(`/posts/${postId}/simple`, requestData);
+                const response = await api.put(`/posts/${postId}/simple`, requestData);
 
-            const { status, data } = response.data;
-            if (status.success) {
-                return data;
-            } else {
-                throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+                const { status, data } = response.data;
+                if (status.success) {
+                    // Format dữ liệu trả về để đảm bảo nhất quán
+                    return formatPostData(data, getCurrentUserId());
+                } else {
+                    throw new Error(status.displayMessage || 'Lỗi khi cập nhật bài viết');
+                }
             }
+        } catch (error) {
+            console.error('Update post error:', error);
+            throw new Error(error.response?.data?.status?.displayMessage || 'Đã xảy ra lỗi khi cập nhật bài viết');
         }
-    } catch (error) {
-        console.error('Update post error:', error);
-        throw new Error(error.response?.data?.status?.displayMessage || 'Đã xảy ra lỗi khi cập nhật bài viết');
     }
-}
 
     // Xóa bài viết
     async deletePost(postId) {
@@ -313,15 +312,15 @@ async updatePost(postId, postData) {
     async toggleReaction(postId, reactionType = 'LIKE') {
         try {
             const userId = getCurrentUserId();
-            
+
             const requestData = {
                 reactionType: reactionType
             };
-            
+
             const response = await api.post('/post-reactions/toggle', requestData, {
                 params: { postId, userId }
             });
-            
+
             const { status, data } = response.data;
             if (status.success) {
                 // Kiểm tra xem có data trả về không để xác định đã tạo hay xóa reaction
@@ -385,14 +384,14 @@ async updatePost(postId, postData) {
                 content: content,
                 parentCommentId: parentCommentId
             };
-            
+
             const response = await api.post(`/post-comments/create`, requestData, {
-                params: { 
+                params: {
                     postId: postId,
                     userId: getCurrentUserId()
                 }
             });
-            
+
             const { status, data } = response.data;
             if (status.success) {
                 return data;
@@ -414,11 +413,11 @@ async updatePost(postId, postData) {
             }
 
             const response = await api.delete(`/post-comments/${commentId}`, {
-                params: { 
+                params: {
                     userId: userId
                 }
             });
-            
+
             const { status } = response.data;
             if (status.success) {
                 return true;
@@ -457,10 +456,10 @@ async updatePost(postId, postData) {
                         const user = post.user || {};
                         const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
                         const userPostId = user.senderId || user.id || user.userId || post.userId;
-                        
+
                         // Xử lý avatar với logic cải thiện
                         let userAvatar = null;
-                        
+
                         // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
                         if (user.avatarSender) {
                             userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
@@ -505,8 +504,8 @@ async updatePost(postId, postData) {
                                 user: {
                                     id: reaction.user?.senderId || reaction.user?.id,
                                     name: reaction.user?.nameSender || reaction.user?.name,
-                                    avatar: reaction.user?.avatarSender ? 
-                                        getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
+                                    avatar: reaction.user?.avatarSender ?
+                                        getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) :
                                         getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
                                 },
                                 createdAt: reaction.createdAt
@@ -522,8 +521,8 @@ async updatePost(postId, postData) {
                                 user: {
                                     id: comment.user?.senderId || comment.user?.id,
                                     name: comment.user?.nameSender || comment.user?.name,
-                                    avatar: comment.user?.avatarSender ? 
-                                        getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
+                                    avatar: comment.user?.avatarSender ?
+                                        getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
                                         getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
                                 },
                                 parentCommentId: comment.parentCommentId,
@@ -583,24 +582,24 @@ async updatePost(postId, postData) {
                 const allPosts = data || [];
                 console.log('Total posts from API:', allPosts.length);
                 console.log('Target userId:', userId);
-                
+
                 const userPosts = allPosts.filter(post => {
                     // Lấy userId từ nhiều nguồn khác nhau
                     const postUserId = post.user?.senderId || post.user?.id || post.user?.userId || post.userId;
-                    
+
                     // So sánh chính xác hơn - thử nhiều cách so sánh
                     const targetUserIdStr = String(userId).trim();
                     const postUserIdStr = String(postUserId).trim();
-                    
+
                     // So sánh chính xác
                     const exactMatch = postUserIdStr === targetUserIdStr;
-                    
+
                     // So sánh số nếu có thể
-                    const numericMatch = !isNaN(targetUserIdStr) && !isNaN(postUserIdStr) && 
-                                       Number(targetUserIdStr) === Number(postUserIdStr);
-                    
+                    const numericMatch = !isNaN(targetUserIdStr) && !isNaN(postUserIdStr) &&
+                        Number(targetUserIdStr) === Number(postUserIdStr);
+
                     const matches = exactMatch || numericMatch;
-                    
+
                     console.log('Filtering post:', {
                         postId: post.id,
                         postUserId: postUserIdStr,
@@ -610,12 +609,12 @@ async updatePost(postId, postData) {
                         matches,
                         userData: post.user
                     });
-                    
+
                     return matches;
                 });
-                
+
                 console.log('Filtered user posts count:', userPosts.length);
-                
+
                 // Log một số posts đầu tiên để debug
                 if (userPosts.length > 0) {
                     console.log('First few filtered posts:', userPosts.slice(0, 3).map(post => ({
@@ -631,7 +630,7 @@ async updatePost(postId, postData) {
                 const startIndex = page * size;
                 const endIndex = startIndex + size;
                 const paginatedPosts = userPosts.slice(startIndex, endIndex);
-                
+
                 console.log('Pagination info:', {
                     totalUserPosts: userPosts.length,
                     page,
@@ -646,10 +645,10 @@ async updatePost(postId, postData) {
                     const user = post.user || {};
                     const userName = user.nameSender || user.displayName || user.fullName || user.username || user.name || 'Người dùng';
                     const userPostId = user.senderId || user.id || user.userId || post.userId;
-                    
+
                     // Xử lý avatar với logic cải thiện
                     let userAvatar = null;
-                    
+
                     // Ưu tiên 1: avatarSender từ user object (cấu trúc mới)
                     if (user.avatarSender) {
                         userAvatar = getAvatarUrl({ avatarUrl: user.avatarSender });
@@ -694,8 +693,8 @@ async updatePost(postId, postData) {
                             user: {
                                 id: reaction.user?.senderId || reaction.user?.id,
                                 name: reaction.user?.nameSender || reaction.user?.name,
-                                avatar: reaction.user?.avatarSender ? 
-                                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) : 
+                                avatar: reaction.user?.avatarSender ?
+                                    getAvatarUrl({ avatarUrl: reaction.user.avatarSender }) :
                                     getAvatarUrl({ displayName: reaction.user?.nameSender || 'User' })
                             },
                             createdAt: reaction.createdAt
@@ -711,8 +710,8 @@ async updatePost(postId, postData) {
                             user: {
                                 id: comment.user?.senderId || comment.user?.id,
                                 name: comment.user?.nameSender || comment.user?.name,
-                                avatar: comment.user?.avatarSender ? 
-                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) : 
+                                avatar: comment.user?.avatarSender ?
+                                    getAvatarUrl({ avatarUrl: comment.user.avatarSender }) :
                                     getAvatarUrl({ displayName: comment.user?.nameSender || 'User' })
                             },
                             parentCommentId: comment.parentCommentId,
@@ -753,11 +752,11 @@ async updatePost(postId, postData) {
                 const validatedPosts = posts.filter(post => {
                     const postAuthorId = String(post.author.id).trim();
                     const targetUserIdStr = String(userId).trim();
-                    return postAuthorId === targetUserIdStr || 
-                           (!isNaN(targetUserIdStr) && !isNaN(postAuthorId) && 
+                    return postAuthorId === targetUserIdStr ||
+                        (!isNaN(targetUserIdStr) && !isNaN(postAuthorId) &&
                             Number(targetUserIdStr) === Number(postAuthorId));
                 });
-                
+
                 console.log('Final result:', {
                     originalPostsCount: posts.length,
                     validatedPostsCount: validatedPosts.length,
@@ -765,7 +764,7 @@ async updatePost(postId, postData) {
                     total: userPosts.length,
                     postsAuthors: validatedPosts.map(post => post.author.id)
                 });
-                
+
                 return {
                     posts: validatedPosts,
                     hasMore: endIndex < userPosts.length, // Check if there are more posts

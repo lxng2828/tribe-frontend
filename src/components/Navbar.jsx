@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { DEFAULT_AVATAR, getFullUrl, getAvatarUrl } from '../utils/placeholderImages';
+import { DEFAULT_AVATAR, getAvatarUrl } from '../utils/placeholderImages';
 import NotificationDropdown from './NotificationDropdown';
 import SearchBar from './SearchBar';
 
@@ -27,207 +27,188 @@ const Navbar = () => {
     return (
         <nav className="navbar navbar-expand-lg navbar-fb sticky-top">
             <div className="container-fluid px-4">
-                {/* Left Section - Logo */}
-                <div className="d-flex align-items-center">
-                    <Link className="navbar-brand d-flex align-items-center me-4" to="/">
-                        <div className="d-flex align-items-center justify-content-center me-2"
+                <div className="d-flex align-items-center w-100">
+                    {/* Left Spacer */}
+                    <div style={{ width: '100px', flexShrink: 0 }}></div>
+
+                    {/* Left Section - Logo */}
+                    <div className="d-flex align-items-center" style={{ flex: '0 0 200px' }}>
+                        <Link className="navbar-brand d-flex align-items-center" to="/">
+                            <div className="d-flex align-items-center justify-content-center me-2"
+                                style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    backgroundColor: 'var(--fb-blue)',
+                                    borderRadius: '50%',
+                                    boxShadow: '0 2px 4px rgba(8, 102, 255, 0.2)'
+                                }}>
+                                <span className="text-white fw-bold fs-5">T</span>
+                            </div>
+                            <span className="fw-bold fs-4 d-none d-md-inline" style={{ color: 'var(--fb-blue)' }}>
+                                Tribe
+                            </span>
+                        </Link>
+                    </div>
+
+                    {/* Center Section - Search Bar */}
+                    <div className="d-flex align-items-center justify-content-center" style={{ flex: '1 1 auto', padding: '0 20px' }}>
+                        <div className="d-none d-lg-block" style={{ maxWidth: '500px', width: '100%' }}>
+                            <SearchBar />
+                        </div>
+                    </div>
+
+                    {/* Right Section - Notifications and Profile */}
+                    <div className="d-flex align-items-center justify-content-end" style={{ flex: '0 0 100px' }}>
+                        {/* Mobile Menu Button */}
+                        <button
+                            className="btn d-lg-none me-2"
+                            type="button"
+                            onClick={toggleMenu}
                             style={{
+                                backgroundColor: 'var(--fb-gray)',
+                                borderRadius: '50%',
                                 width: '40px',
                                 height: '40px',
-                                backgroundColor: 'var(--fb-blue)',
-                                borderRadius: '50%',
-                                boxShadow: '0 2px 4px rgba(8, 102, 255, 0.2)'
-                            }}>
-                            <span className="text-white fw-bold fs-5">T</span>
-                        </div>
-                        <span className="fw-bold fs-4 d-none d-md-inline" style={{ color: 'var(--fb-blue)' }}>
-                            Tribe
-                        </span>
-                    </Link>
-                </div>
-
-                {/* Center Section - Search Bar */}
-                <div className="d-flex align-items-center flex-grow-1 justify-content-center">
-                    <div className="d-none d-lg-block" style={{ maxWidth: '600px', width: '100%' }}>
-                        <SearchBar />
-                    </div>
-                </div>
-
-                {/* Right Section - 3 Action Buttons */}
-                <div className="d-flex align-items-center">
-                    {/* Mobile Menu Button */}
-                    <button
-                        className="btn d-lg-none me-3"
-                        type="button"
-                        onClick={toggleMenu}
-                        style={{
-                            backgroundColor: 'var(--fb-gray)',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    >
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M3 12h18m-18-6h18m-18 12h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                    </button>
-
-                    {/* Button 1: Notifications */}
-                    <div className="me-3">
-                        <NotificationDropdown />
-                    </div>
-
-                    {/* Button 2: Messages */}
-                    <Link
-                        to="/messages"
-                        className="btn position-relative me-3"
-                        style={{
-                            backgroundColor: 'var(--fb-gray)',
-                            borderRadius: '50%',
-                            width: '40px',
-                            height: '40px',
-                            border: 'none',
-                            textDecoration: 'none',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'background-color 0.2s ease'
-                        }}
-                    >
-                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-                        </svg>
-                        <span className="notification-badge-fb">5</span>
-                    </Link>
-
-                    {/* Button 3: Profile Dropdown */}
-                    <div className="dropdown">
-                        <button
-                            className="btn dropdown-toggle border-0 p-0 position-relative"
-                            onClick={toggleProfileMenu}
-                            aria-expanded={isProfileMenuOpen}
-                            style={{ 
-                                backgroundColor: 'transparent',
-                                borderRadius: '50%',
-                                padding: '2px',
-                                transition: 'background-color 0.2s ease'
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                             }}
                         >
-                            <img
-                                src={getAvatarUrl(user)}
-                                alt={user?.displayName || user?.fullName || user?.username || 'User'}
-                                className="profile-pic-fb"
-                            />
-                            {/* Dropdown Arrow */}
-                            <svg 
-                                className="position-absolute bottom-0 end-0" 
-                                width="12" 
-                                height="12" 
-                                fill="currentColor" 
-                                viewBox="0 0 24 24"
-                                style={{
-                                    backgroundColor: 'var(--fb-white)',
-                                    borderRadius: '50%',
-                                    padding: '1px'
-                                }}
-                            >
-                                <path d="M7 10l5 5 5-5z"/>
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 12h18m-18-6h18m-18 12h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                             </svg>
                         </button>
 
-                        {/* Dropdown Menu */}
-                        <ul className={`dropdown-menu dropdown-menu-end ${isProfileMenuOpen ? 'show' : ''}`}
-                            style={{
-                                border: '1px solid var(--fb-border)',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
-                                minWidth: '320px'
-                            }}>
-                            <li className="px-3 py-2">
-                                <div className="d-flex align-items-center">
-                                    <img
-                                        src={getAvatarUrl(user)}
-                                        alt={user?.displayName || user?.fullName || 'User'}
-                                        className="profile-pic-fb me-3"
-                                    />
-                                    <div>
-                                        <div className="fw-bold" style={{ color: 'var(--fb-text)' }}>
-                                            {user?.displayName || user?.fullName || user?.username || 'Người dùng'}
+                        {/* Notifications */}
+                        <div className="me-2">
+                            <NotificationDropdown />
+                        </div>
+
+                        {/* Profile Dropdown */}
+                        <div className="position-relative">
+                            <button
+                                className="btn border-0 p-0"
+                                onClick={toggleProfileMenu}
+                                aria-expanded={isProfileMenuOpen}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    borderRadius: '50%',
+                                    padding: '2px',
+                                    transition: 'background-color 0.2s ease'
+                                }}
+                            >
+                                <img
+                                    src={getAvatarUrl(user)}
+                                    alt={user?.displayName || user?.fullName || user?.username || 'User'}
+                                    className="profile-pic-fb"
+                                />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            <div
+                                className={`position-absolute ${isProfileMenuOpen ? 'd-block' : 'd-none'}`}
+                                style={{
+                                    left: '50%',
+                                    transform: 'translateX(-50%)',
+                                    top: 'calc(100% + 8px)',
+                                    zIndex: 1000,
+                                    minWidth: '320px'
+                                }}
+                            >
+                                <ul className="list-unstyled m-0 p-0"
+                                    style={{
+                                        border: '1px solid var(--fb-border)',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
+                                        backgroundColor: 'white'
+                                    }}>
+                                    <li className="px-3 py-2">
+                                        <div className="d-flex align-items-center">
+                                            <img
+                                                src={getAvatarUrl(user)}
+                                                alt={user?.displayName || user?.fullName || 'User'}
+                                                className="profile-pic-fb me-3"
+                                            />
+                                            <div>
+                                                <div className="fw-bold" style={{ color: 'var(--fb-text)' }}>
+                                                    {user?.displayName || user?.fullName || user?.username || 'Người dùng'}
+                                                </div>
+                                                <div className="text-muted small">{user?.email}</div>
+                                            </div>
                                         </div>
-                                        <div className="text-muted small">{user?.email}</div>
-                                    </div>
-                                </div>
-                                <hr className="my-2" />
-                            </li>
-                            <li>
-                                <Link
-                                    className="dropdown-item d-flex align-items-center py-2"
-                                    to="/profile"
-                                    onClick={() => setIsProfileMenuOpen(false)}
-                                    style={{ borderRadius: '6px', margin: '0 8px' }}
-                                >
-                                    <div className="me-3 d-flex align-items-center justify-content-center"
-                                        style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            backgroundColor: 'var(--fb-gray)',
-                                            borderRadius: '50%'
-                                        }}>
-                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
-                                        </svg>
-                                    </div>
-                                    Xem hồ sơ của bạn
-                                </Link>
-                            </li>
-                            <li>
-                                <Link
-                                    className="dropdown-item d-flex align-items-center py-2"
-                                    to="/edit-profile"
-                                    onClick={() => setIsProfileMenuOpen(false)}
-                                    style={{ borderRadius: '6px', margin: '0 8px' }}
-                                >
-                                    <div className="me-3 d-flex align-items-center justify-content-center"
-                                        style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            backgroundColor: 'var(--fb-gray)',
-                                            borderRadius: '50%'
-                                        }}>
-                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm9.5-2a1.5 1.5 0 0 1 0 3l-1.061.659a8.966 8.966 0 0 1-.467 1.125l.417 1.124a1.5 1.5 0 0 1-1.375 2.092l-1.125-.417a8.966 8.966 0 0 1-1.125.467L16.105 21.5a1.5 1.5 0 0 1-3 0l-.659-1.061a8.966 8.966 0 0 1-1.125-.467l-1.124.417a1.5 1.5 0 0 1-2.092-1.375l.417-1.125a8.966 8.966 0 0 1-.467-1.125L2.5 15.105a1.5 1.5 0 0 1 0-3l1.061-.659a8.966 8.966 0 0 1 .467-1.125L3.611 9.197a1.5 1.5 0 0 1 1.375-2.092l1.125.417a8.966 8.966 0 0 1 1.125-.467L7.895 2.5a1.5 1.5 0 0 1 3 0l.659 1.061a8.966 8.966 0 0 1 1.125.467l1.124-.417a1.5 1.5 0 0 1 2.092 1.375l-.417 1.125a8.966 8.966 0 0 1 .467 1.125L21.5 8z" />
-                                        </svg>
-                                    </div>
-                                    Thông tin cá nhân và mật khẩu
-                                </Link>
-                            </li>
-                            <li><hr className="my-2" /></li>
-                            <li>
-                                <button
-                                    className="dropdown-item d-flex align-items-center py-2 w-100 text-start"
-                                    onClick={handleLogout}
-                                    style={{ borderRadius: '6px', margin: '0 8px', border: 'none', background: 'none' }}
-                                >
-                                    <div className="me-3 d-flex align-items-center justify-content-center"
-                                        style={{
-                                            width: '36px',
-                                            height: '36px',
-                                            backgroundColor: 'var(--fb-gray)',
-                                            borderRadius: '50%'
-                                        }}>
-                                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M16 17l5-5-5-5M19.8 12H9M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5" />
-                                        </svg>
-                                    </div>
-                                    Đăng xuất
-                                </button>
-                            </li>
-                        </ul>
+                                        <hr className="my-2" />
+                                    </li>
+                                    <li>
+                                        <Link
+                                            className="dropdown-item d-flex align-items-center py-2"
+                                            to="/profile"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            style={{ borderRadius: '6px', margin: '0 8px' }}
+                                        >
+                                            <div className="me-3 d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    backgroundColor: 'var(--fb-gray)',
+                                                    borderRadius: '50%'
+                                                }}>
+                                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm0 14.2a7.2 7.2 0 0 1-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 0 1-6 3.22z" />
+                                                </svg>
+                                            </div>
+                                            Xem hồ sơ của bạn
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            className="dropdown-item d-flex align-items-center py-2"
+                                            to="/edit-profile"
+                                            onClick={() => setIsProfileMenuOpen(false)}
+                                            style={{ borderRadius: '6px', margin: '0 8px' }}
+                                        >
+                                            <div className="me-3 d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    backgroundColor: 'var(--fb-gray)',
+                                                    borderRadius: '50%'
+                                                }}>
+                                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm9.5-2a1.5 1.5 0 0 1 0 3l-1.061.659a8.966 8.966 0 0 1-.467 1.125l.417 1.124a1.5 1.5 0 0 1-1.375 2.092l-1.125-.417a8.966 8.966 0 0 1-1.125.467L16.105 21.5a1.5 1.5 0 0 1-3 0l-.659-1.061a8.966 8.966 0 0 1-1.125-.467l-1.124.417a1.5 1.5 0 0 1-2.092-1.375l.417-1.125a8.966 8.966 0 0 1-.467-1.125L2.5 15.105a1.5 1.5 0 0 1 0-3l1.061-.659a8.966 8.966 0 0 1 .467-1.125L3.611 9.197a1.5 1.5 0 0 1 1.375-2.092l1.125.417a8.966 8.966 0 0 1 1.125-.467L7.895 2.5a1.5 1.5 0 0 1 3 0l.659 1.061a8.966 8.966 0 0 1 1.125.467l1.124-.417a1.5 1.5 0 0 1 2.092 1.375l-.417 1.125a8.966 8.966 0 0 1 .467 1.125L21.5 8z" />
+                                                </svg>
+                                            </div>
+                                            Thông tin cá nhân và mật khẩu
+                                        </Link>
+                                    </li>
+                                    <li><hr className="my-2" /></li>
+                                    <li>
+                                        <button
+                                            className="dropdown-item d-flex align-items-center py-2 w-100 text-start"
+                                            onClick={handleLogout}
+                                            style={{ borderRadius: '6px', margin: '0 8px', border: 'none', background: 'none' }}
+                                        >
+                                            <div className="me-3 d-flex align-items-center justify-content-center"
+                                                style={{
+                                                    width: '36px',
+                                                    height: '36px',
+                                                    backgroundColor: 'var(--fb-gray)',
+                                                    borderRadius: '50%'
+                                                }}>
+                                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                                    <path d="M16 17l5-5-5-5M19.8 12H9M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5" />
+                                                </svg>
+                                            </div>
+                                            Đăng xuất
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* Right Spacer */}
+                    <div style={{ width: '200px', flexShrink: 0 }}></div>
                 </div>
 
                 {/* Mobile Menu */}

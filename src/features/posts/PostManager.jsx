@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import postService from './postService';
+import { getAvatarUrl } from '../../utils/placeholderImages';
 
 // Create context
 const PostManagerContext = createContext();
@@ -21,7 +22,7 @@ const PostManager = ({ children }) => {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isInitialized, setIsInitialized] = useState(false);
-    
+
     console.log('PostManager mounted/updated:', {
         userId: user?.id,
         postsCount: posts.length,
@@ -43,10 +44,10 @@ const PostManager = ({ children }) => {
                 userId,
                 willLoadUserPosts: !!userId
             });
-            
+
             setLoading(true);
             setError(null);
-            
+
             let response;
             if (userId) {
                 console.log('Calling getPostsByUser for userId:', userId);
@@ -69,8 +70,8 @@ const PostManager = ({ children }) => {
                 response.posts.map(async (post) => {
                     try {
                         const currentReaction = await postService.getUserReaction(post.id);
-                        return { 
-                            ...post, 
+                        return {
+                            ...post,
                             liked: currentReaction ? true : false,
                             currentReaction: currentReaction
                         };
@@ -116,10 +117,29 @@ const PostManager = ({ children }) => {
                 ...postData,
                 userId: user?.id || user?.userId
             });
-            
-            setPosts(prev => [newPost, ...prev]);
+
+            // Đảm bảo post mới có đầy đủ thông tin user
+            const formattedPost = {
+                ...newPost,
+                author: {
+                    ...newPost.author,
+                    id: user?.id || user?.userId,
+                    name: user?.fullName || user?.displayName || user?.username || 'Người dùng',
+                    avatar: getAvatarUrl(user),
+                    displayName: user?.displayName,
+                    fullName: user?.fullName,
+                    username: user?.username
+                },
+                isOwner: true, // Post mới tạo luôn là của user hiện tại
+                createdAt: newPost.createdAt || new Date().toISOString(),
+                likesCount: 0,
+                commentsCount: 0,
+                liked: false
+            };
+
+            setPosts(prev => [formattedPost, ...prev]);
             setShowCreateModal(false);
-            return newPost;
+            return formattedPost;
         } catch (error) {
             throw error;
         } finally {
@@ -132,13 +152,28 @@ const PostManager = ({ children }) => {
         try {
             setLoading(true);
             const updatedPost = await postService.updatePost(postId, postData);
-            
-            setPosts(prev => prev.map(post => 
-                post.id === postId ? { ...post, ...updatedPost } : post
+
+            // Format dữ liệu updated post để đảm bảo nhất quán
+            const formattedUpdatedPost = {
+                ...updatedPost,
+                author: {
+                    ...updatedPost.author,
+                    id: user?.id || user?.userId,
+                    name: user?.fullName || user?.displayName || user?.username || 'Người dùng',
+                    avatar: getAvatarUrl(user),
+                    displayName: user?.displayName,
+                    fullName: user?.fullName,
+                    username: user?.username
+                },
+                isOwner: true
+            };
+
+            setPosts(prev => prev.map(post =>
+                post.id === postId ? { ...post, ...formattedUpdatedPost } : post
             ));
             setShowEditModal(false);
             setSelectedPost(null);
-            return updatedPost;
+            return formattedUpdatedPost;
         } catch (error) {
             throw error;
         } finally {
@@ -151,7 +186,7 @@ const PostManager = ({ children }) => {
         try {
             setLoading(true);
             await postService.deletePost(postId);
-            
+
             setPosts(prev => prev.filter(post => post.id !== postId));
             setShowDeleteModal(false);
             setSelectedPost(null);
@@ -166,18 +201,18 @@ const PostManager = ({ children }) => {
     const toggleReaction = async (postId, reactionType = 'LIKE') => {
         try {
             const result = await postService.toggleReaction(postId, reactionType);
-            
-            setPosts(prev => prev.map(post => 
-                post.id === postId 
-                    ? { 
-                        ...post, 
+
+            setPosts(prev => prev.map(post =>
+                post.id === postId
+                    ? {
+                        ...post,
                         liked: result.reacted,
                         currentReaction: result.reactionType,
                         likesCount: result.reacted ? post.likesCount + 1 : post.likesCount - 1
-                    } 
+                    }
                     : post
             ));
-            
+
         } catch (error) {
             console.error('Error toggling reaction:', error);
         }
@@ -192,17 +227,17 @@ const PostManager = ({ children }) => {
     const addComment = async (postId, content, parentCommentId = null) => {
         try {
             const newComment = await postService.addComment(postId, content, parentCommentId);
-            
-            setPosts(prev => prev.map(post => 
-                post.id === postId 
-                    ? { 
-                        ...post, 
+
+            setPosts(prev => prev.map(post =>
+                post.id === postId
+                    ? {
+                        ...post,
                         commentsCount: post.commentsCount + 1,
                         comments: [...(post.comments || []), newComment]
-                    } 
+                    }
                     : post
             ));
-            
+
             return newComment;
         } catch (error) {
             throw error;
@@ -213,17 +248,17 @@ const PostManager = ({ children }) => {
     const deleteComment = async (postId, commentId) => {
         try {
             await postService.deleteComment(postId, commentId);
-            
-            setPosts(prev => prev.map(post => 
-                post.id === postId 
-                    ? { 
-                        ...post, 
+
+            setPosts(prev => prev.map(post =>
+                post.id === postId
+                    ? {
+                        ...post,
                         commentsCount: post.commentsCount - 1,
                         comments: post.comments.filter(comment => comment.id !== commentId)
-                    } 
+                    }
                     : post
             ));
-            
+
         } catch (error) {
             console.error('Error deleting comment:', error);
         }
@@ -267,7 +302,7 @@ const PostManager = ({ children }) => {
     // Modal handlers
     const openCreateModal = () => setShowCreateModal(true);
     const closeCreateModal = () => setShowCreateModal(false);
-    
+
     const openEditModal = (post) => {
         setSelectedPost(post);
         setShowEditModal(true);
@@ -276,7 +311,7 @@ const PostManager = ({ children }) => {
         setSelectedPost(null);
         setShowEditModal(false);
     };
-    
+
     const openDeleteModal = (post) => {
         setSelectedPost(post);
         setShowDeleteModal(true);
@@ -285,7 +320,7 @@ const PostManager = ({ children }) => {
         setSelectedPost(null);
         setShowDeleteModal(false);
     };
-    
+
     const openCommentsModal = (post) => {
         setSelectedPost(post);
         setShowCommentsModal(true);
@@ -294,7 +329,7 @@ const PostManager = ({ children }) => {
         setSelectedPost(null);
         setShowCommentsModal(false);
     };
-    
+
     const openReactionsModal = (post) => {
         setSelectedPost(post);
         setShowReactionsModal(true);
@@ -317,7 +352,7 @@ const PostManager = ({ children }) => {
         showDeleteModal,
         showCommentsModal,
         showReactionsModal,
-        
+
         // Actions
         createPost,
         updatePost,
@@ -331,7 +366,7 @@ const PostManager = ({ children }) => {
         loadMorePosts,
         refreshPosts,
         loadPosts,
-        
+
         // Modal handlers
         openCreateModal,
         closeCreateModal,

@@ -228,17 +228,42 @@ const PostManager = ({ children }) => {
         try {
             const newComment = await postService.addComment(postId, content, parentCommentId);
 
+            // Format comment mới để đảm bảo có đầy đủ thông tin user
+            const formattedComment = {
+                ...newComment,
+                user: {
+                    ...newComment.user,
+                    id: user?.id || user?.userId,
+                    name: user?.fullName || user?.displayName || user?.username || 'Người dùng',
+                    avatar: getAvatarUrl(user),
+                    displayName: user?.displayName,
+                    fullName: user?.fullName,
+                    username: user?.username
+                },
+                author: {
+                    ...newComment.author,
+                    id: user?.id || user?.userId,
+                    name: user?.fullName || user?.displayName || user?.username || 'Người dùng',
+                    avatar: getAvatarUrl(user),
+                    displayName: user?.displayName,
+                    fullName: user?.fullName,
+                    username: user?.username
+                },
+                isOwner: true, // Comment mới tạo luôn là của user hiện tại
+                createdAt: newComment.createdAt || new Date().toISOString()
+            };
+
             setPosts(prev => prev.map(post =>
                 post.id === postId
                     ? {
                         ...post,
                         commentsCount: post.commentsCount + 1,
-                        comments: [...(post.comments || []), newComment]
+                        comments: [...(post.comments || []), formattedComment]
                     }
                     : post
             ));
 
-            return newComment;
+            return formattedComment;
         } catch (error) {
             throw error;
         }
